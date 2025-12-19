@@ -45,9 +45,10 @@ interface ChartProps {
   color?: string;
   type?: "area" | "line" | "bar";
   height?: number;
+  onClick?: (data: any) => void;
 }
 
-export function CompanySizeChart({ data, title, description }: ChartProps) {
+export function CompanySizeChart({ data, title, description, onClick }: ChartProps) {
     return (
       <Card className="col-span-4 lg:col-span-2 border-none shadow-sm hover:shadow-md transition-shadow">
         <CardHeader>
@@ -87,6 +88,8 @@ export function CompanySizeChart({ data, title, description }: ChartProps) {
                   radius={[0, 4, 4, 0]} 
                   barSize={24}
                   unit="%"
+                  onClick={onClick ? (data) => onClick(data) : undefined}
+                  className={onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}
                 >
                    {
                       data.map((entry, index) => (
@@ -102,7 +105,7 @@ export function CompanySizeChart({ data, title, description }: ChartProps) {
     );
   }
 
-export function RevenueChart({ data, title, description, color = "hsl(var(--primary))" }: ChartProps) {
+export function RevenueChart({ data, title, description, color = "hsl(var(--primary))", onClick }: ChartProps) {
   return (
     <Card className="col-span-4 border-none shadow-sm hover:shadow-md transition-shadow">
       <CardHeader>
@@ -112,7 +115,7 @@ export function RevenueChart({ data, title, description, color = "hsl(var(--prim
       <CardContent className="pl-2">
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} onClick={onClick}>
               <defs>
                 <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={color} stopOpacity={0.3} />
@@ -154,7 +157,7 @@ export function RevenueChart({ data, title, description, color = "hsl(var(--prim
   );
 }
 
-export function MeetingsChart({ data, title, description }: ChartProps) {
+export function MeetingsChart({ data, title, description, onClick }: ChartProps) {
   return (
     <Card className="col-span-4 lg:col-span-2 border-none shadow-sm hover:shadow-md transition-shadow">
       <CardHeader>
@@ -164,7 +167,7 @@ export function MeetingsChart({ data, title, description }: ChartProps) {
       <CardContent>
         <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
+            <BarChart data={data} onClick={onClick}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis 
                 dataKey="date" 
@@ -196,7 +199,7 @@ export function MeetingsChart({ data, title, description }: ChartProps) {
   );
 }
 
-export function ClosureChart({ data, title, description }: ChartProps) {
+export function ClosureChart({ data, title, description, onClick }: ChartProps) {
     return (
       <Card className="col-span-4 lg:col-span-2 border-none shadow-sm hover:shadow-md transition-shadow">
         <CardHeader>
@@ -206,7 +209,7 @@ export function ClosureChart({ data, title, description }: ChartProps) {
         <CardContent>
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data}>
+              <LineChart data={data} onClick={onClick}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="date" 
