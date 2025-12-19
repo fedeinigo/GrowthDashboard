@@ -119,12 +119,12 @@ export function Layout({ children }: LayoutProps) {
             <div className="h-8 w-[1px] bg-border mx-1" />
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-foreground">Camila Rodriguez</p>
+                <p className="text-sm font-medium text-foreground">Franco Landoni</p>
                 <p className="text-xs text-muted-foreground">Head of Growth</p>
               </div>
               <Avatar className="h-9 w-9 border border-border">
                 <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CR</AvatarFallback>
+                <AvatarFallback>FL</AvatarFallback>
               </Avatar>
             </div>
           </div>
