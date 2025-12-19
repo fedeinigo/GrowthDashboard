@@ -1,10 +1,9 @@
 import { Layout } from "@/components/layout";
 import { KPICard } from "@/components/kpi-card";
-import { mockMetrics, companySizes, RankingData } from "@/lib/mock-data";
+import { mockMetrics, companySizes } from "@/lib/mock-data";
 import { RevenueChart, MeetingsChart, ClosureChart, CompanySizeChart } from "@/components/charts";
 import { DashboardFilters } from "@/components/dashboard-filters";
 import { 
-  Users, 
   DollarSign, 
   Target, 
   Clock, 
@@ -32,7 +31,22 @@ import { Progress } from "@/components/ui/progress";
 export default function Dashboard() {
   const [filters, setFilters] = useState<Record<string, any>>({});
   
-  const { metrics, revenueHistory, meetingsHistory, closureRateHistory, products, rankings } = mockMetrics;
+  // Destructure safely with defaults
+  const { 
+    metrics = {
+      revenue: { label: "Revenue", value: 0, change: 0, trend: "neutral" },
+      closureRate: { label: "Closure Rate", value: 0, change: 0, trend: "neutral" },
+      meetings: { label: "Meetings", value: 0, change: 0, trend: "neutral" },
+      logos: { label: "Logos", value: 0, change: 0, trend: "neutral" },
+      avgSalesCycle: { label: "Sales Cycle", value: 0, change: 0, trend: "neutral" },
+      companySize: { label: "Company Size", value: "N/A", change: 0, trend: "neutral" }
+    },
+    revenueHistory = [], 
+    meetingsHistory = [], 
+    closureRateHistory = [], 
+    products = [],
+    rankings = { byTeam: [], byPerson: [], bySource: [] }
+  } = mockMetrics || {};
 
   const handleFilterChange = (newFilters: any) => {
     if (newFilters.reset) {
@@ -66,6 +80,17 @@ export default function Dashboard() {
      }
   };
 
+  // Safe access check
+  if (!metrics || !metrics.revenue) {
+    return (
+      <Layout>
+        <div className="p-8 text-center text-muted-foreground">
+          Loading dashboard data...
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -89,55 +114,55 @@ export default function Dashboard() {
         {/* KPI Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <KPICard 
-            title={metrics.revenue.label} 
-            value={metrics.revenue.value} 
-            change={metrics.revenue.change} 
-            trend={metrics.revenue.trend} 
-            prefix={metrics.revenue.prefix}
-            subtext={metrics.revenue.subtext}
+            title={metrics.revenue?.label || "Revenue"} 
+            value={metrics.revenue?.value || 0} 
+            change={metrics.revenue?.change || 0} 
+            trend={metrics.revenue?.trend || "neutral"} 
+            prefix={metrics.revenue?.prefix}
+            subtext={metrics.revenue?.subtext}
             icon={DollarSign}
             className="border-l-4 border-l-primary"
           />
           <KPICard 
-            title={metrics.closureRate.label} 
-            value={metrics.closureRate.value} 
-            change={metrics.closureRate.change} 
-            trend={metrics.closureRate.trend} 
-            suffix={metrics.closureRate.suffix}
-            subtext={metrics.closureRate.subtext}
+            title={metrics.closureRate?.label || "Closure Rate"} 
+            value={metrics.closureRate?.value || 0} 
+            change={metrics.closureRate?.change || 0} 
+            trend={metrics.closureRate?.trend || "neutral"} 
+            suffix={metrics.closureRate?.suffix}
+            subtext={metrics.closureRate?.subtext}
             icon={Target}
           />
           <KPICard 
-            title={metrics.meetings.label} 
-            value={metrics.meetings.value} 
-            change={metrics.meetings.change} 
-            trend={metrics.meetings.trend} 
-            subtext={metrics.meetings.subtext}
+            title={metrics.meetings?.label || "Meetings"} 
+            value={metrics.meetings?.value || 0} 
+            change={metrics.meetings?.change || 0} 
+            trend={metrics.meetings?.trend || "neutral"} 
+            subtext={metrics.meetings?.subtext}
             icon={CalendarCheck}
           />
           <KPICard 
-            title={metrics.logos.label} 
-            value={metrics.logos.value} 
-            change={metrics.logos.change} 
-            trend={metrics.logos.trend} 
-            subtext={metrics.logos.subtext}
+            title={metrics.logos?.label || "Logos"} 
+            value={metrics.logos?.value || 0} 
+            change={metrics.logos?.change || 0} 
+            trend={metrics.logos?.trend || "neutral"} 
+            subtext={metrics.logos?.subtext}
             icon={Briefcase}
           />
            <KPICard 
-            title={metrics.avgSalesCycle.label} 
-            value={metrics.avgSalesCycle.value} 
-            change={metrics.avgSalesCycle.change} 
-            trend={metrics.avgSalesCycle.trend} 
-            suffix={metrics.avgSalesCycle.suffix}
-            subtext={metrics.avgSalesCycle.subtext}
+            title={metrics.avgSalesCycle?.label || "Sales Cycle"} 
+            value={metrics.avgSalesCycle?.value || 0} 
+            change={metrics.avgSalesCycle?.change || 0} 
+            trend={metrics.avgSalesCycle?.trend || "neutral"} 
+            suffix={metrics.avgSalesCycle?.suffix}
+            subtext={metrics.avgSalesCycle?.subtext}
             icon={Clock}
           />
            <KPICard 
-            title={metrics.companySize.label} 
-            value={metrics.companySize.value} 
-            change={metrics.companySize.change} 
-            trend={metrics.companySize.trend} 
-            subtext={metrics.companySize.subtext}
+            title={metrics.companySize?.label || "Company Size"} 
+            value={metrics.companySize?.value || "N/A"} 
+            change={metrics.companySize?.change || 0} 
+            trend={metrics.companySize?.trend || "neutral"} 
+            subtext={metrics.companySize?.subtext}
             icon={Building2}
           />
         </div>
@@ -191,7 +216,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {rankings.byTeam.map((item, index) => (
+                        {rankings?.byTeam?.map((item, index) => (
                             <div key={item.name} className="flex flex-col gap-1">
                                 <div className="flex justify-between text-sm font-medium">
                                     <span>{index + 1}. {item.name}</span>
@@ -214,7 +239,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {rankings.byPerson.map((item, index) => (
+                        {rankings?.byPerson?.map((item, index) => (
                             <div key={item.name} className="flex flex-col gap-1">
                                 <div className="flex justify-between text-sm font-medium">
                                     <span>{item.name}</span>
@@ -242,7 +267,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                      <div className="space-y-4">
-                        {rankings.bySource.map((item, index) => (
+                        {rankings?.bySource?.map((item, index) => (
                             <div key={item.name} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium">{item.name}</span>
