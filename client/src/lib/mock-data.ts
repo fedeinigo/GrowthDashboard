@@ -23,7 +23,12 @@ export interface ProductData {
   revenue: number;
 }
 
-export interface MetricState {
+export interface FilterOption {
+  value: string;
+  label: string;
+}
+
+export interface FilterState {
   metrics: Record<string, KPIData>;
   revenueHistory: ChartDataPoint[];
   meetingsHistory: ChartDataPoint[];
@@ -31,7 +36,38 @@ export interface MetricState {
   products: ProductData[];
 }
 
-export const mockMetrics: MetricState = {
+export const teams: FilterOption[] = [
+  { value: "all", label: "Todos los Equipos" },
+  { value: "enterprise", label: "Enterprise Sales" },
+  { value: "sme", label: "SME Sales" },
+  { value: "outbound", label: "Outbound Growth" },
+];
+
+export const people: FilterOption[] = [
+  { value: "all", label: "Todas las Personas" },
+  { value: "camila", label: "Camila Rodriguez" },
+  { value: "juan", label: "Juan Pérez" },
+  { value: "sofia", label: "Sofía Martínez" },
+  { value: "lucas", label: "Lucas García" },
+];
+
+export const sources: FilterOption[] = [
+  { value: "all", label: "Todos los Orígenes" },
+  { value: "inbound", label: "Inbound Marketing" },
+  { value: "outbound", label: "Outbound Prospecting" },
+  { value: "referral", label: "Referidos" },
+  { value: "events", label: "Eventos" },
+];
+
+export const companySizes: ChartDataPoint[] = [
+  { date: "1-10", value: 15 },
+  { date: "11-50", value: 45 },
+  { date: "51-200", value: 30 },
+  { date: "201-500", value: 8 },
+  { date: "500+", value: 2 },
+];
+
+export const mockMetrics: FilterState = {
   metrics: {
     closureRate: {
       label: "Tasa de Cierre",
@@ -63,12 +99,12 @@ export const mockMetrics: MetricState = {
       trend: "down",
       subtext: "Meta mensual: 20"
     },
-    employeesPerMeeting: {
-      label: "Q Empleados / Reunión",
-      value: 1.8,
-      change: -0.2,
-      trend: "up", // Down is good for efficiency, so trend "up" visually might mean green? Usually we handle this in UI logic. Let's say -0.2 change is "positive" improvement.
-      subtext: "Optimizando recursos"
+    companySize: {
+      label: "Tamaño Empresa (Promedio)",
+      value: "51-200", // Changed to reflect the user request
+      change: 0, 
+      trend: "neutral",
+      subtext: "Segmento más frecuente"
     },
     avgSalesCycle: {
       label: "Ciclo de Venta Promedio",

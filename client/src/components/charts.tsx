@@ -1,3 +1,4 @@
+// ... imports ...
 import {
   Area,
   AreaChart,
@@ -7,6 +8,8 @@ import {
   Cell,
   Line,
   LineChart,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -23,7 +26,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-semibold text-foreground mb-1">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} style={{ color: entry.color }} className="font-medium">
-            {entry.name}: {entry.value.toLocaleString()}
+            {entry.name}: {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
+            {entry.unit}
           </p>
         ))}
       </div>
@@ -36,12 +40,67 @@ interface ChartProps {
   data: ChartDataPoint[];
   title: string;
   description?: string;
-  dataKey: string;
+  dataKey?: string;
   dataKey2?: string;
   color?: string;
   type?: "area" | "line" | "bar";
   height?: number;
 }
+
+export function CompanySizeChart({ data, title, description }: ChartProps) {
+    return (
+      <Card className="col-span-4 lg:col-span-2 border-none shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
+        </CardHeader>
+        <CardContent>
+          <div className="h-[250px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="hsl(var(--border))" />
+                <XAxis 
+                  type="number" 
+                  stroke="hsl(var(--muted-foreground))" 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false}
+                  unit="%"
+                />
+                <YAxis 
+                  dataKey="date" 
+                  type="category" 
+                  stroke="hsl(var(--muted-foreground))" 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false}
+                  width={60}
+                />
+                <Tooltip 
+                  content={<CustomTooltip />} 
+                  cursor={{ fill: 'hsl(var(--muted)/0.2)' }} 
+                />
+                <Bar 
+                  dataKey="value" 
+                  name="Distribución" 
+                  fill="hsl(var(--chart-4))" 
+                  radius={[0, 4, 4, 0]} 
+                  barSize={24}
+                  unit="%"
+                >
+                   {
+                      data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
+                      ))
+                    }
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
 export function RevenueChart({ data, title, description, color = "hsl(var(--primary))" }: ChartProps) {
   return (

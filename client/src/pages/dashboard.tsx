@@ -1,7 +1,8 @@
 import { Layout } from "@/components/layout";
 import { KPICard } from "@/components/kpi-card";
-import { mockMetrics } from "@/lib/mock-data";
-import { RevenueChart, MeetingsChart, ClosureChart } from "@/components/charts";
+import { mockMetrics, companySizes } from "@/lib/mock-data";
+import { RevenueChart, MeetingsChart, ClosureChart, CompanySizeChart } from "@/components/charts";
+import { DashboardFilters } from "@/components/dashboard-filters";
 import { 
   Users, 
   DollarSign, 
@@ -9,7 +10,8 @@ import {
   Clock, 
   Briefcase,
   TrendingUp,
-  CalendarCheck
+  CalendarCheck,
+  Building2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -21,29 +23,40 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 export default function Dashboard() {
+  const [filters, setFilters] = useState({});
+  // In a real app, we would use 'filters' to fetch different data.
+  // Here we just use the mock data directly, but the UI is ready.
+  
   const { metrics, revenueHistory, meetingsHistory, closureRateHistory, products } = mockMetrics;
+
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+    console.log("Filters updated:", { ...filters, ...newFilters });
+    // Simulate data refresh if needed
+  };
 
   return (
     <Layout>
       <div className="space-y-8">
         
-        {/* Header Section with Date Filter Placeholder */}
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-heading font-bold text-foreground tracking-tight">Resumen General</h2>
             <p className="text-muted-foreground mt-1">Última actualización: hace 5 minutos</p>
           </div>
           <div className="flex gap-2">
-             <div className="bg-background border border-input px-4 py-2 rounded-md text-sm font-medium shadow-sm hover:bg-accent/50 cursor-pointer transition-colors">
-                Últimos 30 días
-             </div>
              <div className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium shadow-md shadow-primary/20 hover:bg-primary/90 cursor-pointer transition-colors">
                 Exportar Reporte
              </div>
           </div>
         </div>
+
+        {/* Filters Section */}
+        <DashboardFilters onFilterChange={handleFilterChange} />
 
         {/* KPI Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -92,12 +105,12 @@ export default function Dashboard() {
             icon={Clock}
           />
            <KPICard 
-            title={metrics.employeesPerMeeting.label} 
-            value={metrics.employeesPerMeeting.value} 
-            change={metrics.employeesPerMeeting.change} 
-            trend={metrics.employeesPerMeeting.trend} 
-            subtext={metrics.employeesPerMeeting.subtext}
-            icon={Users}
+            title={metrics.companySize.label} 
+            value={metrics.companySize.value} 
+            change={metrics.companySize.change} 
+            trend={metrics.companySize.trend} 
+            subtext={metrics.companySize.subtext}
+            icon={Building2}
           />
         </div>
 
@@ -123,6 +136,13 @@ export default function Dashboard() {
                 title="Tendencia de Cierre"
                 description="Variación semanal de tasa de conversión"
                 dataKey="value"
+            />
+
+            {/* Company Size Distribution */}
+             <CompanySizeChart 
+                data={companySizes}
+                title="Tamaño de Empresas"
+                description="Distribución por cantidad de empleados"
             />
         </div>
 
