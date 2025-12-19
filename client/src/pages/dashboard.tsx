@@ -377,7 +377,51 @@ export default function Dashboard() {
                                                 </TableCell>
                                             </TableRow>
                                         ))}
-                                        {/* Optional Spacer Row or summary line could go here */}
+                                    </>
+                                ))}
+                            </TableBody>
+                         </Table>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-none shadow-sm">
+                    <CardHeader>
+                        <CardTitle>Ingresos por Región Estratégica</CardTitle>
+                        <CardDescription>Volumen de negocio en propuestas y cierres (USD)</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <Table>
+                            <TableHeader>
+                                <TableRow className="hover:bg-transparent border-b-2">
+                                    <TableHead className="w-[200px]">Células x Región</TableHead>
+                                    <TableHead className="w-[250px]">Origen</TableHead>
+                                    <TableHead className="text-right">Propuesta ($)</TableHead>
+                                    <TableHead className="text-right">Cierre ($)</TableHead>
+                                    <TableHead className="text-right">Ticket Promedio</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {regionalData.map((region) => (
+                                    <>
+                                        {region.rows.map((row, index) => (
+                                            <TableRow key={`rev-${region.region}-${row.origin}`} className="hover:bg-muted/30 border-b">
+                                                <TableCell className={`font-medium align-top ${index === 0 ? "text-foreground" : ""}`}>
+                                                    {index === 0 ? region.region : ""}
+                                                </TableCell>
+                                                <TableCell>{row.origin}</TableCell>
+                                                <TableCell className="text-right text-muted-foreground">
+                                                    ${row.proposalsValue ? row.proposalsValue.toLocaleString() : "0"}
+                                                </TableCell>
+                                                <TableCell className="text-right font-medium text-foreground">
+                                                    ${row.closingsValue ? row.closingsValue.toLocaleString() : "0"}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {row.closings > 0 ? "$" + Math.round(row.closingsValue / row.closings).toLocaleString() : "-"}
+                                                    </span>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
                                     </>
                                 ))}
                             </TableBody>

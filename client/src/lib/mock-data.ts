@@ -44,6 +44,8 @@ export interface RegionData {
       meetings: number;
       proposals: number;
       closings: number;
+      proposalsValue: number;
+      closingsValue: number;
   }[];
 }
 
@@ -208,48 +210,48 @@ export const mockMetrics: FilterState = {
     {
         region: "Colombia",
         rows: [
-            { origin: "Telefónica CO", meetings: 30, proposals: 12, closings: 2 },
-            { origin: "Directo", meetings: 15, proposals: 6, closings: 1 },
+            { origin: "Telefónica CO", meetings: 30, proposals: 12, closings: 2, proposalsValue: 48000, closingsValue: 12000 },
+            { origin: "Directo", meetings: 15, proposals: 6, closings: 1, proposalsValue: 24000, closingsValue: 4500 },
         ]
     },
     {
         region: "Argentina",
         rows: [
-            { origin: "Telefónica ARG", meetings: 25, proposals: 10, closings: 3 },
-            { origin: "Directo", meetings: 10, proposals: 4, closings: 0 },
+            { origin: "Telefónica ARG", meetings: 25, proposals: 10, closings: 3, proposalsValue: 35000, closingsValue: 15000 },
+            { origin: "Directo", meetings: 10, proposals: 4, closings: 0, proposalsValue: 12000, closingsValue: 0 },
         ]
     },
     {
         region: "Mexico",
         rows: [
-            { origin: "Directo", meetings: 18, proposals: 8, closings: 2 },
+            { origin: "Directo", meetings: 18, proposals: 8, closings: 2, proposalsValue: 32000, closingsValue: 9000 },
         ]
     },
     {
         region: "Brasil",
         rows: [
-             { origin: "Directo", meetings: 20, proposals: 5, closings: 1 },
+             { origin: "Directo", meetings: 20, proposals: 5, closings: 1, proposalsValue: 25000, closingsValue: 6000 },
         ]
     },
     {
         region: "España",
         rows: [
-            { origin: "Telefónica España", meetings: 12, proposals: 4, closings: 1 },
+            { origin: "Telefónica España", meetings: 12, proposals: 4, closings: 1, proposalsValue: 28000, closingsValue: 8000 },
         ]
     },
     {
         region: "Rest Latam",
         rows: [
-            { origin: "Telefónica Perú", meetings: 8, proposals: 2, closings: 0 },
-            { origin: "Telefónica Chile", meetings: 15, proposals: 7, closings: 2 },
-            { origin: "Telefónica UY", meetings: 5, proposals: 1, closings: 0 },
-            { origin: "Directo", meetings: 10, proposals: 3, closings: 1 },
+            { origin: "Telefónica Perú", meetings: 8, proposals: 2, closings: 0, proposalsValue: 5000, closingsValue: 0 },
+            { origin: "Telefónica Chile", meetings: 15, proposals: 7, closings: 2, proposalsValue: 21000, closingsValue: 7000 },
+            { origin: "Telefónica UY", meetings: 5, proposals: 1, closings: 0, proposalsValue: 3000, closingsValue: 0 },
+            { origin: "Directo", meetings: 10, proposals: 3, closings: 1, proposalsValue: 9000, closingsValue: 3500 },
         ]
     },
     {
         region: "Service as a Software",
         rows: [
-            { origin: "Directo", meetings: 5, proposals: 2, closings: 1 },
+            { origin: "Directo", meetings: 5, proposals: 2, closings: 1, proposalsValue: 4000, closingsValue: 2000 },
         ]
     }
   ]
