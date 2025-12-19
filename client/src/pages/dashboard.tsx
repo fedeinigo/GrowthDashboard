@@ -218,9 +218,14 @@ export default function Dashboard() {
                     <div className="space-y-4">
                         {rankings?.byTeam?.map((item, index) => (
                             <div key={item.name} className="flex flex-col gap-1">
-                                <div className="flex justify-between text-sm font-medium">
+                                <div className="flex justify-between items-start text-sm font-medium">
                                     <span>{index + 1}. {item.name}</span>
-                                    <span>{item.valueFormatted}</span>
+                                    <div className="flex flex-col items-end">
+                                        <span>{item.valueFormatted}</span>
+                                        <span className={item.change > 0 ? "text-emerald-600 text-xs" : "text-destructive text-xs"}>
+                                            {item.change > 0 ? "+" : ""}{item.change}%
+                                        </span>
+                                    </div>
                                 </div>
                                 <Progress value={item.value / 1500} className="h-2" />
                             </div>
