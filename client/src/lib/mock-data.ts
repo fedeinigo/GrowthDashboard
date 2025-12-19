@@ -159,11 +159,14 @@ export const mockMetrics: FilterState = {
     value: 20 + Math.random() * 10,
   })),
   products: [
-    { name: "WiseCX Enterprise", category: "Platform", sold: 12, revenue: 60000 },
-    { name: "WiseCX Growth", category: "Platform", sold: 25, revenue: 25000 },
-    { name: "Consultoría Onboarding", category: "Services", sold: 8, revenue: 12000 },
-    { name: "Add-on Analytics", category: "Add-on", sold: 15, revenue: 7500 },
-    { name: "Soporte Premium", category: "Services", sold: 5, revenue: 5000 },
+    { name: "Canal WhatsApp", category: "Canales", sold: 45, revenue: 22500 },
+    { name: "BOT QuickBot", category: "Bots", sold: 32, revenue: 16000 },
+    { name: "Canal META", category: "Canales", sold: 28, revenue: 14000 },
+    { name: "Módulo Nitro", category: "Módulos", sold: 15, revenue: 11250 },
+    { name: "Wiser PLUS", category: "Licencias", sold: 12, revenue: 36000 },
+    { name: "Canal Chat Web", category: "Canales", sold: 10, revenue: 5000 },
+    { name: "Bot Encuestador Prodigy", category: "Bots", sold: 8, revenue: 12000 },
+    { name: "Canal Google My Business", category: "Canales", sold: 5, revenue: 2500 },
   ],
   rankings: {
     byTeam: [
