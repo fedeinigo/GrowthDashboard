@@ -50,17 +50,35 @@ export interface FilterState {
 
 export const teams: FilterOption[] = [
   { value: "all", label: "Todos los Equipos" },
-  { value: "enterprise", label: "Enterprise Sales" },
-  { value: "sme", label: "SME Sales" },
-  { value: "outbound", label: "Outbound Growth" },
+  { value: "leones", label: "Leones" },
+  { value: "tigres", label: "Tigres" },
+  { value: "lobos", label: "Lobos" },
+  { value: "wizards", label: "Wizards" },
+  { value: "jaguares", label: "Jaguares" },
 ];
 
 export const people: FilterOption[] = [
   { value: "all", label: "Todas las Personas" },
-  { value: "camila", label: "Camila Rodriguez" },
-  { value: "juan", label: "Juan Pérez" },
-  { value: "sofia", label: "Sofía Martínez" },
-  { value: "lucas", label: "Lucas García" },
+  { value: "cami", label: "Cami" },
+  { value: "eva", label: "Eva García" },
+  { value: "fernanda", label: "Fernanda Viani" },
+  { value: "sebastian", label: "Sebastian" },
+  { value: "flor", label: "Flor" },
+  { value: "karol", label: "Karol" },
+  { value: "lina", label: "Lina Gutierrez" },
+  { value: "sara", label: "Sara Durley" },
+  { value: "esteban", label: "Esteban Costacaro" },
+  { value: "steven", label: "Steven" },
+  { value: "carlos", label: "Carlos Gomez" },
+  { value: "nicolas", label: "Nicolas" },
+  { value: "henry", label: "Henry Cuentas" },
+  { value: "jesus", label: "Jesús" },
+  { value: "agostina", label: "Agostina" },
+  { value: "mateo", label: "Mateo" },
+  { value: "tomi", label: "Tomi" },
+  { value: "joaquin", label: "Joaquin" },
+  { value: "luis", label: "Luis Fedele" },
+  { value: "luciana", label: "Luciana Colombarini" },
 ];
 
 export const sources: FilterOption[] = [
@@ -149,15 +167,18 @@ export const mockMetrics: FilterState = {
   ],
   rankings: {
     byTeam: [
-      { name: "Enterprise Sales", value: 125000, valueFormatted: "$125,000", change: 12 },
-      { name: "SME Sales", value: 85000, valueFormatted: "$85,000", change: 5 },
-      { name: "Outbound Growth", value: 45000, valueFormatted: "$45,000", change: -2 },
+      { name: "Leones", value: 135000, valueFormatted: "$135,000", change: 12 },
+      { name: "Tigres", value: 95000, valueFormatted: "$95,000", change: 8 },
+      { name: "Lobos", value: 82000, valueFormatted: "$82,000", change: 5 },
+      { name: "Wizards", value: 65000, valueFormatted: "$65,000", change: -2 },
+      { name: "Jaguares", value: 45000, valueFormatted: "$45,000", change: 3 },
     ],
     byPerson: [
-      { name: "Camila Rodriguez", value: 52000, valueFormatted: "$52,000", change: 15 },
-      { name: "Juan Pérez", value: 48000, valueFormatted: "$48,000", change: 8 },
-      { name: "Sofía Martínez", value: 35000, valueFormatted: "$35,000", change: 3 },
-      { name: "Lucas García", value: 28000, valueFormatted: "$28,000", change: -5 },
+      { name: "Eva García", value: 58000, valueFormatted: "$58,000", change: 15 },
+      { name: "Cami", value: 52000, valueFormatted: "$52,000", change: 10 },
+      { name: "Fernanda Viani", value: 48000, valueFormatted: "$48,000", change: 8 },
+      { name: "Luis Fedele", value: 42000, valueFormatted: "$42,000", change: 5 },
+      { name: "Esteban Costacaro", value: 35000, valueFormatted: "$35,000", change: -2 },
     ],
     bySource: [
       { name: "Inbound Marketing", value: 95000, valueFormatted: "$95,000", change: 10 },
