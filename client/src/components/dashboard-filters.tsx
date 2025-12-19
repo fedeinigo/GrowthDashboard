@@ -30,52 +30,115 @@ export function DashboardFilters({ onFilterChange }: DashboardFiltersProps) {
     to: new Date(2025, 1, 9),
   });
 
+  const [dateType, setDateType] = useState("range"); // "range" or "quarter"
+
+  const quarters = [
+    { value: "q1", label: "Q1" },
+    { value: "q2", label: "Q2" },
+    { value: "q3", label: "Q3" },
+    { value: "q4", label: "Q4" },
+  ];
+
+  const years = Array.from({ length: 5 }, (_, i) => {
+    const year = new Date().getFullYear() - 2 + i;
+    return { value: year.toString(), label: year.toString() };
+  });
+
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4 bg-card border border-border rounded-lg shadow-sm">
+    <div className="flex flex-col md:flex-row gap-4 p-4 bg-card border border-border rounded-lg shadow-sm flex-wrap">
       
-      {/* Date Picker */}
-      <div className="flex-1 min-w-[240px]">
-        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Rango de Fechas</label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              id="date"
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left font-normal bg-background hover:bg-accent/50",
-                !date && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-              {date?.from ? (
-                date.to ? (
-                  <>
-                    {format(date.from, "dd MMM", { locale: es })} -{" "}
-                    {format(date.to, "dd MMM, yyyy", { locale: es })}
-                  </>
-                ) : (
-                  format(date.from, "LLL dd, y", { locale: es })
-                )
-              ) : (
-                <span>Seleccionar fechas</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              initialFocus
-              mode="range"
-              defaultMonth={date?.from}
-              selected={date}
-              onSelect={setDate}
-              numberOfMonths={2}
-            />
-          </PopoverContent>
-        </Popover>
+      {/* Date Type Selector */}
+      <div className="flex-1 min-w-[140px] max-w-[180px]">
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Tipo de Fecha</label>
+         <Select defaultValue="range" onValueChange={setDateType}>
+          <SelectTrigger className="bg-background">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="range">Rango Específico</SelectItem>
+            <SelectItem value="quarter">Trimestre (Q)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
+      {/* Date Picker or Quarter/Year Selects */}
+      {dateType === "range" ? (
+        <div className="flex-1 min-w-[240px]">
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Rango de Fechas</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal bg-background hover:bg-accent/50",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                {date?.from ? (
+                  date.to ? (
+                    <>
+                      {format(date.from, "dd MMM", { locale: es })} -{" "}
+                      {format(date.to, "dd MMM, yyyy", { locale: es })}
+                    </>
+                  ) : (
+                    format(date.from, "LLL dd, y", { locale: es })
+                  )
+                ) : (
+                  <span>Seleccionar fechas</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      ) : (
+        <>
+            <div className="flex-1 min-w-[100px]">
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Trimestre</label>
+                <Select defaultValue="q1" onValueChange={(val) => onFilterChange({ quarter: val })}>
+                <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Q" />
+                </SelectTrigger>
+                <SelectContent>
+                    {quarters.map((q) => (
+                    <SelectItem key={q.value} value={q.value}>
+                        {q.label}
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+                </Select>
+            </div>
+             <div className="flex-1 min-w-[100px]">
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Año</label>
+                <Select defaultValue={new Date().getFullYear().toString()} onValueChange={(val) => onFilterChange({ year: val })}>
+                <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Año" />
+                </SelectTrigger>
+                <SelectContent>
+                    {years.map((y) => (
+                    <SelectItem key={y.value} value={y.value}>
+                        {y.label}
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+                </Select>
+            </div>
+        </>
+      )}
+
       {/* Team Filter */}
-      <div className="flex-1 min-w-[200px]">
+      <div className="flex-1 min-w-[180px]">
         <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Equipo</label>
         <Select defaultValue="all" onValueChange={(val) => onFilterChange({ team: val })}>
           <SelectTrigger className="bg-background">
@@ -92,7 +155,7 @@ export function DashboardFilters({ onFilterChange }: DashboardFiltersProps) {
       </div>
 
       {/* Person Filter */}
-      <div className="flex-1 min-w-[200px]">
+      <div className="flex-1 min-w-[180px]">
         <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Persona</label>
         <Select defaultValue="all" onValueChange={(val) => onFilterChange({ person: val })}>
           <SelectTrigger className="bg-background">
@@ -109,7 +172,7 @@ export function DashboardFilters({ onFilterChange }: DashboardFiltersProps) {
       </div>
 
        {/* Source Filter */}
-       <div className="flex-1 min-w-[200px]">
+       <div className="flex-1 min-w-[180px]">
         <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Origen del Lead</label>
         <Select defaultValue="all" onValueChange={(val) => onFilterChange({ source: val })}>
           <SelectTrigger className="bg-background">
