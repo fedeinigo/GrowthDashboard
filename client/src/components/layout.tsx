@@ -22,9 +22,6 @@ interface LayoutProps {
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
-  { icon: Users, label: "Leads", href: "/leads" },
-  { icon: Briefcase, label: "Oportunidades", href: "/deals" },
-  { icon: BarChart3, label: "Reportes", href: "/reports" },
   { icon: Settings, label: "Configuración", href: "/settings" },
 ];
 

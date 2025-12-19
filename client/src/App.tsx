@@ -10,9 +10,6 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      <Route path="/leads" component={Dashboard} /> {/* Placeholder for now */}
-      <Route path="/deals" component={Dashboard} /> {/* Placeholder for now */}
-      <Route path="/reports" component={Dashboard} /> {/* Placeholder for now */}
       <Route path="/settings" component={Dashboard} /> {/* Placeholder for now */}
       <Route component={NotFound} />
     </Switch>
