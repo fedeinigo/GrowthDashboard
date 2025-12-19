@@ -1,3 +1,4 @@
+// ... imports
 import { addDays, subDays, format } from "date-fns";
 
 export interface KPIData {
@@ -35,6 +36,17 @@ export interface FilterOption {
   label: string;
 }
 
+// New Interface for Regional Data
+export interface RegionData {
+  region: string;
+  rows: {
+      origin: string;
+      meetings: number;
+      proposals: number;
+      closings: number;
+  }[];
+}
+
 export interface FilterState {
   metrics: Record<string, KPIData>;
   revenueHistory: ChartDataPoint[];
@@ -46,6 +58,8 @@ export interface FilterState {
     byPerson: RankingData[];
     bySource: RankingData[];
   };
+  // Add regional data to state
+  regionalData: RegionData[];
 }
 
 export const teams: FilterOption[] = [
@@ -189,5 +203,54 @@ export const mockMetrics: FilterState = {
       { name: "Referidos", value: 32000, valueFormatted: "$32,000", change: 20 },
       { name: "Eventos", value: 18000, valueFormatted: "$18,000", change: -8 },
     ]
-  }
+  },
+  regionalData: [
+    {
+        region: "Colombia",
+        rows: [
+            { origin: "Telefónica CO", meetings: 30, proposals: 12, closings: 2 },
+            { origin: "Directo", meetings: 15, proposals: 6, closings: 1 },
+        ]
+    },
+    {
+        region: "Argentina",
+        rows: [
+            { origin: "Telefónica ARG", meetings: 25, proposals: 10, closings: 3 },
+            { origin: "Directo", meetings: 10, proposals: 4, closings: 0 },
+        ]
+    },
+    {
+        region: "Mexico",
+        rows: [
+            { origin: "Directo", meetings: 18, proposals: 8, closings: 2 },
+        ]
+    },
+    {
+        region: "Brasil",
+        rows: [
+             { origin: "Directo", meetings: 20, proposals: 5, closings: 1 },
+        ]
+    },
+    {
+        region: "España",
+        rows: [
+            { origin: "Telefónica España", meetings: 12, proposals: 4, closings: 1 },
+        ]
+    },
+    {
+        region: "Rest Latam",
+        rows: [
+            { origin: "Telefónica Perú", meetings: 8, proposals: 2, closings: 0 },
+            { origin: "Telefónica Chile", meetings: 15, proposals: 7, closings: 2 },
+            { origin: "Telefónica UY", meetings: 5, proposals: 1, closings: 0 },
+            { origin: "Directo", meetings: 10, proposals: 3, closings: 1 },
+        ]
+    },
+    {
+        region: "Service as a Software",
+        rows: [
+            { origin: "Directo", meetings: 5, proposals: 2, closings: 1 },
+        ]
+    }
+  ]
 };
