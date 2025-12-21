@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import type { DashboardFilters } from "./storage";
 import * as pipedrive from "./pipedrive";
+import * as pipedriveCache from "./pipedrive-cache";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -302,6 +303,36 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to fetch regions" });
     }
   });
+
+  // Cache status endpoint
+  app.get("/api/cache/status", async (req, res) => {
+    try {
+      const status = await pipedriveCache.getCacheStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Error fetching cache status:", error);
+      res.status(500).json({ error: "Failed to fetch cache status" });
+    }
+  });
+
+  // Manual cache refresh endpoint
+  app.post("/api/cache/refresh", async (req, res) => {
+    try {
+      const result = await pipedriveCache.refreshCache();
+      res.json(result);
+    } catch (error) {
+      console.error("Error refreshing cache:", error);
+      res.status(500).json({ error: "Failed to refresh cache" });
+    }
+  });
+
+  // Initialize cache on startup
+  pipedriveCache.ensureCacheWarmed().catch(err => {
+    console.error("Failed to warm cache on startup:", err);
+  });
+  
+  // Start auto-refresh
+  pipedriveCache.startAutoRefresh();
 
   return httpServer;
 }
