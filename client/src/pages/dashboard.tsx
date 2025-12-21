@@ -71,18 +71,29 @@ export default function Dashboard() {
   } = useDashboardData(filters);
 
   // Sort regional data based on current sort field and order
-  const sortedRegionalData = regionalData.map(region => ({
-    ...region,
-    rows: [...region.rows].sort((a: any, b: any) => {
-      const aVal = a[sortField] || 0;
-      const bVal = b[sortField] || 0;
-      return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
-    })
-  })).sort((a, b) => {
-    const totalA = a.rows.reduce((sum: number, r: any) => sum + (r[sortField] || 0), 0);
-    const totalB = b.rows.reduce((sum: number, r: any) => sum + (r[sortField] || 0), 0);
-    return sortOrder === 'desc' ? totalB - totalA : totalA - totalB;
-  });
+  // Handle both old format (with nested rows) and new flat format from cached API
+  const sortedRegionalData = Array.isArray(regionalData) ? regionalData.map(region => {
+    if (region.rows && Array.isArray(region.rows)) {
+      return {
+        ...region,
+        rows: [...region.rows].sort((a: any, b: any) => {
+          const aVal = a[sortField] || 0;
+          const bVal = b[sortField] || 0;
+          return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+        })
+      };
+    }
+    return region;
+  }).sort((a, b) => {
+    if (a.rows && b.rows) {
+      const totalA = a.rows.reduce((sum: number, r: any) => sum + (r[sortField] || 0), 0);
+      const totalB = b.rows.reduce((sum: number, r: any) => sum + (r[sortField] || 0), 0);
+      return sortOrder === 'desc' ? totalB - totalA : totalA - totalB;
+    }
+    const valA = a[sortField] || a.reuniones || 0;
+    const valB = b[sortField] || b.reuniones || 0;
+    return sortOrder === 'desc' ? valB - valA : valA - valB;
+  }) : [];
 
   const handleFilterChange = (newFilters: any) => {
     if (newFilters.reset) {
@@ -434,26 +445,47 @@ export default function Dashboard() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {sortedRegionalData.map((region: any) => (
-                                    <>
-                                        {region.rows.map((row: any, index: number) => (
-                                            <TableRow key={`${region.region}-${row.origin}`} className="hover:bg-muted/30 border-b">
-                                                <TableCell className={`font-medium align-top ${index === 0 ? "text-foreground" : ""}`}>
-                                                    {index === 0 ? region.region : ""}
-                                                </TableCell>
-                                                <TableCell>{row.origin}</TableCell>
-                                                <TableCell className="text-right">{row.meetings}</TableCell>
-                                                <TableCell className="text-right">{row.proposals}</TableCell>
-                                                <TableCell className="text-right">{row.closings}</TableCell>
-                                                <TableCell className="text-right">
-                                                    <Badge variant={row.closings > 0 ? "outline" : "secondary"} className={row.closings > 0 ? "border-emerald-200 text-emerald-700 bg-emerald-50" : ""}>
-                                                        {row.meetings > 0 ? ((row.closings / row.meetings) * 100).toFixed(1) + "%" : "0%"}
-                                                    </Badge>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </>
-                                ))}
+                                {sortedRegionalData.map((region: any, index: number) => {
+                                    if (region.rows && Array.isArray(region.rows)) {
+                                        return (
+                                            <React.Fragment key={region.region}>
+                                                {region.rows.map((row: any, rowIndex: number) => (
+                                                    <TableRow key={`${region.region}-${row.origin}`} className="hover:bg-muted/30 border-b">
+                                                        <TableCell className={`font-medium align-top ${rowIndex === 0 ? "text-foreground" : ""}`}>
+                                                            {rowIndex === 0 ? region.region : ""}
+                                                        </TableCell>
+                                                        <TableCell>{row.origin}</TableCell>
+                                                        <TableCell className="text-right">{row.meetings}</TableCell>
+                                                        <TableCell className="text-right">{row.proposals}</TableCell>
+                                                        <TableCell className="text-right">{row.closings}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Badge variant={row.closings > 0 ? "outline" : "secondary"} className={row.closings > 0 ? "border-emerald-200 text-emerald-700 bg-emerald-50" : ""}>
+                                                                {row.meetings > 0 ? ((row.closings / row.meetings) * 100).toFixed(1) + "%" : "0%"}
+                                                            </Badge>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </React.Fragment>
+                                        );
+                                    }
+                                    const meetings = region.reuniones || 0;
+                                    const proposals = region.propuestas || 0;
+                                    const closings = region.cierres || 0;
+                                    return (
+                                        <TableRow key={region.country || region.countryId || index} className="hover:bg-muted/30 border-b">
+                                            <TableCell className="font-medium text-foreground">{region.country || `País ${region.countryId}`}</TableCell>
+                                            <TableCell>-</TableCell>
+                                            <TableCell className="text-right">{meetings}</TableCell>
+                                            <TableCell className="text-right">{proposals}</TableCell>
+                                            <TableCell className="text-right">{closings}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Badge variant={closings > 0 ? "outline" : "secondary"} className={closings > 0 ? "border-emerald-200 text-emerald-700 bg-emerald-50" : ""}>
+                                                    {meetings > 0 ? ((closings / meetings) * 100).toFixed(1) + "%" : "0%"}
+                                                </Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                          </Table>
                     </CardContent>
@@ -498,32 +530,60 @@ export default function Dashboard() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {sortedRegionalData.map((region: any) => (
-                                    <>
-                                        {region.rows.map((row: any, index: number) => (
-                                            <TableRow key={`rev-${region.region}-${row.origin}`} className="hover:bg-muted/30 border-b">
-                                                <TableCell className={`font-medium align-top ${index === 0 ? "text-foreground" : ""}`}>
-                                                    {index === 0 ? region.region : ""}
-                                                </TableCell>
-                                                <TableCell>{row.origin}</TableCell>
-                                                <TableCell className="text-right text-muted-foreground">
-                                                    ${row.meetingsValue ? row.meetingsValue.toLocaleString() : "0"}
-                                                </TableCell>
-                                                <TableCell className="text-right text-muted-foreground">
-                                                    ${row.proposalsValue ? row.proposalsValue.toLocaleString() : "0"}
-                                                </TableCell>
-                                                <TableCell className="text-right font-medium text-foreground">
-                                                    ${row.closingsValue ? row.closingsValue.toLocaleString() : "0"}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <span className="text-xs text-muted-foreground">
-                                                        {row.closings > 0 ? "$" + Math.round(row.closingsValue / row.closings).toLocaleString() : "-"}
-                                                    </span>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </>
-                                ))}
+                                {sortedRegionalData.map((region: any, index: number) => {
+                                    if (region.rows && Array.isArray(region.rows)) {
+                                        return (
+                                            <React.Fragment key={`rev-${region.region}`}>
+                                                {region.rows.map((row: any, rowIndex: number) => (
+                                                    <TableRow key={`rev-${region.region}-${row.origin}`} className="hover:bg-muted/30 border-b">
+                                                        <TableCell className={`font-medium align-top ${rowIndex === 0 ? "text-foreground" : ""}`}>
+                                                            {rowIndex === 0 ? region.region : ""}
+                                                        </TableCell>
+                                                        <TableCell>{row.origin}</TableCell>
+                                                        <TableCell className="text-right text-muted-foreground">
+                                                            ${row.meetingsValue ? row.meetingsValue.toLocaleString() : "0"}
+                                                        </TableCell>
+                                                        <TableCell className="text-right text-muted-foreground">
+                                                            ${row.proposalsValue ? row.proposalsValue.toLocaleString() : "0"}
+                                                        </TableCell>
+                                                        <TableCell className="text-right font-medium text-foreground">
+                                                            ${row.closingsValue ? row.closingsValue.toLocaleString() : "0"}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {row.closings > 0 ? "$" + Math.round(row.closingsValue / row.closings).toLocaleString() : "-"}
+                                                            </span>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </React.Fragment>
+                                        );
+                                    }
+                                    const meetingsVal = region.reunionesValue || 0;
+                                    const proposalsVal = region.propuestasValue || 0;
+                                    const closingsVal = region.cierresValue || 0;
+                                    const closings = region.cierres || 0;
+                                    return (
+                                        <TableRow key={`rev-${region.country || region.countryId || index}`} className="hover:bg-muted/30 border-b">
+                                            <TableCell className="font-medium text-foreground">{region.country || `País ${region.countryId}`}</TableCell>
+                                            <TableCell>-</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                ${meetingsVal.toLocaleString()}
+                                            </TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                ${proposalsVal.toLocaleString()}
+                                            </TableCell>
+                                            <TableCell className="text-right font-medium text-foreground">
+                                                ${closingsVal.toLocaleString()}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <span className="text-xs text-muted-foreground">
+                                                    {closings > 0 ? "$" + Math.round(closingsVal / closings).toLocaleString() : "-"}
+                                                </span>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                          </Table>
                     </CardContent>

@@ -99,54 +99,64 @@ export function useDashboardData(filters?: any) {
     companySizeDistribution.isError;
 
   // Transform metrics data to match the expected format
-  const transformedMetrics = metrics.data ? {
+  // Support both old field names (revenue, logos, avgSalesCycle) and new cached format (totalRevenue, logosWon, salesCycle)
+  const m = metrics.data;
+  const transformedMetrics = m ? {
     revenue: {
       label: "Dólares Conseguidos",
-      value: metrics.data.revenue,
-      change: metrics.data.previousRevenue > 0 
-        ? ((metrics.data.revenue - metrics.data.previousRevenue) / metrics.data.previousRevenue) * 100
+      value: m.revenue ?? m.totalRevenue ?? 0,
+      change: (m.previousRevenue || 0) > 0 
+        ? (((m.revenue ?? m.totalRevenue ?? 0) - (m.previousRevenue || 0)) / (m.previousRevenue || 1)) * 100
         : 0,
-      trend: metrics.data.revenue >= metrics.data.previousRevenue ? "up" : "down",
+      trend: (m.revenue ?? m.totalRevenue ?? 0) >= (m.previousRevenue || 0) ? "up" : "down",
       prefix: "$",
       subtext: "ARR Neto"
     },
     closureRate: {
       label: "Tasa de Cierre",
-      value: metrics.data.closureRate,
-      change: metrics.data.closureRate - metrics.data.previousClosureRate,
-      trend: metrics.data.closureRate >= metrics.data.previousClosureRate ? "up" : "down",
+      value: m.closureRate ?? 0,
+      change: (m.closureRate ?? 0) - (m.previousClosureRate ?? 0),
+      trend: (m.closureRate ?? 0) >= (m.previousClosureRate ?? 0) ? "up" : "down",
       suffix: "%",
-      subtext: `vs. período anterior (${metrics.data.previousClosureRate.toFixed(1)}%)`
+      subtext: m.previousClosureRate != null 
+        ? `vs. período anterior (${m.previousClosureRate.toFixed(1)}%)`
+        : "Período actual"
     },
     meetings: {
       label: "Reuniones Realizadas",
-      value: metrics.data.meetings,
-      change: metrics.data.meetings - metrics.data.previousMeetings,
-      trend: metrics.data.meetings >= metrics.data.previousMeetings ? "up" : "down",
-      subtext: `${metrics.data.previousMeetings} en período anterior`
+      value: m.meetings ?? 0,
+      change: (m.meetings ?? 0) - (m.previousMeetings ?? 0),
+      trend: (m.meetings ?? 0) >= (m.previousMeetings ?? 0) ? "up" : "down",
+      subtext: m.previousMeetings != null 
+        ? `${m.previousMeetings} en período anterior`
+        : "Período actual"
     },
     logos: {
       label: "Logos Conseguidos",
-      value: metrics.data.logos,
-      change: metrics.data.logos - metrics.data.previousLogos,
-      trend: metrics.data.logos >= metrics.data.previousLogos ? "up" : "down",
-      subtext: `${metrics.data.previousLogos} en período anterior`
+      value: m.logos ?? m.logosWon ?? 0,
+      change: (m.logos ?? m.logosWon ?? 0) - (m.previousLogos ?? 0),
+      trend: (m.logos ?? m.logosWon ?? 0) >= (m.previousLogos ?? 0) ? "up" : "down",
+      subtext: m.previousLogos != null 
+        ? `${m.previousLogos} en período anterior`
+        : "Período actual"
     },
     avgSalesCycle: {
       label: "Ciclo de Venta Promedio",
-      value: metrics.data.avgSalesCycle,
-      change: metrics.data.previousAvgSalesCycle - metrics.data.avgSalesCycle, // Lower is better
-      trend: metrics.data.avgSalesCycle <= metrics.data.previousAvgSalesCycle ? "up" : "down",
+      value: m.avgSalesCycle ?? m.salesCycle ?? 0,
+      change: (m.previousAvgSalesCycle ?? 0) - (m.avgSalesCycle ?? m.salesCycle ?? 0), // Lower is better
+      trend: (m.avgSalesCycle ?? m.salesCycle ?? 0) <= (m.previousAvgSalesCycle ?? 0) ? "up" : "down",
       suffix: " días",
-      subtext: `${metrics.data.previousAvgSalesCycle} días anterior`
+      subtext: m.previousAvgSalesCycle != null 
+        ? `${m.previousAvgSalesCycle} días anterior`
+        : "Período actual"
     },
     avgTicket: {
       label: "Ticket Promedio",
-      value: metrics.data.avgTicket,
-      change: metrics.data.previousAvgTicket > 0
-        ? ((metrics.data.avgTicket - metrics.data.previousAvgTicket) / metrics.data.previousAvgTicket) * 100
+      value: m.avgTicket ?? 0,
+      change: (m.previousAvgTicket || 0) > 0
+        ? (((m.avgTicket ?? 0) - (m.previousAvgTicket || 0)) / (m.previousAvgTicket || 1)) * 100
         : 0,
-      trend: metrics.data.avgTicket >= (metrics.data.previousAvgTicket || 0) ? "up" : "down",
+      trend: (m.avgTicket ?? 0) >= (m.previousAvgTicket ?? 0) ? "up" : "down",
       prefix: "$",
       subtext: "New Customers ganados"
     }
