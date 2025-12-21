@@ -20,6 +20,7 @@ export function useDashboardData(filters?: any) {
     sourceId: filters.source && filters.source !== 'all' ? parseInt(filters.source) : undefined,
     startDate: filters.startDate,
     endDate: filters.endDate,
+    dealType: filters.dealType,
   } : undefined;
 
   const metrics = useQuery({
