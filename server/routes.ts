@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import type { DashboardFilters } from "./storage";
+import * as pipedrive from "./pipedrive";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -9,62 +10,51 @@ export async function registerRoutes(
 ): Promise<Server> {
   // Dashboard API routes
   
-  // Get dashboard metrics
+  // Get dashboard metrics from Pipedrive
   app.get("/api/dashboard/metrics", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
+      const filters = {
+        userId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
       };
       
-      const metrics = await storage.getDashboardMetrics(filters);
+      const metrics = await pipedrive.getPipedriveDashboardMetrics(filters);
       res.json(metrics);
     } catch (error) {
-      console.error("Error fetching dashboard metrics:", error);
+      console.error("Error fetching dashboard metrics from Pipedrive:", error);
       res.status(500).json({ error: "Failed to fetch dashboard metrics" });
     }
   });
 
-  // Get revenue history
+  // Get revenue history from Pipedrive
   app.get("/api/dashboard/revenue-history", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
+      const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
       };
       
-      const history = await storage.getRevenueHistory(filters);
+      const history = await pipedrive.getRevenueHistory(filters);
       res.json(history);
     } catch (error) {
-      console.error("Error fetching revenue history:", error);
+      console.error("Error fetching revenue history from Pipedrive:", error);
       res.status(500).json({ error: "Failed to fetch revenue history" });
     }
   });
 
-  // Get meetings history
+  // Get meetings history from Pipedrive
   app.get("/api/dashboard/meetings-history", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
+      const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
       };
       
-      const history = await storage.getMeetingsHistory(filters);
+      const history = await pipedrive.getMeetingsHistory(filters);
       res.json(history);
     } catch (error) {
-      console.error("Error fetching meetings history:", error);
+      console.error("Error fetching meetings history from Pipedrive:", error);
       res.status(500).json({ error: "Failed to fetch meetings history" });
     }
   });
@@ -129,22 +119,18 @@ export async function registerRoutes(
     }
   });
 
-  // Get rankings by person
+  // Get rankings by person from Pipedrive
   app.get("/api/dashboard/rankings/people", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
+      const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
       };
       
-      const rankings = await storage.getRankingsByPerson(filters);
+      const rankings = await pipedrive.getRankingsByUser(filters);
       res.json(rankings);
     } catch (error) {
-      console.error("Error fetching person rankings:", error);
+      console.error("Error fetching person rankings from Pipedrive:", error);
       res.status(500).json({ error: "Failed to fetch person rankings" });
     }
   });
@@ -222,10 +208,19 @@ export async function registerRoutes(
 
   app.get("/api/people", async (req, res) => {
     try {
-      const people = await storage.getAllPeople();
+      const users = await pipedrive.getUsers();
+      // Transform to match expected format
+      const people = users
+        .filter(u => u.active_flag)
+        .map(u => ({
+          id: u.id,
+          name: u.name.toLowerCase().replace(/\s+/g, '_'),
+          displayName: u.name,
+          teamId: null,
+        }));
       res.json(people);
     } catch (error) {
-      console.error("Error fetching people:", error);
+      console.error("Error fetching people from Pipedrive:", error);
       res.status(500).json({ error: "Failed to fetch people" });
     }
   });
