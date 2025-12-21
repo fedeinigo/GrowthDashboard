@@ -7,6 +7,7 @@ export async function fetchDashboardMetrics(filters?: any) {
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
   if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
 
   const query = params.toString();
   const url = `/api/dashboard/metrics${query ? `?${query}` : ''}`;
@@ -24,6 +25,7 @@ export async function fetchRevenueHistory(filters?: any) {
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
   if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
 
   const query = params.toString();
   const url = `/api/dashboard/revenue-history${query ? `?${query}` : ''}`;
@@ -41,6 +43,7 @@ export async function fetchMeetingsHistory(filters?: any) {
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
   if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
 
   const query = params.toString();
   const url = `/api/dashboard/meetings-history${query ? `?${query}` : ''}`;
@@ -109,6 +112,7 @@ export async function fetchRankingsByPerson(filters?: any) {
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
   if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
 
   const query = params.toString();
   const url = `/api/dashboard/rankings/people${query ? `?${query}` : ''}`;
@@ -195,6 +199,12 @@ export async function fetchRegions() {
 export async function fetchDealTypes() {
   const res = await fetch('/api/deal-types');
   if (!res.ok) throw new Error('Failed to fetch deal types');
+  return res.json();
+}
+
+export async function fetchCountries() {
+  const res = await fetch('/api/countries');
+  if (!res.ok) throw new Error('Failed to fetch countries');
   return res.json();
 }
 

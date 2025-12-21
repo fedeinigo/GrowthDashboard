@@ -13,11 +13,15 @@ export async function registerRoutes(
   // Get dashboard metrics from Pipedrive
   app.get("/api/dashboard/metrics", async (req, res) => {
     try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      
       const filters = {
         userId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
+        countries,
       };
       
       const metrics = await pipedrive.getPipedriveDashboardMetrics(filters);
@@ -31,10 +35,14 @@ export async function registerRoutes(
   // Get revenue history from Pipedrive
   app.get("/api/dashboard/revenue-history", async (req, res) => {
     try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
+        countries,
       };
       
       const history = await pipedrive.getRevenueHistory(filters);
@@ -48,10 +56,14 @@ export async function registerRoutes(
   // Get meetings history from Pipedrive
   app.get("/api/dashboard/meetings-history", async (req, res) => {
     try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
+        countries,
       };
       
       const history = await pipedrive.getMeetingsHistory(filters);
@@ -70,6 +82,16 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching deal types:", error);
       res.status(500).json({ error: "Failed to fetch deal types" });
+    }
+  });
+
+  // Get countries for filter
+  app.get("/api/countries", async (req, res) => {
+    try {
+      res.json(pipedrive.COUNTRY_OPTIONS);
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+      res.status(500).json({ error: "Failed to fetch countries" });
     }
   });
 
@@ -152,10 +174,14 @@ export async function registerRoutes(
   // Get rankings by person from Pipedrive
   app.get("/api/dashboard/rankings/people", async (req, res) => {
     try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
+        countries,
       };
       
       const rankings = await pipedrive.getRankingsByUser(filters);

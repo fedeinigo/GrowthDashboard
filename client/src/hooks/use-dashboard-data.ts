@@ -21,6 +21,7 @@ export function useDashboardData(filters?: any) {
     startDate: filters.startDate,
     endDate: filters.endDate,
     dealType: filters.dealType,
+    countries: filters.countries,
   } : undefined;
 
   const metrics = useQuery({

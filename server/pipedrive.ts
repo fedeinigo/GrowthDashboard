@@ -4,10 +4,35 @@ const PIPEDRIVE_BASE_URL = "https://api.pipedrive.com/v1";
 // Constants for Pipedrive configuration
 export const DEALS_PIPELINE_ID = 1; // The "Deals" pipeline
 export const TYPE_OF_DEAL_FIELD_KEY = "a7ab0c5cfbfd5a57ce6531b4aa0a74b317c4b657";
+export const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
 export const DEAL_TYPES = {
   NEW_CUSTOMER: "13",
   UPSELLING: "14",
 } as const;
+
+export const COUNTRY_OPTIONS = [
+  { id: "265", label: "Argentina" },
+  { id: "574", label: "Brasil" },
+  { id: "274", label: "Bolivia" },
+  { id: "575", label: "Canadá" },
+  { id: "268", label: "Chile" },
+  { id: "267", label: "Colombia" },
+  { id: "600", label: "Costa Rica" },
+  { id: "272", label: "España" },
+  { id: "273", label: "Ecuador" },
+  { id: "601", label: "El Salvador" },
+  { id: "602", label: "Guatemala" },
+  { id: "603", label: "Honduras" },
+  { id: "266", label: "Peru" },
+  { id: "269", label: "Mexico" },
+  { id: "594", label: "Nicaragua" },
+  { id: "275", label: "Otros" },
+  { id: "271", label: "Paraguay" },
+  { id: "391", label: "Panama" },
+  { id: "563", label: "República Dominicana" },
+  { id: "270", label: "Uruguay" },
+  { id: "604", label: "Venezuela" },
+];
 
 async function pipedriveRequest(endpoint: string, params: Record<string, string> = {}) {
   if (!PIPEDRIVE_API_TOKEN) {
@@ -224,6 +249,7 @@ export async function getPipedriveDashboardMetrics(filters?: {
   endDate?: string; 
   userId?: number;
   dealType?: string;
+  countries?: string[];
 }) {
   try {
     // Only get deals from the "Deals" pipeline (id=1)
@@ -247,6 +273,14 @@ export async function getPipedriveDashboardMetrics(filters?: {
       filteredDeals = filteredDeals.filter(d => {
         const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
         return dealTypeValue === filters.dealType;
+      });
+    }
+
+    // Filter by countries if specified (multiple selection)
+    if (filters?.countries && filters.countries.length > 0) {
+      filteredDeals = filteredDeals.filter(d => {
+        const countryValue = (d as any)[COUNTRY_FIELD_KEY];
+        return filters.countries!.includes(String(countryValue));
       });
     }
 
@@ -344,7 +378,7 @@ export async function getPipedriveDashboardMetrics(filters?: {
 }
 
 // Get rankings by user (only from Deals pipeline)
-export async function getRankingsByUser(filters?: { startDate?: string; endDate?: string; dealType?: string }) {
+export async function getRankingsByUser(filters?: { startDate?: string; endDate?: string; dealType?: string; countries?: string[] }) {
   const [allDeals, users] = await Promise.all([
     getAllDeals(DEALS_PIPELINE_ID),
     getUsers(),
@@ -368,6 +402,14 @@ export async function getRankingsByUser(filters?: { startDate?: string; endDate?
     });
   }
 
+  // Filter by countries if specified
+  if (filters?.countries && filters.countries.length > 0) {
+    wonDeals = wonDeals.filter(d => {
+      const countryValue = (d as any)[COUNTRY_FIELD_KEY];
+      return filters.countries!.includes(String(countryValue));
+    });
+  }
+
   const userRevenue: Record<number, number> = {};
   
   wonDeals.forEach(deal => {
@@ -387,7 +429,7 @@ export async function getRankingsByUser(filters?: { startDate?: string; endDate?
 }
 
 // Get revenue history (grouped by day/week/month) - only from Deals pipeline
-export async function getRevenueHistory(filters?: { startDate?: string; endDate?: string; dealType?: string }) {
+export async function getRevenueHistory(filters?: { startDate?: string; endDate?: string; dealType?: string; countries?: string[] }) {
   const allDeals = await getAllDeals(DEALS_PIPELINE_ID);
   
   // Filter won deals by date
@@ -408,6 +450,14 @@ export async function getRevenueHistory(filters?: { startDate?: string; endDate?
     });
   }
 
+  // Filter by countries if specified
+  if (filters?.countries && filters.countries.length > 0) {
+    wonDeals = wonDeals.filter(d => {
+      const countryValue = (d as any)[COUNTRY_FIELD_KEY];
+      return filters.countries!.includes(String(countryValue));
+    });
+  }
+
   const dailyRevenue: Record<string, number> = {};
   
   wonDeals.forEach(deal => {
@@ -423,7 +473,7 @@ export async function getRevenueHistory(filters?: { startDate?: string; endDate?
 }
 
 // Get meetings history - counts New Customer deals created per day in Deals pipeline
-export async function getMeetingsHistory(filters?: { startDate?: string; endDate?: string; dealType?: string }) {
+export async function getMeetingsHistory(filters?: { startDate?: string; endDate?: string; dealType?: string; countries?: string[] }) {
   const allDeals = await getAllDeals(DEALS_PIPELINE_ID);
   
   // Filter New Customer deals by add_time
@@ -435,6 +485,14 @@ export async function getMeetingsHistory(filters?: { startDate?: string; endDate
     if (filters?.endDate && addTime > new Date(filters.endDate)) return false;
     return true;
   });
+
+  // Filter by countries if specified
+  if (filters?.countries && filters.countries.length > 0) {
+    newCustomerDeals = newCustomerDeals.filter(d => {
+      const countryValue = (d as any)[COUNTRY_FIELD_KEY];
+      return filters.countries!.includes(String(countryValue));
+    });
+  }
 
   const dailyMeetings: Record<string, number> = {};
   

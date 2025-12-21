@@ -20,7 +20,8 @@ import { FilterOption } from "@/lib/mock-data";
 import { useState, useEffect } from "react";
 import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
-import { fetchTeams, fetchPeople, fetchSources, fetchDealTypes } from "@/lib/api";
+import { fetchTeams, fetchPeople, fetchSources, fetchDealTypes, fetchCountries } from "@/lib/api";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Helper to get current quarter dates
 function getCurrentQuarterDates() {
@@ -99,6 +100,21 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     queryKey: ['dealTypes'],
     queryFn: fetchDealTypes,
   });
+
+  const { data: countriesData = [] } = useQuery({
+    queryKey: ['countries'],
+    queryFn: fetchCountries,
+  });
+
+  const countries: FilterOption[] = countriesData.map((c: any) => ({ value: c.id, label: c.label }));
+
+  const handleCountryToggle = (countryId: string) => {
+    const currentCountries = filters?.countries || [];
+    const newCountries = currentCountries.includes(countryId)
+      ? currentCountries.filter((c: string) => c !== countryId)
+      : [...currentCountries, countryId];
+    onFilterChange({ countries: newCountries.length > 0 ? newCountries : undefined });
+  };
 
   // Transform API data to FilterOption format
   const teams: FilterOption[] = [
@@ -374,6 +390,43 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Country Filter - Multi-select */}
+        <div className="flex-1 min-w-[200px]">
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">País</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-start bg-background font-normal">
+                {filters?.countries && filters.countries.length > 0
+                  ? `${filters.countries.length} país${filters.countries.length > 1 ? 'es' : ''} seleccionado${filters.countries.length > 1 ? 's' : ''}`
+                  : "Todos los países"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[250px] p-0" align="start">
+              <div className="max-h-[300px] overflow-y-auto p-2">
+                {countries.map((country: FilterOption) => (
+                  <div key={country.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer" onClick={() => handleCountryToggle(country.value)}>
+                    <Checkbox
+                      id={`country-${country.value}`}
+                      checked={filters?.countries?.includes(country.value) || false}
+                      onCheckedChange={() => handleCountryToggle(country.value)}
+                    />
+                    <label htmlFor={`country-${country.value}`} className="text-sm cursor-pointer flex-1">
+                      {country.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {filters?.countries && filters.countries.length > 0 && (
+                <div className="border-t p-2">
+                  <Button variant="ghost" size="sm" className="w-full" onClick={() => onFilterChange({ countries: undefined })}>
+                    Limpiar selección
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
   
       </div>
