@@ -215,16 +215,17 @@ export async function registerRoutes(
   // Get regional data
   app.get("/api/dashboard/regional-data", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      
+      const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
       };
       
-      const data = await storage.getRegionalData(filters);
+      const data = await pipedrive.getRegionalData(filters);
       res.json(data);
     } catch (error) {
       console.error("Error fetching regional data:", error);

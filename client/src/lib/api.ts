@@ -147,6 +147,7 @@ export async function fetchRegionalData(filters?: any) {
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
   if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
 
   const query = params.toString();
   const url = `/api/dashboard/regional-data${query ? `?${query}` : ''}`;

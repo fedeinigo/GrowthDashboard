@@ -5,10 +5,60 @@ const PIPEDRIVE_BASE_URL = "https://api.pipedrive.com/v1";
 export const DEALS_PIPELINE_ID = 1; // The "Deals" pipeline
 export const TYPE_OF_DEAL_FIELD_KEY = "a7ab0c5cfbfd5a57ce6531b4aa0a74b317c4b657";
 export const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
+export const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
 export const DEAL_TYPES = {
   NEW_CUSTOMER: "13",
   UPSELLING: "14",
 } as const;
+
+export const ORIGEN_OPTIONS: Record<string, string> = {
+  "375": "Directo",
+  "15": "Directo Inbound",
+  "230": "Directo Outbound",
+  "741": "Netlife",
+  "16": "Telefonica ARG",
+  "18": "Telefónica CO",
+  "40": "Telefónica PE",
+  "171": "Telefonica Chile",
+  "368": "Telefonica UY",
+  "239": "Telefonica España - TTech",
+  "664": "Telefonica España - Acens",
+  "762": "Nods",
+  "17": "Apex",
+  "37": "Ricoh",
+  "577": "Solu",
+  "578": "Teleperformance",
+  "586": "Link Solution",
+  "605": "Atento",
+  "610": "E3",
+  "616": "Telefónica México",
+  "617": "Telefónica Ecuador",
+  "618": "Agata",
+  "619": "Outsourcing",
+  "626": "Jelou",
+  "628": "Teknio",
+  "638": "Lop",
+  "649": "Konecta",
+  "651": "Pontech",
+  "750": "Vtex Colombia",
+  "748": "Santex",
+  "655": "Tatt",
+  "656": "Orsonia",
+  "763": "Tecnicom",
+  "657": "Idata",
+  "666": "Nexa BPO",
+  "678": "Intellecta",
+  "172": "Agencia COMLatam",
+  "718": "AMG Consulting",
+  "751": "Vtex - Otros",
+  "758": "Patagonia - Franco Roccuzo",
+  "759": "Avansa",
+  "761": "WoowUp",
+  "765": "Mak21",
+  "772": "Solvis",
+  "773": "Integratel",
+  "740": "Govtech - Luciano",
+};
 
 export const COUNTRY_OPTIONS = [
   { id: "265", label: "Argentina" },
@@ -554,4 +604,88 @@ export async function getStatsByDealType(filters?: { startDate?: string; endDate
     { name: "Upselling", deals: dealTypeStats[DEAL_TYPES.UPSELLING].deals, won: dealTypeStats[DEAL_TYPES.UPSELLING].won, lost: dealTypeStats[DEAL_TYPES.UPSELLING].lost, revenue: dealTypeStats[DEAL_TYPES.UPSELLING].revenue },
     { name: "Sin Tipo", deals: dealTypeStats["other"].deals, won: dealTypeStats["other"].won, lost: dealTypeStats["other"].lost, revenue: dealTypeStats["other"].revenue },
   ];
+}
+
+// Get regional data from Pipedrive - grouped by country and origin
+export async function getRegionalData(filters?: { 
+  startDate?: string; 
+  endDate?: string; 
+  dealType?: string;
+  countries?: string[];
+}) {
+  const allDeals = await getAllDeals(DEALS_PIPELINE_ID);
+
+  // Filter deals by date range (based on won_time for won deals)
+  let filteredDeals = allDeals.filter(d => {
+    if (d.status !== "won") return false;
+    if (!d.won_time) return false;
+    const wonTime = new Date(d.won_time);
+    if (filters?.startDate && wonTime < new Date(filters.startDate)) return false;
+    if (filters?.endDate && wonTime > new Date(filters.endDate)) return false;
+    return true;
+  });
+
+  // Filter by deal type if specified
+  if (filters?.dealType) {
+    filteredDeals = filteredDeals.filter(d => {
+      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+      return dealTypeValue === filters.dealType;
+    });
+  }
+
+  // Filter by countries if specified
+  if (filters?.countries && filters.countries.length > 0) {
+    filteredDeals = filteredDeals.filter(d => {
+      const countryValue = (d as any)[COUNTRY_FIELD_KEY];
+      return filters.countries!.includes(String(countryValue));
+    });
+  }
+
+  // Group by country
+  const countryData: Record<string, Record<string, { closings: number; closingsValue: number }>> = {};
+
+  filteredDeals.forEach(deal => {
+    const countryId = String((deal as any)[COUNTRY_FIELD_KEY] || "unknown");
+    const origenId = String((deal as any)[ORIGEN_FIELD_KEY] || "unknown");
+
+    if (!countryData[countryId]) {
+      countryData[countryId] = {};
+    }
+    if (!countryData[countryId][origenId]) {
+      countryData[countryId][origenId] = { closings: 0, closingsValue: 0 };
+    }
+
+    countryData[countryId][origenId].closings++;
+    countryData[countryId][origenId].closingsValue += deal.value || 0;
+  });
+
+  // Convert to expected format
+  const result = Object.entries(countryData).map(([countryId, origins]) => {
+    const countryOption = COUNTRY_OPTIONS.find(c => c.id === countryId);
+    const countryName = countryOption ? countryOption.label : "Desconocido";
+
+    const rows = Object.entries(origins)
+      .map(([origenId, stats]) => ({
+        origin: ORIGEN_OPTIONS[origenId] || "Sin Origen",
+        meetings: 0,
+        proposals: 0,
+        closings: stats.closings,
+        proposalsValue: 0,
+        closingsValue: stats.closingsValue,
+      }))
+      .filter(row => row.closings > 0)
+      .sort((a, b) => b.closingsValue - a.closingsValue);
+
+    return {
+      region: countryName,
+      rows,
+    };
+  }).filter(r => r.rows.length > 0)
+    .sort((a, b) => {
+      const totalA = a.rows.reduce((sum, r) => sum + r.closingsValue, 0);
+      const totalB = b.rows.reduce((sum, r) => sum + r.closingsValue, 0);
+      return totalB - totalA;
+    });
+
+  return result;
 }
