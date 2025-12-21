@@ -333,8 +333,14 @@ export async function getPipedriveDashboardMetrics(filters?: {
     });
     const meetings = newCustomerDeals.length;
 
-    // Average sales cycle (days from add_time to won_time)
-    const salesCycles = wonDeals
+    // Won New Customer deals (used for sales cycle and avg ticket)
+    const wonNewCustomerDeals = wonDeals.filter(d => {
+      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+      return dealTypeValue === DEAL_TYPES.NEW_CUSTOMER;
+    });
+
+    // Average sales cycle (days from add_time to won_time) - Only for New Customer deals
+    const salesCycles = wonNewCustomerDeals
       .filter(d => d.won_time)
       .map(d => {
         const addTime = new Date(d.add_time).getTime();
@@ -347,10 +353,6 @@ export async function getPipedriveDashboardMetrics(filters?: {
       : 0;
 
     // Average ticket for won New Customer deals
-    const wonNewCustomerDeals = wonDeals.filter(d => {
-      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
-      return dealTypeValue === DEAL_TYPES.NEW_CUSTOMER;
-    });
     const avgTicket = wonNewCustomerDeals.length > 0
       ? wonNewCustomerDeals.reduce((sum, d) => sum + (d.value || 0), 0) / wonNewCustomerDeals.length
       : 0;
