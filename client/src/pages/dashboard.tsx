@@ -1,8 +1,8 @@
 import { Layout } from "@/components/layout";
 import { KPICard } from "@/components/kpi-card";
-import { mockMetrics, companySizes } from "@/lib/mock-data";
 import { RevenueChart, MeetingsChart, ClosureChart, CompanySizeChart } from "@/components/charts";
 import { DashboardFilters } from "@/components/dashboard-filters";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { 
   DollarSign, 
   Target, 
@@ -32,23 +32,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function Dashboard() {
   const [filters, setFilters] = useState<Record<string, any>>({});
   
-  // Destructure safely with defaults
+  // Fetch dashboard data from API
   const { 
-    metrics = {
-      revenue: { label: "Revenue", value: 0, change: 0, trend: "neutral" },
-      closureRate: { label: "Closure Rate", value: 0, change: 0, trend: "neutral" },
-      meetings: { label: "Meetings", value: 0, change: 0, trend: "neutral" },
-      logos: { label: "Logos", value: 0, change: 0, trend: "neutral" },
-      avgSalesCycle: { label: "Sales Cycle", value: 0, change: 0, trend: "neutral" },
-      companySize: { label: "Company Size", value: "N/A", change: 0, trend: "neutral" }
-    },
-    revenueHistory = [], 
-    meetingsHistory = [], 
-    closureRateHistory = [], 
-    products = [],
-    rankings = { byTeam: [], byPerson: [], bySource: [] },
-    regionalData = []
-  } = mockMetrics || {};
+    metrics,
+    revenueHistory,
+    meetingsHistory, 
+    closureRateHistory, 
+    products,
+    rankings,
+    regionalData,
+    companySizes,
+    isLoading,
+    isError
+  } = useDashboardData(filters);
 
   const handleFilterChange = (newFilters: any) => {
     if (newFilters.reset) {
@@ -82,12 +78,32 @@ export default function Dashboard() {
      }
   };
 
-  // Safe access check
+  // Loading and error states
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="p-8 text-center text-muted-foreground">
+          Cargando datos del dashboard...
+        </div>
+      </Layout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Layout>
+        <div className="p-8 text-center text-destructive">
+          Error al cargar los datos. Por favor, intenta de nuevo.
+        </div>
+      </Layout>
+    );
+  }
+
   if (!metrics || !metrics.revenue) {
     return (
       <Layout>
         <div className="p-8 text-center text-muted-foreground">
-          Loading dashboard data...
+          No hay datos disponibles.
         </div>
       </Layout>
     );

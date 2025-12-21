@@ -1,0 +1,183 @@
+export async function fetchDashboardMetrics(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/metrics${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch metrics');
+  return res.json();
+}
+
+export async function fetchRevenueHistory(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/revenue-history${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch revenue history');
+  return res.json();
+}
+
+export async function fetchMeetingsHistory(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/meetings-history${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch meetings history');
+  return res.json();
+}
+
+export async function fetchClosureRateHistory(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/closure-rate-history${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch closure rate history');
+  return res.json();
+}
+
+export async function fetchProductStats(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/product-stats${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch product stats');
+  return res.json();
+}
+
+export async function fetchRankingsByTeam(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/rankings/teams${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch team rankings');
+  return res.json();
+}
+
+export async function fetchRankingsByPerson(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/rankings/people${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch person rankings');
+  return res.json();
+}
+
+export async function fetchRankingsBySource(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/rankings/sources${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch source rankings');
+  return res.json();
+}
+
+export async function fetchRegionalData(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/regional-data${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch regional data');
+  return res.json();
+}
+
+export async function fetchCompanySizeDistribution(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/company-size-distribution${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch company size distribution');
+  return res.json();
+}
+
+export async function fetchTeams() {
+  const res = await fetch('/api/teams');
+  if (!res.ok) throw new Error('Failed to fetch teams');
+  return res.json();
+}
+
+export async function fetchPeople() {
+  const res = await fetch('/api/people');
+  if (!res.ok) throw new Error('Failed to fetch people');
+  return res.json();
+}
+
+export async function fetchSources() {
+  const res = await fetch('/api/sources');
+  if (!res.ok) throw new Error('Failed to fetch sources');
+  return res.json();
+}
+
+export async function fetchRegions() {
+  const res = await fetch('/api/regions');
+  if (!res.ok) throw new Error('Failed to fetch regions');
+  return res.json();
+}

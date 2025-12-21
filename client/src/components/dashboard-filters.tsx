@@ -16,9 +16,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { teams, people, sources, FilterOption } from "@/lib/mock-data";
+import { FilterOption } from "@/lib/mock-data";
 import { useState, useEffect } from "react";
 import { es } from "date-fns/locale";
+import { useQuery } from "@tanstack/react-query";
+import { fetchTeams, fetchPeople, fetchSources } from "@/lib/api";
 
 interface DashboardFiltersProps {
   filters?: any;
@@ -32,6 +34,38 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
   });
 
   const [dateType, setDateType] = useState("range"); // "range", "quarter", or "year"
+
+  // Fetch filter options from API
+  const { data: teamsData = [] } = useQuery({
+    queryKey: ['teams'],
+    queryFn: fetchTeams,
+  });
+
+  const { data: peopleData = [] } = useQuery({
+    queryKey: ['people'],
+    queryFn: fetchPeople,
+  });
+
+  const { data: sourcesData = [] } = useQuery({
+    queryKey: ['sources'],
+    queryFn: fetchSources,
+  });
+
+  // Transform API data to FilterOption format
+  const teams: FilterOption[] = [
+    { value: "all", label: "Todos los Equipos" },
+    ...teamsData.map((team: any) => ({ value: team.id.toString(), label: team.displayName }))
+  ];
+
+  const people: FilterOption[] = [
+    { value: "all", label: "Todas las Personas" },
+    ...peopleData.map((person: any) => ({ value: person.id.toString(), label: person.displayName }))
+  ];
+
+  const sources: FilterOption[] = [
+    { value: "all", label: "Todos los Orígenes" },
+    ...sourcesData.map((source: any) => ({ value: source.id.toString(), label: source.displayName }))
+  ];
 
   const quarters = [
     { value: "q1", label: "Q1" },
