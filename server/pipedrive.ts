@@ -276,9 +276,17 @@ export async function getPipedriveDashboardMetrics(filters?: {
     const totalRevenue = wonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
     const logos = wonDeals.length;
     
-    // Closure rate: Won / (Won + Lost) - NOT including open deals
-    const closedDeals = wonDeals.length + lostDeals.length;
-    const closureRate = closedDeals > 0 ? (wonDeals.length / closedDeals) * 100 : 0;
+    // Closure rate: Won / (Won + Lost) - Only for New Customer deals
+    const wonNewCustomerForClosure = wonDeals.filter(d => {
+      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+      return dealTypeValue === DEAL_TYPES.NEW_CUSTOMER;
+    });
+    const lostNewCustomerForClosure = lostDeals.filter(d => {
+      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+      return dealTypeValue === DEAL_TYPES.NEW_CUSTOMER;
+    });
+    const closedNewCustomerDeals = wonNewCustomerForClosure.length + lostNewCustomerForClosure.length;
+    const closureRate = closedNewCustomerDeals > 0 ? (wonNewCustomerForClosure.length / closedNewCustomerDeals) * 100 : 0;
 
     // Meetings: Count New Customer deals created in the period
     const newCustomerDeals = filteredDeals.filter(d => {
