@@ -31,7 +31,7 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     to: new Date(2025, 1, 9),
   });
 
-  const [dateType, setDateType] = useState("range"); // "range" or "quarter"
+  const [dateType, setDateType] = useState("range"); // "range", "quarter", or "year"
 
   const quarters = [
     { value: "q1", label: "Q1" },
@@ -90,12 +90,13 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
             <SelectContent>
               <SelectItem value="range">Rango Específico</SelectItem>
               <SelectItem value="quarter">Trimestre (Q)</SelectItem>
+              <SelectItem value="year">Año Completo</SelectItem>
             </SelectContent>
           </Select>
         </div>
   
         {/* Date Picker or Quarter/Year Selects */}
-        {dateType === "range" ? (
+        {dateType === "range" && (
           <div className="flex-1 min-w-[240px]">
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Rango de Fechas</label>
             <Popover>
@@ -135,7 +136,9 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
               </PopoverContent>
             </Popover>
           </div>
-        ) : (
+        )}
+
+        {dateType === "quarter" && (
           <>
               <div className="flex-1 min-w-[100px]">
                   <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Trimestre</label>
@@ -168,6 +171,24 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                   </Select>
               </div>
           </>
+        )}
+
+        {dateType === "year" && (
+            <div className="flex-1 min-w-[100px]">
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Año</label>
+                <Select defaultValue={new Date().getFullYear().toString()} onValueChange={(val) => onFilterChange({ year: val })}>
+                <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Año" />
+                </SelectTrigger>
+                <SelectContent>
+                    {years.map((y) => (
+                    <SelectItem key={y.value} value={y.value}>
+                        {y.label}
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+                </Select>
+            </div>
         )}
   
         {/* Team Filter */}
