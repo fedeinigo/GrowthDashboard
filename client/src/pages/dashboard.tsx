@@ -13,7 +13,10 @@ import {
   Banknote,
   Trophy,
   Globe,
-  UserCheck
+  UserCheck,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -29,8 +32,29 @@ import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+type SortField = 'meetings' | 'proposals' | 'closings' | 'meetingsValue' | 'proposalsValue' | 'closingsValue';
+type SortOrder = 'asc' | 'desc';
+
 export default function Dashboard() {
   const [filters, setFilters] = useState<Record<string, any>>({});
+  const [sortField, setSortField] = useState<SortField>('meetings');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortField(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-50" />;
+    return sortOrder === 'desc' 
+      ? <ArrowDown className="w-3 h-3 ml-1" />
+      : <ArrowUp className="w-3 h-3 ml-1" />;
+  };
   
   // Fetch dashboard data from API
   const { 
@@ -45,6 +69,20 @@ export default function Dashboard() {
     isLoading,
     isError
   } = useDashboardData(filters);
+
+  // Sort regional data based on current sort field and order
+  const sortedRegionalData = regionalData.map(region => ({
+    ...region,
+    rows: [...region.rows].sort((a: any, b: any) => {
+      const aVal = a[sortField] || 0;
+      const bVal = b[sortField] || 0;
+      return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+    })
+  })).sort((a, b) => {
+    const totalA = a.rows.reduce((sum: number, r: any) => sum + (r[sortField] || 0), 0);
+    const totalB = b.rows.reduce((sum: number, r: any) => sum + (r[sortField] || 0), 0);
+    return sortOrder === 'desc' ? totalB - totalA : totalA - totalB;
+  });
 
   const handleFilterChange = (newFilters: any) => {
     if (newFilters.reset) {
@@ -368,18 +406,38 @@ export default function Dashboard() {
                                 <TableRow className="hover:bg-transparent border-b-2">
                                     <TableHead className="w-[200px]">Células x Región</TableHead>
                                     <TableHead className="w-[250px]">Origen</TableHead>
-                                    <TableHead className="text-right">Reuniones</TableHead>
-                                    <TableHead className="text-right">Propuesta</TableHead>
-                                    <TableHead className="text-right">Cierre</TableHead>
+                                    <TableHead 
+                                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                                      onClick={() => handleSort('meetings')}
+                                    >
+                                      <div className="flex items-center justify-end">
+                                        Reuniones {getSortIcon('meetings')}
+                                      </div>
+                                    </TableHead>
+                                    <TableHead 
+                                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                                      onClick={() => handleSort('proposals')}
+                                    >
+                                      <div className="flex items-center justify-end">
+                                        Propuesta {getSortIcon('proposals')}
+                                      </div>
+                                    </TableHead>
+                                    <TableHead 
+                                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                                      onClick={() => handleSort('closings')}
+                                    >
+                                      <div className="flex items-center justify-end">
+                                        Cierre {getSortIcon('closings')}
+                                      </div>
+                                    </TableHead>
                                     <TableHead className="text-right">Conversión</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {regionalData.map((region) => (
+                                {sortedRegionalData.map((region: any) => (
                                     <>
-                                        {region.rows.map((row, index) => (
+                                        {region.rows.map((row: any, index: number) => (
                                             <TableRow key={`${region.region}-${row.origin}`} className="hover:bg-muted/30 border-b">
-                                                {/* Only show Region name on the first row of the group */}
                                                 <TableCell className={`font-medium align-top ${index === 0 ? "text-foreground" : ""}`}>
                                                     {index === 0 ? region.region : ""}
                                                 </TableCell>
@@ -412,16 +470,37 @@ export default function Dashboard() {
                                 <TableRow className="hover:bg-transparent border-b-2">
                                     <TableHead className="w-[200px]">Células x Región</TableHead>
                                     <TableHead className="w-[250px]">Origen</TableHead>
-                                    <TableHead className="text-right">Reuniones ($)</TableHead>
-                                    <TableHead className="text-right">Propuesta ($)</TableHead>
-                                    <TableHead className="text-right">Cierre ($)</TableHead>
+                                    <TableHead 
+                                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                                      onClick={() => handleSort('meetingsValue')}
+                                    >
+                                      <div className="flex items-center justify-end">
+                                        Reuniones ($) {getSortIcon('meetingsValue')}
+                                      </div>
+                                    </TableHead>
+                                    <TableHead 
+                                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                                      onClick={() => handleSort('proposalsValue')}
+                                    >
+                                      <div className="flex items-center justify-end">
+                                        Propuesta ($) {getSortIcon('proposalsValue')}
+                                      </div>
+                                    </TableHead>
+                                    <TableHead 
+                                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                                      onClick={() => handleSort('closingsValue')}
+                                    >
+                                      <div className="flex items-center justify-end">
+                                        Cierre ($) {getSortIcon('closingsValue')}
+                                      </div>
+                                    </TableHead>
                                     <TableHead className="text-right">Ticket Promedio</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {regionalData.map((region) => (
+                                {sortedRegionalData.map((region: any) => (
                                     <>
-                                        {region.rows.map((row, index) => (
+                                        {region.rows.map((row: any, index: number) => (
                                             <TableRow key={`rev-${region.region}-${row.origin}`} className="hover:bg-muted/30 border-b">
                                                 <TableCell className={`font-medium align-top ${index === 0 ? "text-foreground" : ""}`}>
                                                     {index === 0 ? region.region : ""}
