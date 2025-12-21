@@ -93,14 +93,13 @@ export async function getDeals(params: { status?: string; start?: number; limit?
   return response.data || [];
 }
 
-export async function getAllDeals(pipelineId?: number, maxPages: number = 10): Promise<PipedriveDeal[]> {
+export async function getAllDeals(pipelineId?: number): Promise<PipedriveDeal[]> {
   let allDeals: PipedriveDeal[] = [];
   let start = 0;
   const limit = 500;
   let hasMore = true;
-  let pageCount = 0;
 
-  while (hasMore && pageCount < maxPages) {
+  while (hasMore) {
     const params: Record<string, string> = {
       start: start.toString(),
       limit: limit.toString(),
@@ -118,8 +117,12 @@ export async function getAllDeals(pipelineId?: number, maxPages: number = 10): P
       
       allDeals = allDeals.concat(pageDeals);
       start += limit;
-      pageCount++;
       hasMore = response.additional_data?.pagination?.more_items_in_collection || false;
+      
+      // Safety limit to prevent infinite loops - max 200 pages (100,000 deals)
+      if (start >= 100000) {
+        hasMore = false;
+      }
     } else {
       hasMore = false;
     }
