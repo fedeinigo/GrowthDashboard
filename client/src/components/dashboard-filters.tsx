@@ -6,8 +6,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DateRange } from "react-day-picker";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon, FilterX } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { Calendar as CalendarIcon, FilterX, RefreshCw, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,8 +19,8 @@ import {
 import { FilterOption } from "@/lib/mock-data";
 import { useState, useEffect } from "react";
 import { es } from "date-fns/locale";
-import { useQuery } from "@tanstack/react-query";
-import { fetchTeams, fetchPeople, fetchSources, fetchDealTypes, fetchCountries } from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchTeams, fetchPeople, fetchSources, fetchDealTypes, fetchCountries, fetchCacheStatus, refreshCache } from "@/lib/api";
 import { Checkbox } from "@/components/ui/checkbox";
 
 // Helper to get current quarter dates
@@ -104,6 +104,21 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
   const { data: countriesData = [] } = useQuery({
     queryKey: ['countries'],
     queryFn: fetchCountries,
+  });
+
+  const queryClient = useQueryClient();
+  
+  const { data: cacheStatus } = useQuery({
+    queryKey: ['cacheStatus'],
+    queryFn: fetchCacheStatus,
+    refetchInterval: 30000,
+  });
+
+  const refreshMutation = useMutation({
+    mutationFn: refreshCache,
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
   });
 
   const countries: FilterOption[] = countriesData.map((c: any) => ({ value: c.id, label: c.label }));
@@ -452,6 +467,30 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
               )}
             </PopoverContent>
           </Popover>
+        </div>
+
+        {/* Refresh Data Button */}
+        <div className="flex-shrink-0 flex flex-col items-end justify-end ml-auto">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => refreshMutation.mutate()}
+            disabled={refreshMutation.isPending || cacheStatus?.isRefreshing}
+            className="gap-2"
+            data-testid="button-refresh-data"
+          >
+            {(refreshMutation.isPending || cacheStatus?.isRefreshing) ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            Actualizar datos
+          </Button>
+          {cacheStatus?.lastSyncAt && (
+            <span className="text-xs text-muted-foreground mt-1" data-testid="text-last-updated">
+              Actualizado {formatDistanceToNow(new Date(cacheStatus.lastSyncAt), { addSuffix: true, locale: es })}
+            </span>
+          )}
         </div>
   
       </div>

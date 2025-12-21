@@ -9,68 +9,76 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Dashboard API routes
+  // Dashboard API routes - using cached data
   
-  // Get dashboard metrics from Pipedrive
+  // Get dashboard metrics from cache
   app.get("/api/dashboard/metrics", async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
       
       const filters = {
-        userId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
         countries,
+        origins,
       };
       
-      const metrics = await pipedrive.getPipedriveDashboardMetrics(filters);
+      const metrics = await pipedriveCache.getCachedDashboardMetrics(filters);
       res.json(metrics);
     } catch (error) {
-      console.error("Error fetching dashboard metrics from Pipedrive:", error);
+      console.error("Error fetching dashboard metrics from cache:", error);
       res.status(500).json({ error: "Failed to fetch dashboard metrics" });
     }
   });
 
-  // Get revenue history from Pipedrive
+  // Get revenue history from cache
   app.get("/api/dashboard/revenue-history", async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
         countries,
+        origins,
       };
       
-      const history = await pipedrive.getRevenueHistory(filters);
+      const history = await pipedriveCache.getCachedRevenueHistory(filters);
       res.json(history);
     } catch (error) {
-      console.error("Error fetching revenue history from Pipedrive:", error);
+      console.error("Error fetching revenue history from cache:", error);
       res.status(500).json({ error: "Failed to fetch revenue history" });
     }
   });
 
-  // Get meetings history from Pipedrive
+  // Get meetings history from cache
   app.get("/api/dashboard/meetings-history", async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
         countries,
+        origins,
       };
       
-      const history = await pipedrive.getMeetingsHistory(filters);
+      const history = await pipedriveCache.getCachedMeetingsHistory(filters);
       res.json(history);
     } catch (error) {
-      console.error("Error fetching meetings history from Pipedrive:", error);
+      console.error("Error fetching meetings history from cache:", error);
       res.status(500).json({ error: "Failed to fetch meetings history" });
     }
   });
@@ -172,23 +180,26 @@ export async function registerRoutes(
     }
   });
 
-  // Get rankings by person from Pipedrive
+  // Get rankings by person from cache
   app.get("/api/dashboard/rankings/people", async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
         countries,
+        origins,
       };
       
-      const rankings = await pipedrive.getRankingsByUser(filters);
+      const rankings = await pipedriveCache.getCachedRankingsByUser(filters);
       res.json(rankings);
     } catch (error) {
-      console.error("Error fetching person rankings from Pipedrive:", error);
+      console.error("Error fetching person rankings from cache:", error);
       res.status(500).json({ error: "Failed to fetch person rankings" });
     }
   });
@@ -213,23 +224,26 @@ export async function registerRoutes(
     }
   });
 
-  // Get regional data
+  // Get regional data from cache
   app.get("/api/dashboard/regional-data", async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
         countries,
+        origins,
       };
       
-      const data = await pipedrive.getRegionalData(filters);
+      const data = await pipedriveCache.getCachedRegionalData(filters);
       res.json(data);
     } catch (error) {
-      console.error("Error fetching regional data:", error);
+      console.error("Error fetching regional data from cache:", error);
       res.status(500).json({ error: "Failed to fetch regional data" });
     }
   });

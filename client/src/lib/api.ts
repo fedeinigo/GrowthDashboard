@@ -220,3 +220,15 @@ export async function fetchDealTypeStats(filters?: any) {
   if (!res.ok) throw new Error('Failed to fetch deal type stats');
   return res.json();
 }
+
+export async function fetchCacheStatus() {
+  const res = await fetch('/api/cache/status');
+  if (!res.ok) throw new Error('Failed to fetch cache status');
+  return res.json();
+}
+
+export async function refreshCache() {
+  const res = await fetch('/api/cache/refresh', { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to refresh cache');
+  return res.json();
+}
