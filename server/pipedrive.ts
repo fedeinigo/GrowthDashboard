@@ -93,30 +93,36 @@ export async function getDeals(params: { status?: string; start?: number; limit?
   return response.data || [];
 }
 
-export async function getAllDeals(pipelineId?: number): Promise<PipedriveDeal[]> {
+export async function getAllDeals(pipelineId?: number, maxPages: number = 10): Promise<PipedriveDeal[]> {
   let allDeals: PipedriveDeal[] = [];
   let start = 0;
   const limit = 500;
   let hasMore = true;
+  let pageCount = 0;
 
-  while (hasMore) {
-    const response = await pipedriveRequest("/deals", {
+  while (hasMore && pageCount < maxPages) {
+    const params: Record<string, string> = {
       start: start.toString(),
       limit: limit.toString(),
-    });
+    };
+    
+    const response = await pipedriveRequest("/deals", params);
 
     if (response.data && response.data.length > 0) {
-      allDeals = allDeals.concat(response.data);
+      let pageDeals = response.data;
+      
+      // Filter by pipeline immediately to reduce memory usage
+      if (pipelineId !== undefined) {
+        pageDeals = pageDeals.filter((deal: PipedriveDeal) => deal.pipeline_id === pipelineId);
+      }
+      
+      allDeals = allDeals.concat(pageDeals);
       start += limit;
+      pageCount++;
       hasMore = response.additional_data?.pagination?.more_items_in_collection || false;
     } else {
       hasMore = false;
     }
-  }
-
-  // Filter by pipeline if specified
-  if (pipelineId !== undefined) {
-    allDeals = allDeals.filter(deal => deal.pipeline_id === pipelineId);
   }
 
   return allDeals;
