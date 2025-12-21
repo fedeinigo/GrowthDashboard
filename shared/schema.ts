@@ -119,3 +119,43 @@ export const sales = pgTable("sales", {
 export const insertSaleSchema = createInsertSchema(sales).omit({ id: true, createdAt: true });
 export type InsertSale = z.infer<typeof insertSaleSchema>;
 export type Sale = typeof sales.$inferSelect;
+
+// Pipedrive deals cache table
+export const pipedriveDeals = pgTable("pipedrive_deals", {
+  id: integer("id").primaryKey(), // Pipedrive deal ID
+  title: text("title"),
+  value: decimal("value", { precision: 12, scale: 2 }),
+  currency: text("currency"),
+  status: text("status"), // open, won, lost
+  stageId: integer("stage_id"),
+  pipelineId: integer("pipeline_id"),
+  userId: integer("user_id"),
+  personId: integer("person_id"),
+  orgId: integer("org_id"),
+  addTime: timestamp("add_time"),
+  updateTime: timestamp("update_time"),
+  wonTime: timestamp("won_time"),
+  lostTime: timestamp("lost_time"),
+  // Custom fields from Pipedrive
+  dealType: text("deal_type"), // New Customer, Upselling
+  country: text("country"), // Country ID
+  origin: text("origin"), // Origin ID
+  // Calculated fields for faster queries
+  salesCycleDays: integer("sales_cycle_days"),
+  cachedAt: timestamp("cached_at").defaultNow().notNull(),
+});
+
+export type PipedriveDeal = typeof pipedriveDeals.$inferSelect;
+
+// Cache metadata table
+export const cacheMetadata = pgTable("cache_metadata", {
+  id: serial("id").primaryKey(),
+  cacheKey: text("cache_key").notNull().unique(), // e.g., "pipedrive_deals"
+  lastSyncAt: timestamp("last_sync_at"),
+  lastSyncStatus: text("last_sync_status"), // success, error, in_progress
+  lastSyncError: text("last_sync_error"),
+  totalRecords: integer("total_records"),
+  syncDurationMs: integer("sync_duration_ms"),
+});
+
+export type CacheMetadata = typeof cacheMetadata.$inferSelect;
