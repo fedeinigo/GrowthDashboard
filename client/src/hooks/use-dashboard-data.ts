@@ -17,7 +17,7 @@ export function useDashboardData(filters?: any) {
   const apiFilters = filters ? {
     teamId: filters.team && filters.team !== 'all' ? parseInt(filters.team) : undefined,
     personId: filters.person && filters.person !== 'all' ? parseInt(filters.person) : undefined,
-    sourceId: filters.source && filters.source !== 'all' ? parseInt(filters.source) : undefined,
+    sources: filters.sources, // Array of source IDs
     startDate: filters.startDate,
     endDate: filters.endDate,
     dealType: filters.dealType,

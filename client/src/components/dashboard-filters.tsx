@@ -116,6 +116,14 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     onFilterChange({ countries: newCountries.length > 0 ? newCountries : undefined });
   };
 
+  const handleSourceToggle = (sourceId: string) => {
+    const currentSources = filters?.sources || [];
+    const newSources = currentSources.includes(sourceId)
+      ? currentSources.filter((s: string) => s !== sourceId)
+      : [...currentSources, sourceId];
+    onFilterChange({ sources: newSources.length > 0 ? newSources : undefined });
+  };
+
   // Transform API data to FilterOption format
   const teams: FilterOption[] = [
     { value: "all", label: "Todos los Equipos" },
@@ -127,10 +135,7 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     ...peopleData.map((person: any) => ({ value: person.id.toString(), label: person.displayName }))
   ];
 
-  const sources: FilterOption[] = [
-    { value: "all", label: "Todos los Orígenes" },
-    ...sourcesData.map((source: any) => ({ value: source.id.toString(), label: source.displayName }))
-  ];
+  const sources: FilterOption[] = sourcesData.map((source: any) => ({ value: source.id.toString(), label: source.displayName }));
 
   const dealTypes: FilterOption[] = [
     { value: "all", label: "Todos los Tipos" },
@@ -358,21 +363,41 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
           </Select>
         </div>
   
-         {/* Source Filter */}
-         <div className="flex-1 min-w-[180px]">
+         {/* Source Filter - Multi-select */}
+         <div className="flex-1 min-w-[200px]">
           <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Origen del Lead</label>
-          <Select value={filters?.source || "all"} onValueChange={(val) => onFilterChange({ source: val })}>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Seleccionar origen" />
-            </SelectTrigger>
-            <SelectContent>
-              {sources.map((source: FilterOption) => (
-                <SelectItem key={source.value} value={source.value}>
-                  {source.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-start bg-background font-normal">
+                {filters?.sources && filters.sources.length > 0
+                  ? `${filters.sources.length} origen${filters.sources.length > 1 ? 'es' : ''} seleccionado${filters.sources.length > 1 ? 's' : ''}`
+                  : "Todos los orígenes"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-0" align="start">
+              <div className="max-h-[300px] overflow-y-auto p-2">
+                {sources.map((source: FilterOption) => (
+                  <div key={source.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer" onClick={() => handleSourceToggle(source.value)}>
+                    <Checkbox
+                      id={`source-${source.value}`}
+                      checked={filters?.sources?.includes(source.value) || false}
+                      onCheckedChange={() => handleSourceToggle(source.value)}
+                    />
+                    <label htmlFor={`source-${source.value}`} className="text-sm cursor-pointer flex-1">
+                      {source.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {filters?.sources && filters.sources.length > 0 && (
+                <div className="border-t p-2">
+                  <Button variant="ghost" size="sm" className="w-full" onClick={() => onFilterChange({ sources: undefined })}>
+                    Limpiar selección
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Deal Type Filter */}

@@ -2,7 +2,7 @@ export async function fetchDashboardMetrics(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -20,7 +20,7 @@ export async function fetchRevenueHistory(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -38,7 +38,7 @@ export async function fetchMeetingsHistory(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -56,7 +56,7 @@ export async function fetchClosureRateHistory(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -73,7 +73,7 @@ export async function fetchProductStats(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -90,7 +90,7 @@ export async function fetchRankingsByTeam(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -107,7 +107,7 @@ export async function fetchRankingsByPerson(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -125,7 +125,7 @@ export async function fetchRankingsBySource(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -142,7 +142,7 @@ export async function fetchRegionalData(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -160,7 +160,7 @@ export async function fetchCompanySizeDistribution(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);
   if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sourceId) params.append('sourceId', filters.sourceId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
