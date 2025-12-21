@@ -139,12 +139,15 @@ export function useDashboardData(filters?: any) {
       suffix: " días",
       subtext: `${metrics.data.previousAvgSalesCycle} días anterior`
     },
-    companySize: {
-      label: "Tamaño Empresa (Promedio)",
-      value: metrics.data.companySize,
-      change: 0,
-      trend: "neutral" as const,
-      subtext: "Segmento más frecuente"
+    avgTicket: {
+      label: "Ticket Promedio",
+      value: metrics.data.avgTicket,
+      change: metrics.data.previousAvgTicket > 0
+        ? ((metrics.data.avgTicket - metrics.data.previousAvgTicket) / metrics.data.previousAvgTicket) * 100
+        : 0,
+      trend: metrics.data.avgTicket >= (metrics.data.previousAvgTicket || 0) ? "up" : "down",
+      prefix: "$",
+      subtext: "New Customers ganados"
     }
   } : undefined;
 

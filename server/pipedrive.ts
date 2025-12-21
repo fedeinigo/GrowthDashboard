@@ -304,6 +304,15 @@ export async function getPipedriveDashboardMetrics(filters?: {
       ? salesCycles.reduce((a, b) => a + b, 0) / salesCycles.length 
       : 0;
 
+    // Average ticket for won New Customer deals
+    const wonNewCustomerDeals = wonDeals.filter(d => {
+      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+      return dealTypeValue === DEAL_TYPES.NEW_CUSTOMER;
+    });
+    const avgTicket = wonNewCustomerDeals.length > 0
+      ? wonNewCustomerDeals.reduce((sum, d) => sum + (d.value || 0), 0) / wonNewCustomerDeals.length
+      : 0;
+
     return {
       closureRate: Math.round(closureRate * 10) / 10,
       previousClosureRate: 0,
@@ -315,7 +324,8 @@ export async function getPipedriveDashboardMetrics(filters?: {
       previousLogos: 0,
       avgSalesCycle: Math.round(avgSalesCycle),
       previousAvgSalesCycle: 0,
-      companySize: "N/A",
+      avgTicket: Math.round(avgTicket * 100) / 100,
+      previousAvgTicket: 0,
       openDeals: openDeals.length,
       totalDeals: filteredDeals.length,
     };

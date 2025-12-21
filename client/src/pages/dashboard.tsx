@@ -10,7 +10,7 @@ import {
   Briefcase,
   TrendingUp,
   CalendarCheck,
-  Building2,
+  Banknote,
   Trophy,
   Globe,
   UserCheck
@@ -183,12 +183,13 @@ export default function Dashboard() {
                     icon={Clock}
                 />
                 <KPICard 
-                    title={metrics.companySize?.label || "Company Size"} 
-                    value={metrics.companySize?.value || "N/A"} 
-                    change={metrics.companySize?.change || 0} 
-                    trend={metrics.companySize?.trend || "neutral"} 
-                    subtext={metrics.companySize?.subtext}
-                    icon={Building2}
+                    title={metrics.avgTicket?.label || "Ticket Promedio"} 
+                    value={metrics.avgTicket?.value || 0} 
+                    change={metrics.avgTicket?.change || 0} 
+                    trend={metrics.avgTicket?.trend || "neutral"} 
+                    prefix={metrics.avgTicket?.prefix}
+                    subtext={metrics.avgTicket?.subtext}
+                    icon={Banknote}
                 />
                 </div>
 
