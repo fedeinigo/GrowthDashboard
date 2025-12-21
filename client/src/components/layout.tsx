@@ -15,7 +15,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import wiseCxLogo from "@assets/logo_violeta_oscuro_1766330876009.png";
+import wiseCxLogo from "@assets/logo_negro_1766330915727.png";
 
 interface LayoutProps {
   children: React.ReactNode;
