@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import wiseCxLogo from "@assets/logo_violeta_oscuro_1766330876009.png";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,13 +32,7 @@ function SidebarContent() {
   return (
     <div className="flex flex-col h-full text-sidebar-foreground">
       <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
-        {/* Placeholder for Logo - In real app use SVG */}
-        <div className="flex items-center gap-2 font-heading font-bold text-xl tracking-tight text-white">
-          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white">
-            W
-          </div>
-          <span>wisecx</span>
-        </div>
+        <img src={wiseCxLogo} alt="WiseCX" className="h-8 w-auto" />
       </div>
 
       <div className="flex-1 py-6 px-4 space-y-1">
