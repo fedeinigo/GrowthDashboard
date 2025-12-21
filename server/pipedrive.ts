@@ -606,6 +606,9 @@ export async function getStatsByDealType(filters?: { startDate?: string; endDate
   ];
 }
 
+// Pipeline stages for "Proposal Made" and later
+const PROPOSAL_MADE_OR_LATER_STAGES = [4, 64, 30]; // Proposal Made, Blocked, Current Sprint
+
 // Get regional data from Pipedrive - grouped by country and origin
 export async function getRegionalData(filters?: { 
   startDate?: string; 
@@ -615,36 +618,37 @@ export async function getRegionalData(filters?: {
 }) {
   const allDeals = await getAllDeals(DEALS_PIPELINE_ID);
 
-  // Filter deals by date range (based on won_time for won deals)
-  let filteredDeals = allDeals.filter(d => {
-    if (d.status !== "won") return false;
-    if (!d.won_time) return false;
-    const wonTime = new Date(d.won_time);
-    if (filters?.startDate && wonTime < new Date(filters.startDate)) return false;
-    if (filters?.endDate && wonTime > new Date(filters.endDate)) return false;
+  // Helper to check if date is in range
+  const inDateRange = (dateStr: string | null) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    if (filters?.startDate && d < new Date(filters.startDate)) return false;
+    if (filters?.endDate && d > new Date(filters.endDate)) return false;
     return true;
-  });
+  };
 
-  // Filter by deal type if specified
-  if (filters?.dealType) {
-    filteredDeals = filteredDeals.filter(d => {
-      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
-      return dealTypeValue === filters.dealType;
-    });
-  }
+  // Filter to NC deals only
+  let ncDeals = allDeals.filter(d => {
+    const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+    return dealTypeValue === DEAL_TYPES.NEW_CUSTOMER;
+  });
 
   // Filter by countries if specified
   if (filters?.countries && filters.countries.length > 0) {
-    filteredDeals = filteredDeals.filter(d => {
+    ncDeals = ncDeals.filter(d => {
       const countryValue = (d as any)[COUNTRY_FIELD_KEY];
       return filters.countries!.includes(String(countryValue));
     });
   }
 
-  // Group by country
-  const countryData: Record<string, Record<string, { closings: number; closingsValue: number }>> = {};
+  // Group by country and origin
+  const countryData: Record<string, Record<string, { 
+    meetings: number; meetingsValue: number;
+    proposals: number; proposalsValue: number;
+    closings: number; closingsValue: number;
+  }>> = {};
 
-  filteredDeals.forEach(deal => {
+  ncDeals.forEach(deal => {
     const countryId = String((deal as any)[COUNTRY_FIELD_KEY] || "unknown");
     const origenId = String((deal as any)[ORIGEN_FIELD_KEY] || "unknown");
 
@@ -652,11 +656,35 @@ export async function getRegionalData(filters?: {
       countryData[countryId] = {};
     }
     if (!countryData[countryId][origenId]) {
-      countryData[countryId][origenId] = { closings: 0, closingsValue: 0 };
+      countryData[countryId][origenId] = { 
+        meetings: 0, meetingsValue: 0,
+        proposals: 0, proposalsValue: 0,
+        closings: 0, closingsValue: 0 
+      };
     }
 
-    countryData[countryId][origenId].closings++;
-    countryData[countryId][origenId].closingsValue += deal.value || 0;
+    const stats = countryData[countryId][origenId];
+    const dealValue = deal.value || 0;
+
+    // Reuniones: NC deals created in period (add_time)
+    if (inDateRange(deal.add_time)) {
+      stats.meetings++;
+      stats.meetingsValue += dealValue;
+    }
+
+    // Propuestas: NC at Proposal Made or later stages, or won
+    // Check if deal reached these stages during the period
+    const isAtProposalOrLater = PROPOSAL_MADE_OR_LATER_STAGES.includes(deal.stage_id) || deal.status === "won";
+    if (isAtProposalOrLater && inDateRange(deal.add_time)) {
+      stats.proposals++;
+      stats.proposalsValue += dealValue;
+    }
+
+    // Cierres: NC won in period
+    if (deal.status === "won" && inDateRange(deal.won_time)) {
+      stats.closings++;
+      stats.closingsValue += dealValue;
+    }
   });
 
   // Convert to expected format
@@ -667,13 +695,14 @@ export async function getRegionalData(filters?: {
     const rows = Object.entries(origins)
       .map(([origenId, stats]) => ({
         origin: ORIGEN_OPTIONS[origenId] || "Sin Origen",
-        meetings: 0,
-        proposals: 0,
+        meetings: stats.meetings,
+        meetingsValue: stats.meetingsValue,
+        proposals: stats.proposals,
+        proposalsValue: stats.proposalsValue,
         closings: stats.closings,
-        proposalsValue: 0,
         closingsValue: stats.closingsValue,
       }))
-      .filter(row => row.closings > 0)
+      .filter(row => row.meetings > 0 || row.proposals > 0 || row.closings > 0)
       .sort((a, b) => b.closingsValue - a.closingsValue);
 
     return {

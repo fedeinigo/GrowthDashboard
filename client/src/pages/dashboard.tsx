@@ -404,7 +404,7 @@ export default function Dashboard() {
                 <Card className="border-none shadow-sm">
                     <CardHeader>
                         <CardTitle>Ingresos por Región Estratégica</CardTitle>
-                        <CardDescription>Volumen de negocio en propuestas y cierres (USD)</CardDescription>
+                        <CardDescription>Volumen de negocio en reuniones, propuestas y cierres (USD)</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <Table>
@@ -412,6 +412,7 @@ export default function Dashboard() {
                                 <TableRow className="hover:bg-transparent border-b-2">
                                     <TableHead className="w-[200px]">Células x Región</TableHead>
                                     <TableHead className="w-[250px]">Origen</TableHead>
+                                    <TableHead className="text-right">Reuniones ($)</TableHead>
                                     <TableHead className="text-right">Propuesta ($)</TableHead>
                                     <TableHead className="text-right">Cierre ($)</TableHead>
                                     <TableHead className="text-right">Ticket Promedio</TableHead>
@@ -426,6 +427,9 @@ export default function Dashboard() {
                                                     {index === 0 ? region.region : ""}
                                                 </TableCell>
                                                 <TableCell>{row.origin}</TableCell>
+                                                <TableCell className="text-right text-muted-foreground">
+                                                    ${row.meetingsValue ? row.meetingsValue.toLocaleString() : "0"}
+                                                </TableCell>
                                                 <TableCell className="text-right text-muted-foreground">
                                                     ${row.proposalsValue ? row.proposalsValue.toLocaleString() : "0"}
                                                 </TableCell>
