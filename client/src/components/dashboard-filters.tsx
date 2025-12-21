@@ -20,7 +20,37 @@ import { FilterOption } from "@/lib/mock-data";
 import { useState, useEffect } from "react";
 import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
-import { fetchTeams, fetchPeople, fetchSources } from "@/lib/api";
+import { fetchTeams, fetchPeople, fetchSources, fetchDealTypes } from "@/lib/api";
+
+// Helper to get current quarter dates
+function getCurrentQuarterDates() {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const quarterStartMonth = Math.floor(currentMonth / 3) * 3;
+  const quarterEndMonth = quarterStartMonth + 2;
+  
+  const startDate = new Date(currentYear, quarterStartMonth, 1);
+  const endDate = new Date(currentYear, quarterEndMonth + 1, 0); // Last day of quarter
+  
+  return { startDate, endDate, quarter: Math.floor(currentMonth / 3) + 1, year: currentYear };
+}
+
+function getCurrentQuarter() {
+  const now = new Date();
+  return `q${Math.floor(now.getMonth() / 3) + 1}`;
+}
+
+function getQuarterDates(quarter: string, year: number) {
+  const quarterNum = parseInt(quarter.replace('q', '')) - 1;
+  const startMonth = quarterNum * 3;
+  const endMonth = startMonth + 2;
+  
+  return {
+    startDate: new Date(year, startMonth, 1),
+    endDate: new Date(year, endMonth + 1, 0),
+  };
+}
 
 interface DashboardFiltersProps {
   filters?: any;
@@ -28,12 +58,26 @@ interface DashboardFiltersProps {
 }
 
 export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersProps) {
+  // Default to current quarter
+  const currentQ = getCurrentQuarterDates();
+  
   const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(2025, 0, 20),
-    to: new Date(2025, 1, 9),
+    from: currentQ.startDate,
+    to: currentQ.endDate,
   });
 
-  const [dateType, setDateType] = useState("range"); // "range", "quarter", or "year"
+  const [dateType, setDateType] = useState("quarter"); // Default to quarter
+  const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+
+  // Send initial quarter filter on mount
+  useEffect(() => {
+    const qDates = getQuarterDates(selectedQuarter, parseInt(selectedYear));
+    onFilterChange({ 
+      startDate: format(qDates.startDate, 'yyyy-MM-dd'),
+      endDate: format(qDates.endDate, 'yyyy-MM-dd'),
+    });
+  }, []);
 
   // Fetch filter options from API
   const { data: teamsData = [] } = useQuery({
@@ -51,6 +95,11 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     queryFn: fetchSources,
   });
 
+  const { data: dealTypesData = [] } = useQuery({
+    queryKey: ['dealTypes'],
+    queryFn: fetchDealTypes,
+  });
+
   // Transform API data to FilterOption format
   const teams: FilterOption[] = [
     { value: "all", label: "Todos los Equipos" },
@@ -65,6 +114,11 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
   const sources: FilterOption[] = [
     { value: "all", label: "Todos los Orígenes" },
     ...sourcesData.map((source: any) => ({ value: source.id.toString(), label: source.displayName }))
+  ];
+
+  const dealTypes: FilterOption[] = [
+    { value: "all", label: "Todos los Tipos" },
+    ...dealTypesData.map((dt: any) => ({ value: dt.id.toString(), label: dt.displayName }))
   ];
 
   const quarters = [
@@ -117,7 +171,7 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
         {/* Date Type Selector */}
         <div className="flex-1 min-w-[140px] max-w-[180px]">
           <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Tipo de Fecha</label>
-           <Select defaultValue="range" onValueChange={setDateType}>
+           <Select value={dateType} onValueChange={setDateType}>
             <SelectTrigger className="bg-background">
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
@@ -164,7 +218,15 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                   mode="range"
                   defaultMonth={date?.from}
                   selected={date}
-                  onSelect={setDate}
+                  onSelect={(newDate) => {
+                    setDate(newDate);
+                    if (newDate?.from && newDate?.to) {
+                      onFilterChange({
+                        startDate: format(newDate.from, 'yyyy-MM-dd'),
+                        endDate: format(newDate.to, 'yyyy-MM-dd'),
+                      });
+                    }
+                  }}
                   numberOfMonths={2}
                 />
               </PopoverContent>
@@ -176,7 +238,14 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
           <>
               <div className="flex-1 min-w-[100px]">
                   <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Trimestre</label>
-                  <Select defaultValue="q1" onValueChange={(val) => onFilterChange({ quarter: val })}>
+                  <Select value={selectedQuarter} onValueChange={(val) => {
+                    setSelectedQuarter(val);
+                    const qDates = getQuarterDates(val, parseInt(selectedYear));
+                    onFilterChange({ 
+                      startDate: format(qDates.startDate, 'yyyy-MM-dd'),
+                      endDate: format(qDates.endDate, 'yyyy-MM-dd'),
+                    });
+                  }}>
                   <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Q" />
                   </SelectTrigger>
@@ -191,7 +260,14 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
               </div>
                <div className="flex-1 min-w-[100px]">
                   <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Año</label>
-                  <Select defaultValue={new Date().getFullYear().toString()} onValueChange={(val) => onFilterChange({ year: val })}>
+                  <Select value={selectedYear} onValueChange={(val) => {
+                    setSelectedYear(val);
+                    const qDates = getQuarterDates(selectedQuarter, parseInt(val));
+                    onFilterChange({ 
+                      startDate: format(qDates.startDate, 'yyyy-MM-dd'),
+                      endDate: format(qDates.endDate, 'yyyy-MM-dd'),
+                    });
+                  }}>
                   <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Año" />
                   </SelectTrigger>
@@ -210,7 +286,14 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
         {dateType === "year" && (
             <div className="flex-1 min-w-[100px]">
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Año</label>
-                <Select defaultValue={new Date().getFullYear().toString()} onValueChange={(val) => onFilterChange({ year: val })}>
+                <Select value={selectedYear} onValueChange={(val) => {
+                  setSelectedYear(val);
+                  const yearNum = parseInt(val);
+                  onFilterChange({ 
+                    startDate: format(new Date(yearNum, 0, 1), 'yyyy-MM-dd'),
+                    endDate: format(new Date(yearNum, 11, 31), 'yyyy-MM-dd'),
+                  });
+                }}>
                 <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Año" />
                 </SelectTrigger>
@@ -270,6 +353,23 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
               {sources.map((source: FilterOption) => (
                 <SelectItem key={source.value} value={source.value}>
                   {source.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Deal Type Filter */}
+        <div className="flex-1 min-w-[180px]">
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Tipo de Deal</label>
+          <Select value={filters?.dealType || "all"} onValueChange={(val) => onFilterChange({ dealType: val === "all" ? undefined : val })}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Seleccionar tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              {dealTypes.map((dt: FilterOption) => (
+                <SelectItem key={dt.value} value={dt.value}>
+                  {dt.label}
                 </SelectItem>
               ))}
             </SelectContent>

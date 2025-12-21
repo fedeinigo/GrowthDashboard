@@ -17,6 +17,7 @@ export async function registerRoutes(
         userId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
       };
       
       const metrics = await pipedrive.getPipedriveDashboardMetrics(filters);
@@ -33,6 +34,7 @@ export async function registerRoutes(
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
       };
       
       const history = await pipedrive.getRevenueHistory(filters);
@@ -49,6 +51,7 @@ export async function registerRoutes(
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
       };
       
       const history = await pipedrive.getMeetingsHistory(filters);
@@ -56,6 +59,33 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching meetings history from Pipedrive:", error);
       res.status(500).json({ error: "Failed to fetch meetings history" });
+    }
+  });
+
+  // Get deal types for filter
+  app.get("/api/deal-types", async (req, res) => {
+    try {
+      const dealTypes = await pipedrive.getDealTypes();
+      res.json(dealTypes);
+    } catch (error) {
+      console.error("Error fetching deal types:", error);
+      res.status(500).json({ error: "Failed to fetch deal types" });
+    }
+  });
+
+  // Get stats by deal type
+  app.get("/api/dashboard/deal-type-stats", async (req, res) => {
+    try {
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+      };
+      
+      const stats = await pipedrive.getStatsByDealType(filters);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching deal type stats:", error);
+      res.status(500).json({ error: "Failed to fetch deal type stats" });
     }
   });
 
@@ -125,6 +155,7 @@ export async function registerRoutes(
       const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
       };
       
       const rankings = await pipedrive.getRankingsByUser(filters);

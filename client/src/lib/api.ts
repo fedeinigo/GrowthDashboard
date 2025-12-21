@@ -6,6 +6,7 @@ export async function fetchDashboardMetrics(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/metrics${query ? `?${query}` : ''}`;
@@ -22,6 +23,7 @@ export async function fetchRevenueHistory(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/revenue-history${query ? `?${query}` : ''}`;
@@ -38,6 +40,7 @@ export async function fetchMeetingsHistory(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/meetings-history${query ? `?${query}` : ''}`;
@@ -54,6 +57,7 @@ export async function fetchClosureRateHistory(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/closure-rate-history${query ? `?${query}` : ''}`;
@@ -70,6 +74,7 @@ export async function fetchProductStats(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/product-stats${query ? `?${query}` : ''}`;
@@ -86,6 +91,7 @@ export async function fetchRankingsByTeam(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/rankings/teams${query ? `?${query}` : ''}`;
@@ -102,6 +108,7 @@ export async function fetchRankingsByPerson(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/rankings/people${query ? `?${query}` : ''}`;
@@ -118,6 +125,7 @@ export async function fetchRankingsBySource(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/rankings/sources${query ? `?${query}` : ''}`;
@@ -134,6 +142,7 @@ export async function fetchRegionalData(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/regional-data${query ? `?${query}` : ''}`;
@@ -150,6 +159,7 @@ export async function fetchCompanySizeDistribution(filters?: any) {
   if (filters?.regionId) params.append('regionId', filters.regionId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
 
   const query = params.toString();
   const url = `/api/dashboard/company-size-distribution${query ? `?${query}` : ''}`;
@@ -179,5 +189,23 @@ export async function fetchSources() {
 export async function fetchRegions() {
   const res = await fetch('/api/regions');
   if (!res.ok) throw new Error('Failed to fetch regions');
+  return res.json();
+}
+
+export async function fetchDealTypes() {
+  const res = await fetch('/api/deal-types');
+  if (!res.ok) throw new Error('Failed to fetch deal types');
+  return res.json();
+}
+
+export async function fetchDealTypeStats(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+
+  const query = params.toString();
+  const url = `/api/dashboard/deal-type-stats${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch deal type stats');
   return res.json();
 }

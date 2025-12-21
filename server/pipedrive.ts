@@ -1,6 +1,14 @@
 const PIPEDRIVE_API_TOKEN = process.env.PIPEDRIVE_API_TOKEN;
 const PIPEDRIVE_BASE_URL = "https://api.pipedrive.com/v1";
 
+// Constants for Pipedrive configuration
+export const DEALS_PIPELINE_ID = 1; // The "Deals" pipeline
+export const TYPE_OF_DEAL_FIELD_KEY = "a7ab0c5cfbfd5a57ce6531b4aa0a74b317c4b657";
+export const DEAL_TYPES = {
+  NEW_CUSTOMER: "13",
+  UPSELLING: "14",
+} as const;
+
 async function pipedriveRequest(endpoint: string, params: Record<string, string> = {}) {
   if (!PIPEDRIVE_API_TOKEN) {
     throw new Error("PIPEDRIVE_API_TOKEN is not set");
@@ -85,7 +93,7 @@ export async function getDeals(params: { status?: string; start?: number; limit?
   return response.data || [];
 }
 
-export async function getAllDeals(): Promise<PipedriveDeal[]> {
+export async function getAllDeals(pipelineId?: number): Promise<PipedriveDeal[]> {
   let allDeals: PipedriveDeal[] = [];
   let start = 0;
   const limit = 500;
@@ -104,6 +112,11 @@ export async function getAllDeals(): Promise<PipedriveDeal[]> {
     } else {
       hasMore = false;
     }
+  }
+
+  // Filter by pipeline if specified
+  if (pipelineId !== undefined) {
+    allDeals = allDeals.filter(deal => deal.pipeline_id === pipelineId);
   }
 
   return allDeals;
@@ -197,63 +210,80 @@ export async function getActivityTypes(): Promise<any[]> {
 }
 
 // Helper to get dashboard metrics from Pipedrive
-export async function getPipedriveDashboardMetrics(filters?: { startDate?: string; endDate?: string; userId?: number }) {
+export async function getPipedriveDashboardMetrics(filters?: { 
+  startDate?: string; 
+  endDate?: string; 
+  userId?: number;
+  dealType?: string;
+}) {
   try {
-    const [allDeals, wonDeals, activities, users] = await Promise.all([
-      getAllDeals(),
-      getWonDeals(filters?.startDate, filters?.endDate),
-      getAllActivities(),
+    // Only get deals from the "Deals" pipeline (id=1)
+    const [allDeals, users] = await Promise.all([
+      getAllDeals(DEALS_PIPELINE_ID),
       getUsers(),
     ]);
 
     // Filter by user if specified
     let filteredDeals = allDeals;
-    let filteredWonDeals = wonDeals;
-    let filteredActivities = activities;
 
     if (filters?.userId) {
-      filteredDeals = allDeals.filter(d => {
+      filteredDeals = filteredDeals.filter(d => {
         const userId = typeof d.user_id === 'object' ? d.user_id.id : d.user_id;
         return userId === filters.userId;
       });
-      filteredWonDeals = wonDeals.filter(d => {
-        const userId = typeof d.user_id === 'object' ? d.user_id.id : d.user_id;
-        return userId === filters.userId;
-      });
-      filteredActivities = activities.filter(a => a.user_id === filters.userId);
     }
 
-    // Filter by date
-    if (filters?.startDate || filters?.endDate) {
-      filteredDeals = filteredDeals.filter(deal => {
-        const addTime = new Date(deal.add_time);
-        if (filters?.startDate && addTime < new Date(filters.startDate)) return false;
-        if (filters?.endDate && addTime > new Date(filters.endDate)) return false;
-        return true;
-      });
-      
-      filteredActivities = filteredActivities.filter(activity => {
-        const addTime = new Date(activity.add_time);
-        if (filters?.startDate && addTime < new Date(filters.startDate)) return false;
-        if (filters?.endDate && addTime > new Date(filters.endDate)) return false;
-        return true;
+    // Filter by deal type if specified
+    if (filters?.dealType) {
+      filteredDeals = filteredDeals.filter(d => {
+        const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+        return dealTypeValue === filters.dealType;
       });
     }
+
+    // Filter won/lost deals by close date (won_time or lost_time)
+    const wonDeals = filteredDeals.filter(d => {
+      if (d.status !== "won") return false;
+      if (!d.won_time) return false;
+      const wonTime = new Date(d.won_time);
+      if (filters?.startDate && wonTime < new Date(filters.startDate)) return false;
+      if (filters?.endDate && wonTime > new Date(filters.endDate)) return false;
+      return true;
+    });
+
+    const lostDeals = filteredDeals.filter(d => {
+      if (d.status !== "lost") return false;
+      const lostTime = d.lost_time ? new Date(d.lost_time) : null;
+      if (!lostTime) return false;
+      if (filters?.startDate && lostTime < new Date(filters.startDate)) return false;
+      if (filters?.endDate && lostTime > new Date(filters.endDate)) return false;
+      return true;
+    });
+
+    // Open deals (for reference)
+    const openDeals = filteredDeals.filter(d => d.status === "open");
 
     // Calculate metrics
-    const openDeals = filteredDeals.filter(d => d.status === "open");
-    const lostDeals = filteredDeals.filter(d => d.status === "lost");
+    const totalRevenue = wonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+    const logos = wonDeals.length;
     
-    const totalRevenue = filteredWonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
-    const meetings = filteredActivities.filter(a => a.type === "meeting" && a.done).length;
-    const logos = filteredWonDeals.length;
-    
-    // Closure rate: won / (won + lost)
-    const closedDeals = filteredWonDeals.length + lostDeals.length;
-    const closureRate = closedDeals > 0 ? (filteredWonDeals.length / closedDeals) * 100 : 0;
+    // Closure rate: Won / (Won + Lost) - NOT including open deals
+    const closedDeals = wonDeals.length + lostDeals.length;
+    const closureRate = closedDeals > 0 ? (wonDeals.length / closedDeals) * 100 : 0;
+
+    // Meetings: Count New Customer deals created in the period
+    const newCustomerDeals = filteredDeals.filter(d => {
+      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+      if (dealTypeValue !== DEAL_TYPES.NEW_CUSTOMER) return false;
+      const addTime = new Date(d.add_time);
+      if (filters?.startDate && addTime < new Date(filters.startDate)) return false;
+      if (filters?.endDate && addTime > new Date(filters.endDate)) return false;
+      return true;
+    });
+    const meetings = newCustomerDeals.length;
 
     // Average sales cycle (days from add_time to won_time)
-    const salesCycles = filteredWonDeals
+    const salesCycles = wonDeals
       .filter(d => d.won_time)
       .map(d => {
         const addTime = new Date(d.add_time).getTime();
@@ -286,12 +316,30 @@ export async function getPipedriveDashboardMetrics(filters?: { startDate?: strin
   }
 }
 
-// Get rankings by user
-export async function getRankingsByUser(filters?: { startDate?: string; endDate?: string }) {
-  const [wonDeals, users] = await Promise.all([
-    getWonDeals(filters?.startDate, filters?.endDate),
+// Get rankings by user (only from Deals pipeline)
+export async function getRankingsByUser(filters?: { startDate?: string; endDate?: string; dealType?: string }) {
+  const [allDeals, users] = await Promise.all([
+    getAllDeals(DEALS_PIPELINE_ID),
     getUsers(),
   ]);
+
+  // Filter won deals by date
+  let wonDeals = allDeals.filter(d => {
+    if (d.status !== "won") return false;
+    if (!d.won_time) return false;
+    const wonTime = new Date(d.won_time);
+    if (filters?.startDate && wonTime < new Date(filters.startDate)) return false;
+    if (filters?.endDate && wonTime > new Date(filters.endDate)) return false;
+    return true;
+  });
+
+  // Filter by deal type if specified
+  if (filters?.dealType) {
+    wonDeals = wonDeals.filter(d => {
+      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+      return dealTypeValue === filters.dealType;
+    });
+  }
 
   const userRevenue: Record<number, number> = {};
   
@@ -311,9 +359,27 @@ export async function getRankingsByUser(filters?: { startDate?: string; endDate?
     .slice(0, 10);
 }
 
-// Get revenue history (grouped by day/week/month)
-export async function getRevenueHistory(filters?: { startDate?: string; endDate?: string }) {
-  const wonDeals = await getWonDeals(filters?.startDate, filters?.endDate);
+// Get revenue history (grouped by day/week/month) - only from Deals pipeline
+export async function getRevenueHistory(filters?: { startDate?: string; endDate?: string; dealType?: string }) {
+  const allDeals = await getAllDeals(DEALS_PIPELINE_ID);
+  
+  // Filter won deals by date
+  let wonDeals = allDeals.filter(d => {
+    if (d.status !== "won") return false;
+    if (!d.won_time) return false;
+    const wonTime = new Date(d.won_time);
+    if (filters?.startDate && wonTime < new Date(filters.startDate)) return false;
+    if (filters?.endDate && wonTime > new Date(filters.endDate)) return false;
+    return true;
+  });
+
+  // Filter by deal type if specified
+  if (filters?.dealType) {
+    wonDeals = wonDeals.filter(d => {
+      const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+      return dealTypeValue === filters.dealType;
+    });
+  }
 
   const dailyRevenue: Record<string, number> = {};
   
@@ -326,40 +392,79 @@ export async function getRevenueHistory(filters?: { startDate?: string; endDate?
 
   return Object.entries(dailyRevenue)
     .map(([date, value]) => ({ date, value }))
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-30);
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-// Get meetings history
-export async function getMeetingsHistory(filters?: { startDate?: string; endDate?: string }) {
-  const activities = await getAllActivities();
+// Get meetings history - counts New Customer deals created per day in Deals pipeline
+export async function getMeetingsHistory(filters?: { startDate?: string; endDate?: string; dealType?: string }) {
+  const allDeals = await getAllDeals(DEALS_PIPELINE_ID);
   
-  let filteredActivities = activities.filter(a => a.type === "meeting");
-  
-  if (filters?.startDate || filters?.endDate) {
-    filteredActivities = filteredActivities.filter(activity => {
-      const dueDate = new Date(activity.due_date);
-      if (filters?.startDate && dueDate < new Date(filters.startDate)) return false;
-      if (filters?.endDate && dueDate > new Date(filters.endDate)) return false;
-      return true;
-    });
-  }
+  // Filter New Customer deals by add_time
+  let newCustomerDeals = allDeals.filter(d => {
+    const dealTypeValue = (d as any)[TYPE_OF_DEAL_FIELD_KEY];
+    if (dealTypeValue !== DEAL_TYPES.NEW_CUSTOMER) return false;
+    const addTime = new Date(d.add_time);
+    if (filters?.startDate && addTime < new Date(filters.startDate)) return false;
+    if (filters?.endDate && addTime > new Date(filters.endDate)) return false;
+    return true;
+  });
 
-  const dailyMeetings: Record<string, { done: number; total: number }> = {};
+  const dailyMeetings: Record<string, number> = {};
   
-  filteredActivities.forEach(activity => {
-    const date = activity.due_date;
-    if (!dailyMeetings[date]) {
-      dailyMeetings[date] = { done: 0, total: 0 };
-    }
-    dailyMeetings[date].total++;
-    if (activity.done) {
-      dailyMeetings[date].done++;
-    }
+  newCustomerDeals.forEach(deal => {
+    const date = deal.add_time.split(" ")[0]; // YYYY-MM-DD
+    dailyMeetings[date] = (dailyMeetings[date] || 0) + 1;
   });
 
   return Object.entries(dailyMeetings)
-    .map(([date, data]) => ({ date, value: data.done, value2: data.total - data.done }))
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-30);
+    .map(([date, value]) => ({ date, value, value2: 0 }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// Get deal types for filtering
+export async function getDealTypes() {
+  return [
+    { id: DEAL_TYPES.NEW_CUSTOMER, name: "New Customer", displayName: "New Customer" },
+    { id: DEAL_TYPES.UPSELLING, name: "Upselling", displayName: "Upselling" },
+  ];
+}
+
+// Get stats by deal type
+export async function getStatsByDealType(filters?: { startDate?: string; endDate?: string }) {
+  const allDeals = await getAllDeals(DEALS_PIPELINE_ID);
+  
+  const dealTypeStats: Record<string, { deals: number; won: number; lost: number; revenue: number }> = {
+    [DEAL_TYPES.NEW_CUSTOMER]: { deals: 0, won: 0, lost: 0, revenue: 0 },
+    [DEAL_TYPES.UPSELLING]: { deals: 0, won: 0, lost: 0, revenue: 0 },
+    "other": { deals: 0, won: 0, lost: 0, revenue: 0 },
+  };
+
+  allDeals.forEach(deal => {
+    const dealTypeValue = (deal as any)[TYPE_OF_DEAL_FIELD_KEY] || "other";
+    const typeKey = dealTypeStats[dealTypeValue] ? dealTypeValue : "other";
+    
+    // Check date filters for won/lost
+    const inDateRange = (date: string | null) => {
+      if (!date) return false;
+      const d = new Date(date);
+      if (filters?.startDate && d < new Date(filters.startDate)) return false;
+      if (filters?.endDate && d > new Date(filters.endDate)) return false;
+      return true;
+    };
+
+    dealTypeStats[typeKey].deals++;
+    
+    if (deal.status === "won" && inDateRange(deal.won_time)) {
+      dealTypeStats[typeKey].won++;
+      dealTypeStats[typeKey].revenue += deal.value || 0;
+    } else if (deal.status === "lost" && inDateRange(deal.lost_time)) {
+      dealTypeStats[typeKey].lost++;
+    }
+  });
+
+  return [
+    { name: "New Customer", deals: dealTypeStats[DEAL_TYPES.NEW_CUSTOMER].deals, won: dealTypeStats[DEAL_TYPES.NEW_CUSTOMER].won, lost: dealTypeStats[DEAL_TYPES.NEW_CUSTOMER].lost, revenue: dealTypeStats[DEAL_TYPES.NEW_CUSTOMER].revenue },
+    { name: "Upselling", deals: dealTypeStats[DEAL_TYPES.UPSELLING].deals, won: dealTypeStats[DEAL_TYPES.UPSELLING].won, lost: dealTypeStats[DEAL_TYPES.UPSELLING].lost, revenue: dealTypeStats[DEAL_TYPES.UPSELLING].revenue },
+    { name: "Sin Tipo", deals: dealTypeStats["other"].deals, won: dealTypeStats["other"].won, lost: dealTypeStats["other"].lost, revenue: dealTypeStats["other"].revenue },
+  ];
 }
