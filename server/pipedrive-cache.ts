@@ -59,9 +59,15 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
 
     console.log("[Cache] Starting Pipedrive deals sync...");
     
-    const deals = await pipedrive.getAllDeals(1);
+    // Fetch deals from both pipeline 1 (Deals) and pipeline 9 (Reuniones/Meetings)
+    const [pipeline1Deals, pipeline9Deals] = await Promise.all([
+      pipedrive.getAllDeals(1),
+      pipedrive.getAllDeals(9),
+    ]);
     
-    console.log(`[Cache] Fetched ${deals.length} deals from Pipedrive`);
+    const deals = [...pipeline1Deals, ...pipeline9Deals];
+    
+    console.log(`[Cache] Fetched ${deals.length} deals from Pipedrive (Pipeline 1: ${pipeline1Deals.length}, Pipeline 9: ${pipeline9Deals.length})`);
 
     const TYPE_OF_DEAL_FIELD_KEY = "a7ab0c5cfbfd5a57ce6531b4aa0a74b317c4b657";
     const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
@@ -1232,11 +1238,25 @@ function aggregateProductStats(products: any[], deals: any[]) {
     .sort((a, b) => b.revenue - a.revenue);
 }
 
-// Get direct meetings data (Directo Inbound + Outbound origins)
+// Get direct meetings data from cached Pipeline 9 (Reuniones) deals
+// Filters for Directo Inbound + Outbound origins
 export async function getDirectMeetingsData() {
+  // Get cached deals from pipeline 9 (last 12 weeks)
   const cachedDeals = await db.select().from(pipedriveDeals);
   
-  // Get origin field options from Pipedrive
+  const now = new Date();
+  const twelveWeeksAgo = new Date(now);
+  twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84);
+  
+  // Filter to pipeline 9 deals only
+  const pipeline9Deals = cachedDeals.filter(deal => {
+    if (deal.pipelineId !== 9) return false;
+    if (!deal.addTime) return false;
+    const addDate = new Date(deal.addTime);
+    return addDate >= twelveWeeksAgo;
+  });
+  
+  // Get origin field options from Pipedrive for labels
   const dealFields = await pipedrive.getDealFields();
   const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
   const origenField = dealFields.find((f: any) => f.key === ORIGEN_FIELD_KEY);
@@ -1251,7 +1271,7 @@ export async function getDirectMeetingsData() {
   const users = await pipedrive.getUsers();
   const userNames = new Map(users.map(u => [u.id, u.name]));
   
-  // Filter for direct origins (Directo, Directo Inbound, Directo Outbound)
+  // Find direct origin IDs (Directo, Directo Inbound, Directo Outbound)
   const directOriginIds: string[] = [];
   originLabels.forEach((label, id) => {
     if (label.toLowerCase().includes('directo')) {
@@ -1259,16 +1279,10 @@ export async function getDirectMeetingsData() {
     }
   });
   
-  // Get deals with direct origin from last 12 weeks
-  const now = new Date();
-  const twelveWeeksAgo = new Date(now);
-  twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84);
-  
-  const directDeals = cachedDeals.filter(deal => {
-    if (!deal.origin || !directOriginIds.includes(deal.origin)) return false;
-    if (!deal.addTime) return false;
-    const addDate = new Date(deal.addTime);
-    return addDate >= twelveWeeksAgo;
+  // Filter deals with direct origins from pipeline 9
+  const directDeals = pipeline9Deals.filter(deal => {
+    if (!deal.origin) return false;
+    return directOriginIds.includes(deal.origin);
   });
   
   // Aggregate by week

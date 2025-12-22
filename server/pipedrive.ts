@@ -3,6 +3,7 @@ const PIPEDRIVE_BASE_URL = "https://api.pipedrive.com/v1";
 
 // Constants for Pipedrive configuration
 export const DEALS_PIPELINE_ID = 1; // The "Deals" pipeline
+export const MEETINGS_PIPELINE_ID = 9; // The "Reuniones" pipeline for direct meetings
 export const TYPE_OF_DEAL_FIELD_KEY = "a7ab0c5cfbfd5a57ce6531b4aa0a74b317c4b657";
 export const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
 export const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
@@ -604,6 +605,48 @@ export async function getDealTypes() {
     { id: DEAL_TYPES.NEW_CUSTOMER, name: "New Customer", displayName: "New Customer" },
     { id: DEAL_TYPES.UPSELLING, name: "Upselling", displayName: "Upselling" },
   ];
+}
+
+// Get deals from Meetings pipeline (pipeline 9) for direct meetings analysis
+export async function getMeetingsPipelineDeals(weeksBack: number = 12): Promise<PipedriveDeal[]> {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - (weeksBack * 7));
+  
+  let allDeals: PipedriveDeal[] = [];
+  let start = 0;
+  const limit = 500;
+  let hasMore = true;
+
+  while (hasMore) {
+    const params: Record<string, string> = {
+      start: start.toString(),
+      limit: limit.toString(),
+    };
+    
+    const response = await pipedriveRequest("/deals", params);
+
+    if (response.data && response.data.length > 0) {
+      // Filter by pipeline 9 and date
+      const pageDeals = response.data.filter((deal: PipedriveDeal) => {
+        if (deal.pipeline_id !== MEETINGS_PIPELINE_ID) return false;
+        const addDate = new Date(deal.add_time);
+        return addDate >= cutoffDate;
+      });
+      
+      allDeals = allDeals.concat(pageDeals);
+      start += limit;
+      hasMore = response.additional_data?.pagination?.more_items_in_collection || false;
+      
+      // Safety limit
+      if (start >= 50000) {
+        hasMore = false;
+      }
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allDeals;
 }
 
 // Get stats by deal type
