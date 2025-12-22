@@ -1238,7 +1238,7 @@ function aggregateProductStats(products: any[], deals: any[]) {
     .sort((a, b) => b.revenue - a.revenue);
 }
 
-// Get direct meetings data from cached Pipeline 9 (Reuniones) deals
+// Get direct meetings data from cached Pipeline 1 (Deals)
 // Filters for Directo Inbound + Outbound origins
 interface DirectMeetingsFilters {
   startDate?: string;
@@ -1264,9 +1264,9 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     startDate.setDate(startDate.getDate() - 84); // Default: 12 weeks
   }
   
-  // Filter to pipeline 9 deals only
-  const pipeline9Deals = cachedDeals.filter(deal => {
-    if (deal.pipelineId !== 9) return false;
+  // Filter to pipeline 1 (Deals) only
+  const pipeline1Deals = cachedDeals.filter(deal => {
+    if (deal.pipelineId !== 1) return false;
     if (!deal.addTime) return false;
     const addDate = new Date(deal.addTime);
     if (addDate < startDate || addDate > endDate) return false;
@@ -1316,8 +1316,8 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     }
   });
   
-  // Filter deals with direct origins from pipeline 9
-  const directDeals = pipeline9Deals.filter(deal => {
+  // Filter deals with direct origins from pipeline 1
+  const directDeals = pipeline1Deals.filter(deal => {
     if (!deal.origin) return false;
     return directOriginIds.includes(deal.origin);
   });

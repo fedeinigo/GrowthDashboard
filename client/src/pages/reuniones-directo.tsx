@@ -234,7 +234,7 @@ export default function ReunionesDirecto() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-heading font-bold text-foreground tracking-tight">Reuniones Directo</h2>
-            <p className="text-muted-foreground mt-1">Análisis de reuniones de origen directo (Pipeline 9 - Inbound + Outbound)</p>
+            <p className="text-muted-foreground mt-1">Análisis de deals de origen directo (Pipeline 1 - Inbound + Outbound)</p>
           </div>
         </div>
 
