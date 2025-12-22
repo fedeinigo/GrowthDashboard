@@ -160,6 +160,33 @@ export class PgStorage implements IStorage {
     return result[0];
   }
 
+  async getAllPeopleWithTeams(): Promise<Person[]> {
+    return await db.select().from(people).orderBy(people.teamId, people.displayName);
+  }
+
+  async updatePersonTeam(personId: number, teamId: number | null): Promise<void> {
+    if (teamId === null) {
+      await db.delete(people).where(eq(people.id, personId));
+    } else {
+      await db.update(people).set({ teamId }).where(eq(people.id, personId));
+    }
+  }
+
+  async removePersonFromTeam(personId: number): Promise<void> {
+    await db.delete(people).where(eq(people.id, personId));
+  }
+
+  async addPerson(pipedriveUserId: number, displayName: string, teamId: number): Promise<Person> {
+    const name = displayName.toLowerCase().replace(/\s+/g, '_') + '_' + pipedriveUserId;
+    const result = await db.insert(people).values({
+      name,
+      displayName,
+      teamId,
+      pipedriveUserId,
+    }).returning();
+    return result[0];
+  }
+
   // Sources
   async getAllSources(): Promise<Source[]> {
     return await db.select().from(sources);

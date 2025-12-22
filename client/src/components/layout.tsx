@@ -23,7 +23,7 @@ interface LayoutProps {
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
-  { icon: Settings, label: "Configuración", href: "/settings" },
+  { icon: Settings, label: "Configuración", href: "/configuracion" },
 ];
 
 function SidebarContent() {

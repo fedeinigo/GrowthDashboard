@@ -34,6 +34,7 @@ export const people = pgTable("people", {
   name: text("name").notNull().unique(),
   displayName: text("display_name").notNull(),
   teamId: integer("team_id").references(() => teams.id),
+  pipedriveUserId: integer("pipedrive_user_id"),
 });
 
 export const insertPersonSchema = createInsertSchema(people).omit({ id: true });

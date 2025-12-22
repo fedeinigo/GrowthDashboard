@@ -302,7 +302,6 @@ export async function registerRoutes(
   app.get("/api/people", async (req, res) => {
     try {
       const users = await pipedrive.getUsers();
-      // Transform to match expected format
       const people = users
         .filter(u => u.active_flag)
         .map(u => ({
@@ -315,6 +314,39 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching people from Pipedrive:", error);
       res.status(500).json({ error: "Failed to fetch people" });
+    }
+  });
+
+  app.get("/api/people/with-teams", async (req, res) => {
+    try {
+      const peopleWithTeams = await storage.getAllPeopleWithTeams();
+      res.json(peopleWithTeams);
+    } catch (error) {
+      console.error("Error fetching people with teams:", error);
+      res.status(500).json({ error: "Failed to fetch people with teams" });
+    }
+  });
+
+  app.put("/api/people/:id/team", async (req, res) => {
+    try {
+      const personId = parseInt(req.params.id);
+      const { teamId } = req.body;
+      await storage.updatePersonTeam(personId, teamId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating person team:", error);
+      res.status(500).json({ error: "Failed to update person team" });
+    }
+  });
+
+  app.post("/api/people", async (req, res) => {
+    try {
+      const { pipedriveUserId, displayName, teamId } = req.body;
+      const person = await storage.addPerson(pipedriveUserId, displayName, teamId);
+      res.json(person);
+    } catch (error) {
+      console.error("Error adding person:", error);
+      res.status(500).json({ error: "Failed to add person" });
     }
   });
 

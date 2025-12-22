@@ -260,9 +260,19 @@ interface DashboardFilters {
 import { people } from "@shared/schema";
 
 async function getUserIdsForTeam(teamId: number): Promise<number[]> {
-  const teamPeople = await db.select({ displayName: people.displayName }).from(people).where(eq(people.teamId, teamId));
-  const teamNames = teamPeople.map(p => p.displayName.toLowerCase().trim());
+  const teamPeople = await db.select({ pipedriveUserId: people.pipedriveUserId, displayName: people.displayName })
+    .from(people)
+    .where(eq(people.teamId, teamId));
   
+  const pipedriveUserIds = teamPeople
+    .filter(p => p.pipedriveUserId !== null)
+    .map(p => p.pipedriveUserId!);
+  
+  if (pipedriveUserIds.length > 0) {
+    return pipedriveUserIds;
+  }
+  
+  const teamNames = teamPeople.map(p => p.displayName.toLowerCase().trim());
   const pipedriveUsers = await pipedrive.getUsers();
   const matchedUserIds: number[] = [];
   
