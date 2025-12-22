@@ -3,14 +3,21 @@ import { Layout } from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, LineChart, Line 
 } from "recharts";
-import { Loader2, Calendar, DollarSign, TrendingUp, Users } from "lucide-react";
+import { Loader2, Calendar, DollarSign, TrendingUp, Users, Settings } from "lucide-react";
 import { KPICard } from "@/components/kpi-card";
 import { DashboardFilters } from "@/components/dashboard-filters";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { format } from "date-fns";
 
 interface DirectMeetingsData {
@@ -45,6 +52,7 @@ export default function ReunionesDirecto() {
     startDate: format(currentQ.startDate, 'yyyy-MM-dd'),
     endDate: format(currentQ.endDate, 'yyyy-MM-dd'),
   });
+  const [excludedSdrs, setExcludedSdrs] = useState<Set<string>>(new Set());
 
   const handleFilterChange = (newFilters: any) => {
     if (newFilters.reset) {
@@ -62,6 +70,18 @@ export default function ReunionesDirecto() {
       }
     });
     setFilters(cleanedFilters);
+  };
+
+  const toggleSdrExclusion = (sdr: string) => {
+    setExcludedSdrs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sdr)) {
+        newSet.delete(sdr);
+      } else {
+        newSet.add(sdr);
+      }
+      return newSet;
+    });
   };
 
   const buildQueryString = () => {
@@ -113,6 +133,10 @@ export default function ReunionesDirecto() {
     groupedBySdr[item.sdr].push({ bdr: item.bdr, deals: item.deals, percentage: item.percentage });
   });
 
+  const sortedSdrs = sdrSummary
+    .filter(s => !excludedSdrs.has(s.sdr))
+    .map(s => s.sdr);
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -154,20 +178,82 @@ export default function ReunionesDirecto() {
 
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Asignacion SDR - BDR (Owner Actual)
-            </CardTitle>
-            <CardDescription>
-              Muestra quien creo el deal (SDR) y quien es el propietario actual (BDR). El porcentaje indica la proporcion de deals del SDR asignados a cada BDR.
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Asignacion SDR - BDR (Owner Actual)
+                </CardTitle>
+                <CardDescription>
+                  Muestra quien creo el deal (SDR) y quien es el propietario actual (BDR). El porcentaje indica la proporcion de deals del SDR asignados a cada BDR.
+                </CardDescription>
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Settings className="w-4 h-4" />
+                    Ajustar
+                    {excludedSdrs.size > 0 && (
+                      <Badge variant="secondary" className="ml-1 text-xs">
+                        {excludedSdrs.size} ocultos
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0" align="end">
+                  <div className="p-3 border-b">
+                    <h4 className="font-medium text-sm">Filtrar Creadores (SDRs)</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Deselecciona los creadores que no quieres mostrar</p>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto p-2">
+                    {sdrSummary.map((s) => (
+                      <div 
+                        key={s.sdr} 
+                        className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer"
+                        onClick={() => toggleSdrExclusion(s.sdr)}
+                      >
+                        <Checkbox
+                          id={`sdr-${s.sdr}`}
+                          checked={!excludedSdrs.has(s.sdr)}
+                          onCheckedChange={() => toggleSdrExclusion(s.sdr)}
+                        />
+                        <label htmlFor={`sdr-${s.sdr}`} className="text-sm cursor-pointer flex-1 flex justify-between">
+                          <span>{s.sdr}</span>
+                          <span className="text-muted-foreground">{s.totalDeals}</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  {excludedSdrs.size > 0 && (
+                    <div className="border-t p-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="w-full" 
+                        onClick={() => setExcludedSdrs(new Set())}
+                      >
+                        Mostrar todos
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <h4 className="text-sm font-medium mb-3">Detalle por SDR</h4>
+                <h4 className="text-sm font-medium mb-3">
+                  Detalle por SDR 
+                  {excludedSdrs.size > 0 && (
+                    <span className="text-muted-foreground font-normal ml-2">
+                      (mostrando {sortedSdrs.length} de {sdrSummary.length})
+                    </span>
+                  )}
+                </h4>
                 <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                  {Object.entries(groupedBySdr).map(([sdr, assignments]) => {
+                  {sortedSdrs.map((sdr) => {
+                    const assignments = groupedBySdr[sdr] || [];
                     const sdrTotal = sdrSummary.find(s => s.sdr === sdr)?.totalDeals || 0;
                     return (
                       <div key={sdr} className="border rounded-lg p-3">
@@ -203,7 +289,7 @@ export default function ReunionesDirecto() {
                 <div>
                   <h4 className="text-sm font-medium mb-3">Top SDRs (Creadores)</h4>
                   <div className="space-y-2">
-                    {sdrSummary.slice(0, 8).map((s, idx) => (
+                    {sdrSummary.filter(s => !excludedSdrs.has(s.sdr)).slice(0, 8).map((s, idx) => (
                       <div key={s.sdr} className="flex justify-between items-center text-sm">
                         <span className="truncate">{idx + 1}. {s.sdr}</span>
                         <Badge variant="outline">{s.totalDeals}</Badge>
