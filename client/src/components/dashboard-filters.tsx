@@ -83,6 +83,24 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Update filters when dateType changes
+  useEffect(() => {
+    const yearNum = parseInt(selectedYear);
+    if (dateType === "quarter") {
+      const qDates = getQuarterDates(selectedQuarter, yearNum);
+      onFilterChange({ 
+        startDate: format(qDates.startDate, 'yyyy-MM-dd'),
+        endDate: format(qDates.endDate, 'yyyy-MM-dd'),
+      });
+    } else if (dateType === "year") {
+      onFilterChange({ 
+        startDate: format(new Date(yearNum, 0, 1), 'yyyy-MM-dd'),
+        endDate: format(new Date(yearNum, 11, 31), 'yyyy-MM-dd'),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateType]);
+
   // Fetch filter options from API
   const { data: teamsData = [] } = useQuery({
     queryKey: ['teams'],
