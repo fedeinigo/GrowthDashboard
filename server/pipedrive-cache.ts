@@ -1140,7 +1140,7 @@ export async function getSalesCycleByRegion() {
   }));
 }
 
-// Get source distribution from cached deals
+// Get source distribution from cached deals (uses Origin field, same as ranking/regional)
 export async function getSourceDistribution(filters?: DashboardFilters) {
   const cachedDeals = await db.select().from(pipedriveDeals);
   
@@ -1153,11 +1153,11 @@ export async function getSourceDistribution(filters?: DashboardFilters) {
     }
   });
   
-  // Get source field options from Pipedrive
+  // Get Origin field options from Pipedrive (same field used in ranking/regional)
   const dealFields = await pipedrive.getDealFields();
-  const SOURCE_FIELD_KEY = "552c1914dddd36582917f20f82b71c475bfbd132";
-  const sourceField = dealFields.find((f: any) => f.key === SOURCE_FIELD_KEY);
-  const sourceLabels = new Map(sourceField?.options?.map((o: any) => [o.id.toString(), o.label]) || []);
+  const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
+  const origenField = dealFields.find((f: any) => f.key === ORIGEN_FIELD_KEY);
+  const originLabels = new Map(origenField?.options?.map((o: any) => [o.id.toString(), o.label]) || []);
   
   // Filter deals based on criteria
   let filteredDeals = cachedDeals.filter(deal => {
@@ -1186,15 +1186,15 @@ export async function getSourceDistribution(filters?: DashboardFilters) {
     return true;
   });
   
-  // Count deals by source
+  // Count deals by origin (same field as ranking/regional)
   const countBySource: Record<string, number> = {};
   
   filteredDeals.forEach(deal => {
-    const sourceId = deal.sourceField;
-    if (!sourceId || sourceId.trim() === "") return;
+    const originId = deal.origin;
+    if (!originId || originId.trim() === "") return;
     
-    const sourceName = sourceLabels.get(sourceId.trim()) || `Source ${sourceId}`;
-    countBySource[sourceName] = (countBySource[sourceName] || 0) + 1;
+    const originName = originLabels.get(originId.trim()) || `Origin ${originId}`;
+    countBySource[originName] = (countBySource[originName] || 0) + 1;
   });
   
   // Sort by count descending and take top 10
