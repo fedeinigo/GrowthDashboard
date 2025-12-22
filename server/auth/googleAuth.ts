@@ -100,11 +100,11 @@ export function setupGoogleAuth(app: Express): void {
             profileImageUrl: profile.photos?.[0]?.value || null,
           };
 
-          // Upsert user in database
+          // Upsert user in database - search by email to handle migration from Replit Auth
           const existingUser = await db
             .select()
             .from(users)
-            .where(eq(users.id, profile.id))
+            .where(eq(users.email, email))
             .limit(1);
 
           if (existingUser.length === 0) {
@@ -117,17 +117,20 @@ export function setupGoogleAuth(app: Express): void {
             });
             console.log(`[Auth] New user created: ${email}`);
           } else {
+            // Update existing user (may have different ID from Replit Auth)
             await db
               .update(users)
               .set({
-                email,
+                id: profile.id, // Update to Google ID
                 firstName: googleUser.firstName,
                 lastName: googleUser.lastName,
                 profileImageUrl: googleUser.profileImageUrl,
                 updatedAt: new Date(),
               })
-              .where(eq(users.id, profile.id));
+              .where(eq(users.email, email));
             console.log(`[Auth] User updated: ${email}`);
+            // Update googleUser.id to match what's in the database
+            googleUser.id = profile.id;
           }
 
           return done(null, googleUser);
