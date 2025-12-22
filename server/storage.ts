@@ -165,11 +165,7 @@ export class PgStorage implements IStorage {
   }
 
   async updatePersonTeam(personId: number, teamId: number | null): Promise<void> {
-    if (teamId === null) {
-      await db.delete(people).where(eq(people.id, personId));
-    } else {
-      await db.update(people).set({ teamId }).where(eq(people.id, personId));
-    }
+    await db.update(people).set({ teamId }).where(eq(people.id, personId));
   }
 
   async removePersonFromTeam(personId: number): Promise<void> {
