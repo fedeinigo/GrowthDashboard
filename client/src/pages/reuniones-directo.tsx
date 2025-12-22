@@ -266,7 +266,7 @@ export default function ReunionesDirecto() {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-sm font-semibold text-foreground">Detalle por SDR</h4>
                   {excludedSdrs.size > 0 && (
@@ -275,7 +275,7 @@ export default function ReunionesDirecto() {
                     </span>
                   )}
                 </div>
-                <div className="space-y-3 max-h-[450px] overflow-y-auto pr-2">
+                <div className="space-y-3 flex-1">
                   {sortedSdrs.map((sdr, idx) => {
                     const assignments = groupedBySdr[sdr] || [];
                     const sdrTotal = sdrSummary.find(s => s.sdr === sdr)?.totalDeals || 0;
