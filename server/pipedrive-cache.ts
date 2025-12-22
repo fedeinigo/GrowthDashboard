@@ -501,18 +501,45 @@ export async function getCachedRegionalData(filters: DashboardFilters) {
     allowedUserIds = await getUserIdsForTeam(filters.teamId);
   }
 
-  const countryData: Record<string, { reuniones: number; propuestas: number; cierres: number; reunionesValue: number; propuestasValue: number; cierresValue: number }> = {};
+  const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
+  const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
+  const dealFields = await pipedrive.getDealFields();
+  const countryField = dealFields.find((f: any) => f.key === COUNTRY_FIELD_KEY);
+  const originField = dealFields.find((f: any) => f.key === ORIGEN_FIELD_KEY);
+  const countryOptions = countryField?.options || [];
+  const originOptions = originField?.options || [];
+  const countryLabels = new Map(countryOptions.map((o: any) => [o.id.toString(), o.label]));
+  const originLabels = new Map(originOptions.map((o: any) => [o.id.toString(), o.label]));
+
+  const getCellForCountry = (countryName: string): string => {
+    const normalized = countryName.toLowerCase();
+    if (normalized === "colombia") return "Colombia";
+    if (normalized === "argentina") return "Argentina";
+    if (normalized === "mexico" || normalized === "méxico") return "Mexico";
+    if (normalized === "brasil" || normalized === "brazil") return "Brasil";
+    if (normalized === "españa" || normalized === "spain") return "España";
+    return "Rest Latam";
+  };
+
+  type CellOriginData = { meetings: number; proposals: number; closings: number; meetingsValue: number; proposalsValue: number; closingsValue: number };
+  const cellOriginData: Record<string, Record<string, CellOriginData>> = {};
 
   allDeals.forEach(deal => {
     if (filters.dealType && deal.dealType !== filters.dealType) return;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return;
     if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
     
-    const country = deal.country || "unknown";
-    if (filters.countries?.length && !filters.countries.includes(country)) return;
+    const countryId = deal.country || "unknown";
+    if (filters.countries?.length && !filters.countries.includes(countryId)) return;
     
-    if (!countryData[country]) {
-      countryData[country] = { reuniones: 0, propuestas: 0, cierres: 0, reunionesValue: 0, propuestasValue: 0, cierresValue: 0 };
+    const countryName = countryLabels.get(countryId) || `País ${countryId}`;
+    const cell = getCellForCountry(countryName);
+    const originId = deal.origin || "direct";
+    const origin = originLabels.get(originId) || "Directo";
+    
+    if (!cellOriginData[cell]) cellOriginData[cell] = {};
+    if (!cellOriginData[cell][origin]) {
+      cellOriginData[cell][origin] = { meetings: 0, proposals: 0, closings: 0, meetingsValue: 0, proposalsValue: 0, closingsValue: 0 };
     }
     
     const addTime = deal.addTime ? new Date(deal.addTime) : null;
@@ -521,8 +548,8 @@ export async function getCachedRegionalData(filters: DashboardFilters) {
 
     if (deal.dealType === NEW_CUSTOMER_ID && addTime) {
       if ((!startDate || addTime >= startDate) && (!endDate || addTime <= endDate)) {
-        countryData[country].reuniones++;
-        countryData[country].reunionesValue += value;
+        cellOriginData[cell][origin].meetings++;
+        cellOriginData[cell][origin].meetingsValue += value;
       }
     }
 
@@ -530,31 +557,32 @@ export async function getCachedRegionalData(filters: DashboardFilters) {
       const proposalStages = [PROPOSAL_MADE_STAGE, BLOCKED_STAGE, CURRENT_SPRINT_STAGE];
       if (proposalStages.includes(deal.stageId || 0) || deal.status === "won") {
         if (addTime && (!startDate || addTime >= startDate) && (!endDate || addTime <= endDate)) {
-          countryData[country].propuestas++;
-          countryData[country].propuestasValue += value;
+          cellOriginData[cell][origin].proposals++;
+          cellOriginData[cell][origin].proposalsValue += value;
         }
       }
     }
 
     if (deal.status === "won" && wonTime) {
       if ((!startDate || wonTime >= startDate) && (!endDate || wonTime <= endDate)) {
-        countryData[country].cierres++;
-        countryData[country].cierresValue += value;
+        cellOriginData[cell][origin].closings++;
+        cellOriginData[cell][origin].closingsValue += value;
       }
     }
   });
 
-  const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
-  const dealFields = await pipedrive.getDealFields();
-  const countryField = dealFields.find((f: any) => f.key === COUNTRY_FIELD_KEY);
-  const countryOptions = countryField?.options || [];
-  const countryLabels = new Map(countryOptions.map((o: any) => [o.id.toString(), o.label]));
-
-  return Object.entries(countryData).map(([countryId, data]) => ({
-    country: countryLabels.get(countryId) || `País ${countryId}`,
-    countryId,
-    ...data,
-  }));
+  const cellOrder = ["Colombia", "Argentina", "Mexico", "Brasil", "España", "Rest Latam"];
+  
+  return cellOrder
+    .filter(cell => cellOriginData[cell])
+    .map(cell => ({
+      region: cell,
+      rows: Object.entries(cellOriginData[cell])
+        .map(([origin, data]) => ({ origin, ...data }))
+        .filter(row => row.meetings > 0 || row.proposals > 0 || row.closings > 0)
+        .sort((a, b) => b.closingsValue - a.closingsValue)
+    }))
+    .filter(cell => cell.rows.length > 0);
 }
 
 export async function getCachedRankingsByUser(filters: DashboardFilters) {
