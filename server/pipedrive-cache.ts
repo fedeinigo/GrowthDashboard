@@ -883,13 +883,25 @@ export async function getCachedEmployeeCountDistribution(filters: {
     return true;
   });
   
+  // Map Pipedrive option IDs to employee count ranges
+  // Based on Pipedrive "Q de empleados" field options
+  const employeeCountMapping: Record<string, string> = {
+    "697": "1-10",      // 1 a 10 empleados
+    "698": "11-50",     // 11 a 50 empleados
+    "699": "51-200",    // 51 a 200 empleados
+    "700": "201-500",   // 201 a 500 empleados
+    "701": "500-1000",  // 500 a 1000 empleados
+    "702": "1000+",     // Más de 1000 empleados
+  };
+  
   // Count deals by employee count ranges, excluding blank values
   const countByRange: Record<string, number> = {
     "1-10": 0,
     "11-50": 0,
     "51-200": 0,
     "201-500": 0,
-    "500+": 0,
+    "500-1000": 0,
+    "1000+": 0,
   };
   
   filteredDeals.forEach(deal => {
@@ -897,26 +909,16 @@ export async function getCachedEmployeeCountDistribution(filters: {
     // Skip blank/null/empty values
     if (!empCount || empCount.trim() === "") return;
     
-    // Map Pipedrive values to our categories
-    // Common Pipedrive formats: "1-10", "11-50", etc. or numeric values
     const value = empCount.trim();
     
-    if (countByRange[value] !== undefined) {
-      countByRange[value]++;
-    } else {
-      // Try to parse as a number if it's numeric
-      const num = parseInt(value, 10);
-      if (!isNaN(num)) {
-        if (num <= 10) countByRange["1-10"]++;
-        else if (num <= 50) countByRange["11-50"]++;
-        else if (num <= 200) countByRange["51-200"]++;
-        else if (num <= 500) countByRange["201-500"]++;
-        else countByRange["500+"]++;
-      }
+    // Map Pipedrive option ID to our range
+    const range = employeeCountMapping[value];
+    if (range && countByRange[range] !== undefined) {
+      countByRange[range]++;
     }
   });
   
-  const sizeOrder = ["1-10", "11-50", "51-200", "201-500", "500+"];
+  const sizeOrder = ["1-10", "11-50", "51-200", "201-500", "500-1000", "1000+"];
   return sizeOrder.map(size => ({
     date: size,
     value: countByRange[size],
