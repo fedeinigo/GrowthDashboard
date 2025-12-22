@@ -9,35 +9,61 @@ const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 let isRefreshing = false;
 
 export async function getCacheStatus() {
-  const [metadata] = await db
-    .select()
-    .from(cacheMetadata)
-    .where(eq(cacheMetadata.cacheKey, CACHE_KEY))
-    .limit(1);
-  
-  if (!metadata) {
+  try {
+    const [metadata] = await db
+      .select()
+      .from(cacheMetadata)
+      .where(eq(cacheMetadata.cacheKey, CACHE_KEY))
+      .limit(1);
+    
+    if (!metadata) {
+      return { 
+        lastSyncAt: null, 
+        status: "never_synced", 
+        totalRecords: 0,
+        isStale: true,
+        isRefreshing 
+      };
+    }
+
+    // If status is in_progress but isRefreshing is false, it means
+    // a previous sync was interrupted - reset the status
+    if (metadata.lastSyncStatus === "in_progress" && !isRefreshing) {
+      return {
+        lastSyncAt: metadata.lastSyncAt,
+        status: "stale",
+        totalRecords: metadata.totalRecords || 0,
+        error: null,
+        syncDurationMs: metadata.syncDurationMs,
+        isStale: true,
+        isRefreshing: false
+      };
+    }
+
+    const isStale = metadata.lastSyncAt 
+      ? Date.now() - new Date(metadata.lastSyncAt).getTime() > CACHE_TTL_MS 
+      : true;
+
+    return {
+      lastSyncAt: metadata.lastSyncAt,
+      status: metadata.lastSyncStatus,
+      totalRecords: metadata.totalRecords,
+      error: metadata.lastSyncError,
+      syncDurationMs: metadata.syncDurationMs,
+      isStale,
+      isRefreshing
+    };
+  } catch (error: any) {
+    console.error("[Cache] Error getting cache status:", error.message);
     return { 
       lastSyncAt: null, 
-      status: "never_synced", 
+      status: "error", 
       totalRecords: 0,
       isStale: true,
-      isRefreshing 
+      isRefreshing: false,
+      error: error.message
     };
   }
-
-  const isStale = metadata.lastSyncAt 
-    ? Date.now() - new Date(metadata.lastSyncAt).getTime() > CACHE_TTL_MS 
-    : true;
-
-  return {
-    lastSyncAt: metadata.lastSyncAt,
-    status: metadata.lastSyncStatus,
-    totalRecords: metadata.totalRecords,
-    error: metadata.lastSyncError,
-    syncDurationMs: metadata.syncDurationMs,
-    isStale,
-    isRefreshing
-  };
 }
 
 export async function refreshCache(): Promise<{ success: boolean; message: string; totalRecords?: number }> {
