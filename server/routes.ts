@@ -18,6 +18,8 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -25,6 +27,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
       };
       
       const metrics = await pipedriveCache.getCachedDashboardMetrics(filters);
@@ -42,6 +46,8 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -49,6 +55,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
       };
       
       const history = await pipedriveCache.getCachedRevenueHistory(filters);
@@ -66,6 +74,8 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -73,6 +83,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
       };
       
       const history = await pipedriveCache.getCachedMeetingsHistory(filters);
@@ -187,6 +199,8 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -194,6 +208,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
       };
       
       const rankings = await pipedriveCache.getCachedRankingsByUser(filters);
@@ -231,6 +247,8 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -238,6 +256,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
       };
       
       const data = await pipedriveCache.getCachedRegionalData(filters);

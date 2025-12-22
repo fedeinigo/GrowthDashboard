@@ -253,6 +253,31 @@ interface DashboardFilters {
   dealType?: string;
   countries?: string[];
   origins?: string[];
+  teamId?: number;
+  personId?: number;
+}
+
+import { people } from "@shared/schema";
+
+async function getUserIdsForTeam(teamId: number): Promise<number[]> {
+  const teamPeople = await db.select({ displayName: people.displayName }).from(people).where(eq(people.teamId, teamId));
+  const teamNames = teamPeople.map(p => p.displayName.toLowerCase().trim());
+  
+  const pipedriveUsers = await pipedrive.getUsers();
+  const matchedUserIds: number[] = [];
+  
+  for (const user of pipedriveUsers) {
+    const userName = user.name.toLowerCase().trim();
+    for (const teamName of teamNames) {
+      if (userName.includes(teamName) || teamName.includes(userName) || 
+          userName.split(' ')[0] === teamName.split(' ')[0]) {
+        matchedUserIds.push(user.id);
+        break;
+      }
+    }
+  }
+  
+  return matchedUserIds;
 }
 
 export async function getCachedDashboardMetrics(filters: DashboardFilters) {
@@ -261,10 +286,19 @@ export async function getCachedDashboardMetrics(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
+  let allowedUserIds: number[] | null = null;
+  
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
   const filteredDeals = allDeals.filter(deal => {
     if (filters.dealType && deal.dealType !== filters.dealType) return false;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
     return true;
   });
 
@@ -327,10 +361,18 @@ export async function getCachedRevenueHistory(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
+  let allowedUserIds: number[] | null = null;
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
   const filteredDeals = allDeals.filter(deal => {
     if (filters.dealType && deal.dealType !== filters.dealType) return false;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
     const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
     if (!wonTime) return false;
     if (startDate && wonTime < startDate) return false;
@@ -358,9 +400,17 @@ export async function getCachedMeetingsHistory(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
+  let allowedUserIds: number[] | null = null;
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
   const filteredDeals = allDeals.filter(deal => {
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
     const addTime = deal.addTime ? new Date(deal.addTime) : null;
     if (!addTime) return false;
     if (startDate && addTime < startDate) return false;
@@ -387,11 +437,19 @@ export async function getCachedRegionalData(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
+  let allowedUserIds: number[] | null = null;
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
   const countryData: Record<string, { reuniones: number; propuestas: number; cierres: number; reunionesValue: number; propuestasValue: number; cierresValue: number }> = {};
 
   allDeals.forEach(deal => {
     if (filters.dealType && deal.dealType !== filters.dealType) return;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
     
     const country = deal.country || "unknown";
     if (filters.countries?.length && !filters.countries.includes(country)) return;
@@ -450,12 +508,20 @@ export async function getCachedRankingsByUser(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
+  let allowedUserIds: number[] | null = null;
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
   const userData: Record<number, { closings: number; revenue: number }> = {};
 
   allDeals.forEach(deal => {
     if (filters.dealType && deal.dealType !== filters.dealType) return;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
     
     const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
     if (!wonTime) return;
