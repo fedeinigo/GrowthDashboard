@@ -216,8 +216,9 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     { value: "q4", label: "Q4" },
   ];
 
-  const years = Array.from({ length: 5 }, (_, i) => {
-    const year = new Date().getFullYear() - 2 + i;
+  // Show current year and 5 years back (descending order)
+  const years = Array.from({ length: 6 }, (_, i) => {
+    const year = new Date().getFullYear() - i;
     return { value: year.toString(), label: year.toString() };
   });
 
