@@ -294,19 +294,27 @@ export async function registerRoutes(
     }
   });
 
-  // Get company size distribution
+  // Get company size distribution from Pipedrive cache (by Q de empleados field)
   app.get("/api/dashboard/company-size-distribution", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
       };
       
-      const distribution = await storage.getCompanySizeDistribution(filters);
+      const distribution = await pipedriveCache.getCachedEmployeeCountDistribution(filters);
       res.json(distribution);
     } catch (error) {
       console.error("Error fetching company size distribution:", error);

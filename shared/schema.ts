@@ -141,6 +141,7 @@ export const pipedriveDeals = pgTable("pipedrive_deals", {
   dealType: text("deal_type"), // New Customer, Upselling
   country: text("country"), // Country ID
   origin: text("origin"), // Origin ID
+  employeeCount: text("employee_count"), // Q de empleados field
   // Calculated fields for faster queries
   salesCycleDays: integer("sales_cycle_days"),
   cachedAt: timestamp("cached_at").defaultNow().notNull(),

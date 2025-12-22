@@ -66,7 +66,6 @@ export function CompanySizeChart({ data, title, description, onClick }: ChartPro
                   fontSize={12} 
                   tickLine={false} 
                   axisLine={false}
-                  unit="%"
                 />
                 <YAxis 
                   dataKey="date" 
@@ -83,11 +82,10 @@ export function CompanySizeChart({ data, title, description, onClick }: ChartPro
                 />
                 <Bar 
                   dataKey="value" 
-                  name="Distribución" 
+                  name="Tarjetas" 
                   fill="hsl(var(--chart-4))" 
                   radius={[0, 4, 4, 0]} 
                   barSize={24}
-                  unit="%"
                   onClick={onClick ? (data) => onClick(data) : undefined}
                   className={onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}
                 >

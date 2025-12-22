@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { pipedriveDeals, cacheMetadata, pipedriveDealProducts } from "@shared/schema";
+import { pipedriveDeals, cacheMetadata, pipedriveDealProducts, people, teams } from "@shared/schema";
 import { eq, sql, and, gte, lte, inArray } from "drizzle-orm";
 import * as pipedrive from "./pipedrive";
 
@@ -66,6 +66,7 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
     const TYPE_OF_DEAL_FIELD_KEY = "a7ab0c5cfbfd5a57ce6531b4aa0a74b317c4b657";
     const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
     const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
+    const EMPLOYEE_COUNT_FIELD_KEY = "f488b70aa96b8a83c49fa816f926c82f4a9a9ab4";
 
     const dedupeMap = new Map<number, any>();
     deals.forEach(deal => {
@@ -108,6 +109,7 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
         dealType: (deal as any)[TYPE_OF_DEAL_FIELD_KEY] || null,
         country: (deal as any)[COUNTRY_FIELD_KEY]?.toString() || null,
         origin: (deal as any)[ORIGEN_FIELD_KEY]?.toString() || null,
+        employeeCount: (deal as any)[EMPLOYEE_COUNT_FIELD_KEY]?.toString() || null,
         salesCycleDays,
         cachedAt: new Date(),
       };
@@ -818,6 +820,107 @@ export async function getCachedProductStats(filters: DashboardFilters) {
   const relevantProducts = cachedProducts.filter(p => dealIds.has(p.dealId));
   
   return aggregateProductStats(relevantProducts, filteredDeals);
+}
+
+// Get employee count distribution (Q de empleados) from cached deals
+export async function getCachedEmployeeCountDistribution(filters: {
+  startDate?: string;
+  endDate?: string;
+  dealType?: string;
+  countries?: string[];
+  origins?: string[];
+  teamId?: number;
+  personId?: number;
+}): Promise<{ date: string; value: number }[]> {
+  // Get cached deals
+  const cachedDeals = await db.select().from(pipedriveDeals);
+  
+  // Get person-to-team mapping if needed
+  const peopleWithTeams = await db.select().from(people).leftJoin(teams, eq(people.teamId, teams.id));
+  const personToTeam: Record<number, number | null> = {};
+  peopleWithTeams.forEach(row => {
+    if (row.people.pipedriveUserId) {
+      personToTeam[row.people.pipedriveUserId] = row.people.teamId;
+    }
+  });
+  
+  // Filter deals based on criteria
+  let filteredDeals = cachedDeals.filter(deal => {
+    // Date filter - only include deals with add_time in the date range (meetings/cards)
+    if (filters.startDate && deal.addTime) {
+      const addDate = new Date(deal.addTime);
+      if (addDate < new Date(filters.startDate)) return false;
+    }
+    if (filters.endDate && deal.addTime) {
+      const addDate = new Date(deal.addTime);
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      if (addDate > endDate) return false;
+    }
+    
+    // Deal type filter
+    if (filters.dealType && deal.dealType !== filters.dealType) return false;
+    
+    // Country filter
+    if (filters.countries && filters.countries.length > 0) {
+      if (!deal.country || !filters.countries.includes(deal.country)) return false;
+    }
+    
+    // Origin filter
+    if (filters.origins && filters.origins.length > 0) {
+      if (!deal.origin || !filters.origins.includes(deal.origin)) return false;
+    }
+    
+    // Team filter
+    if (filters.teamId && deal.userId) {
+      const dealTeamId = personToTeam[deal.userId];
+      if (dealTeamId !== filters.teamId) return false;
+    }
+    
+    // Person filter
+    if (filters.personId && deal.userId !== filters.personId) return false;
+    
+    return true;
+  });
+  
+  // Count deals by employee count ranges, excluding blank values
+  const countByRange: Record<string, number> = {
+    "1-10": 0,
+    "11-50": 0,
+    "51-200": 0,
+    "201-500": 0,
+    "500+": 0,
+  };
+  
+  filteredDeals.forEach(deal => {
+    const empCount = deal.employeeCount;
+    // Skip blank/null/empty values
+    if (!empCount || empCount.trim() === "") return;
+    
+    // Map Pipedrive values to our categories
+    // Common Pipedrive formats: "1-10", "11-50", etc. or numeric values
+    const value = empCount.trim();
+    
+    if (countByRange[value] !== undefined) {
+      countByRange[value]++;
+    } else {
+      // Try to parse as a number if it's numeric
+      const num = parseInt(value, 10);
+      if (!isNaN(num)) {
+        if (num <= 10) countByRange["1-10"]++;
+        else if (num <= 50) countByRange["11-50"]++;
+        else if (num <= 200) countByRange["51-200"]++;
+        else if (num <= 500) countByRange["201-500"]++;
+        else countByRange["500+"]++;
+      }
+    }
+  });
+  
+  const sizeOrder = ["1-10", "11-50", "51-200", "201-500", "500+"];
+  return sizeOrder.map(size => ({
+    date: size,
+    value: countByRange[size],
+  }));
 }
 
 function aggregateProductStats(products: any[], deals: any[]) {
