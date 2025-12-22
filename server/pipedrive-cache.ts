@@ -1231,3 +1231,122 @@ function aggregateProductStats(products: any[], deals: any[]) {
     .filter(p => p.sold > 0 || p.revenue > 0)
     .sort((a, b) => b.revenue - a.revenue);
 }
+
+// Get direct meetings data (Directo Inbound + Outbound origins)
+export async function getDirectMeetingsData() {
+  const cachedDeals = await db.select().from(pipedriveDeals);
+  
+  // Get origin field options from Pipedrive
+  const dealFields = await pipedrive.getDealFields();
+  const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
+  const origenField = dealFields.find((f: any) => f.key === ORIGEN_FIELD_KEY);
+  const originLabels = new Map(origenField?.options?.map((o: any) => [o.id.toString(), o.label]) || []);
+  
+  // Get country options for region mapping
+  const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
+  const countryField = dealFields.find((f: any) => f.key === COUNTRY_FIELD_KEY);
+  const countryLabels = new Map(countryField?.options?.map((o: any) => [o.id.toString(), o.label]) || []);
+  
+  // Get user info for person names
+  const users = await pipedrive.getUsers();
+  const userNames = new Map(users.map(u => [u.id, u.name]));
+  
+  // Filter for direct origins (Directo, Directo Inbound, Directo Outbound)
+  const directOriginIds: string[] = [];
+  originLabels.forEach((label, id) => {
+    if (label.toLowerCase().includes('directo')) {
+      directOriginIds.push(id);
+    }
+  });
+  
+  // Get deals with direct origin from last 12 weeks
+  const now = new Date();
+  const twelveWeeksAgo = new Date(now);
+  twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84);
+  
+  const directDeals = cachedDeals.filter(deal => {
+    if (!deal.origin || !directOriginIds.includes(deal.origin)) return false;
+    if (!deal.addTime) return false;
+    const addDate = new Date(deal.addTime);
+    return addDate >= twelveWeeksAgo;
+  });
+  
+  // Aggregate by week
+  const weeklyData: Record<string, { count: number; value: number }> = {};
+  const byPerson: Record<number, { name: string; meetings: number; value: number }> = {};
+  const byRegion: Record<string, { meetings: number; value: number }> = {};
+  
+  let totalMeetings = 0;
+  let totalValue = 0;
+  
+  directDeals.forEach(deal => {
+    const addDate = new Date(deal.addTime!);
+    const year = addDate.getFullYear();
+    const week = getWeekNumber(addDate);
+    const weekKey = `${year}-W${week.toString().padStart(2, '0')}`;
+    const value = parseFloat(deal.value || "0") || 0;
+    
+    // Weekly aggregation
+    if (!weeklyData[weekKey]) {
+      weeklyData[weekKey] = { count: 0, value: 0 };
+    }
+    weeklyData[weekKey].count++;
+    weeklyData[weekKey].value += value;
+    
+    // By person
+    if (deal.userId) {
+      if (!byPerson[deal.userId]) {
+        byPerson[deal.userId] = { name: userNames.get(deal.userId) || `User ${deal.userId}`, meetings: 0, value: 0 };
+      }
+      byPerson[deal.userId].meetings++;
+      byPerson[deal.userId].value += value;
+    }
+    
+    // By region
+    const countryName = countryLabels.get(deal.country || "") || "Unknown";
+    const region = getCellForCountry(countryName);
+    if (!byRegion[region]) {
+      byRegion[region] = { meetings: 0, value: 0 };
+    }
+    byRegion[region].meetings++;
+    byRegion[region].value += value;
+    
+    totalMeetings++;
+    totalValue += value;
+  });
+  
+  // Format weekly data
+  const weeklyMeetings = Object.entries(weeklyData)
+    .map(([week, data]) => ({ week, count: data.count, value: Math.round(data.value) }))
+    .sort((a, b) => a.week.localeCompare(b.week));
+  
+  // Format by person (top 10)
+  const personList = Object.values(byPerson)
+    .map(p => ({ name: p.name, meetings: p.meetings, value: Math.round(p.value) }))
+    .sort((a, b) => b.meetings - a.meetings)
+    .slice(0, 10);
+  
+  // Format by region
+  const regionList = Object.entries(byRegion)
+    .map(([region, data]) => ({ region, meetings: data.meetings, value: Math.round(data.value) }))
+    .sort((a, b) => b.meetings - a.meetings);
+  
+  return {
+    weeklyMeetings,
+    byPerson: personList,
+    byRegion: regionList,
+    totals: {
+      meetings: totalMeetings,
+      value: Math.round(totalValue),
+      avgTicket: totalMeetings > 0 ? Math.round(totalValue / totalMeetings) : 0,
+    },
+  };
+}
+
+function getWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}

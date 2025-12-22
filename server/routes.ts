@@ -394,6 +394,17 @@ export async function registerRoutes(
     }
   });
 
+  // Get direct meetings data (Directo Inbound + Outbound)
+  app.get("/api/dashboard/direct-meetings", async (req, res) => {
+    try {
+      const data = await pipedriveCache.getDirectMeetingsData();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching direct meetings:", error);
+      res.status(500).json({ error: "Failed to fetch direct meetings" });
+    }
+  });
+
   // Filter options routes
   app.get("/api/teams", async (req, res) => {
     try {

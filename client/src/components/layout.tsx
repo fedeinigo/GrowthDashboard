@@ -7,7 +7,9 @@ import {
   Settings, 
   LogOut,
   Menu,
-  Bell
+  Bell,
+  Globe,
+  Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,8 @@ interface LayoutProps {
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: Globe, label: "Regiones Estratégicas", href: "/regiones" },
+  { icon: Calendar, label: "Reuniones Directo", href: "/reuniones-directo" },
   { icon: Settings, label: "Configuración", href: "/configuracion" },
 ];
 
