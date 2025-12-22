@@ -55,9 +55,9 @@ async function upsertUser(claims: any) {
   await authStorage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
-    firstName: claims["given_name"] || claims["first_name"] || claims["name"]?.split(" ")[0],
-    lastName: claims["family_name"] || claims["last_name"] || claims["name"]?.split(" ").slice(1).join(" "),
-    profileImageUrl: claims["picture"] || claims["profile_image_url"],
+    firstName: claims["first_name"] || claims["given_name"] || claims["name"]?.split(" ")[0],
+    lastName: claims["last_name"] || claims["family_name"] || claims["name"]?.split(" ").slice(1).join(" "),
+    profileImageUrl: claims["profile_image_url"] || claims["picture"],
   });
 }
 
