@@ -1276,12 +1276,11 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
   // Build team member map if teamId filter is specified
   let teamMemberIds: Set<number> | undefined;
   if (filters?.teamId) {
-    const teams = await db.select().from(teamsTable);
-    const teamMembers = await db.select().from(teamMembersTable);
-    const team = teams.find(t => t.id === filters.teamId);
-    if (team) {
-      const memberRelations = teamMembers.filter(tm => tm.teamId === team.id);
-      teamMemberIds = new Set(memberRelations.map(tm => tm.pipedriveUserId));
+    // Get team members from people table
+    const teamPeople = await db.select().from(people);
+    const membersOfTeam = teamPeople.filter(p => p.teamId === filters.teamId && p.pipedriveUserId);
+    if (membersOfTeam.length > 0) {
+      teamMemberIds = new Set(membersOfTeam.map(p => p.pipedriveUserId!));
     }
   }
 
