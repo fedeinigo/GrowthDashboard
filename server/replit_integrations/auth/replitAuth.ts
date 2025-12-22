@@ -51,11 +51,12 @@ function updateUserSession(
 }
 
 async function upsertUser(claims: any) {
+  console.log("[Auth] User claims received:", JSON.stringify(claims, null, 2));
   await authStorage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
-    firstName: claims["given_name"] || claims["first_name"],
-    lastName: claims["family_name"] || claims["last_name"],
+    firstName: claims["given_name"] || claims["first_name"] || claims["name"]?.split(" ")[0],
+    lastName: claims["family_name"] || claims["last_name"] || claims["name"]?.split(" ").slice(1).join(" "),
     profileImageUrl: claims["picture"] || claims["profile_image_url"],
   });
 }
