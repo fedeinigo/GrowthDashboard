@@ -1,18 +1,42 @@
-import type { Express } from "express";
+import type { Express, RequestHandler } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import type { DashboardFilters } from "./storage";
 import * as pipedrive from "./pipedrive";
 import * as pipedriveCache from "./pipedrive-cache";
+import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
+
+// Middleware to check if user has @wisecx.com domain
+const requireWisecxDomain: RequestHandler = (req, res, next) => {
+  const user = req.user as any;
+  const email = user?.claims?.email;
+  
+  if (!email) {
+    return res.status(403).json({ error: "Email not available" });
+  }
+  
+  if (!email.endsWith("@wisecx.com")) {
+    return res.status(403).json({ 
+      error: "Access denied. Only @wisecx.com users are allowed.",
+      email: email
+    });
+  }
+  
+  next();
+};
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Dashboard API routes - using cached data
+  // Setup authentication FIRST
+  await setupAuth(app);
+  registerAuthRoutes(app);
+  
+  // Dashboard API routes - using cached data (protected)
   
   // Get dashboard metrics from cache
-  app.get("/api/dashboard/metrics", async (req, res) => {
+  app.get("/api/dashboard/metrics", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -40,7 +64,7 @@ export async function registerRoutes(
   });
 
   // Get revenue history from cache
-  app.get("/api/dashboard/revenue-history", async (req, res) => {
+  app.get("/api/dashboard/revenue-history", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -68,7 +92,7 @@ export async function registerRoutes(
   });
 
   // Get meetings history from cache
-  app.get("/api/dashboard/meetings-history", async (req, res) => {
+  app.get("/api/dashboard/meetings-history", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -117,7 +141,7 @@ export async function registerRoutes(
   });
 
   // Get stats by deal type
-  app.get("/api/dashboard/deal-type-stats", async (req, res) => {
+  app.get("/api/dashboard/deal-type-stats", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const filters = {
         startDate: req.query.startDate as string,
@@ -133,7 +157,7 @@ export async function registerRoutes(
   });
 
   // Get closure rate (single value for last 6 months)
-  app.get("/api/dashboard/closure-rate-history", async (req, res) => {
+  app.get("/api/dashboard/closure-rate-history", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -161,7 +185,7 @@ export async function registerRoutes(
   });
 
   // Get product stats from Pipedrive deals
-  app.get("/api/dashboard/product-stats", async (req, res) => {
+  app.get("/api/dashboard/product-stats", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -187,7 +211,7 @@ export async function registerRoutes(
   });
 
   // Get rankings by team from cache
-  app.get("/api/dashboard/rankings/teams", async (req, res) => {
+  app.get("/api/dashboard/rankings/teams", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -211,7 +235,7 @@ export async function registerRoutes(
   });
 
   // Get rankings by person from cache
-  app.get("/api/dashboard/rankings/people", async (req, res) => {
+  app.get("/api/dashboard/rankings/people", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -239,7 +263,7 @@ export async function registerRoutes(
   });
 
   // Get rankings by source from cache
-  app.get("/api/dashboard/rankings/sources", async (req, res) => {
+  app.get("/api/dashboard/rankings/sources", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -267,7 +291,7 @@ export async function registerRoutes(
   });
 
   // Get NC meetings last 10 weeks
-  app.get("/api/dashboard/nc-meetings-10weeks", async (req, res) => {
+  app.get("/api/dashboard/nc-meetings-10weeks", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const data = await pipedriveCache.getNCMeetingsLast10Weeks();
       res.json(data);
@@ -278,7 +302,7 @@ export async function registerRoutes(
   });
 
   // Get quarterly region comparison
-  app.get("/api/dashboard/quarterly-region-comparison", async (req, res) => {
+  app.get("/api/dashboard/quarterly-region-comparison", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const data = await pipedriveCache.getQuarterlyRegionComparison();
       res.json(data);
@@ -289,7 +313,7 @@ export async function registerRoutes(
   });
 
   // Get top origins by region
-  app.get("/api/dashboard/top-origins-by-region", async (req, res) => {
+  app.get("/api/dashboard/top-origins-by-region", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const data = await pipedriveCache.getTopOriginsByRegion();
       res.json(data);
@@ -300,7 +324,7 @@ export async function registerRoutes(
   });
 
   // Get sales cycle by region
-  app.get("/api/dashboard/sales-cycle-by-region", async (req, res) => {
+  app.get("/api/dashboard/sales-cycle-by-region", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const data = await pipedriveCache.getSalesCycleByRegion();
       res.json(data);
@@ -311,7 +335,7 @@ export async function registerRoutes(
   });
 
   // Get regional data from cache
-  app.get("/api/dashboard/regional-data", async (req, res) => {
+  app.get("/api/dashboard/regional-data", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -339,7 +363,7 @@ export async function registerRoutes(
   });
 
   // Get company size distribution from Pipedrive cache (by Q de empleados field)
-  app.get("/api/dashboard/company-size-distribution", async (req, res) => {
+  app.get("/api/dashboard/company-size-distribution", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -367,7 +391,7 @@ export async function registerRoutes(
   });
 
   // Get source distribution from Pipedrive cache (by source field)
-  app.get("/api/dashboard/source-distribution", async (req, res) => {
+  app.get("/api/dashboard/source-distribution", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
@@ -395,7 +419,7 @@ export async function registerRoutes(
   });
 
   // Get direct meetings data (Directo Inbound + Outbound)
-  app.get("/api/dashboard/direct-meetings", async (req, res) => {
+  app.get("/api/dashboard/direct-meetings", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
