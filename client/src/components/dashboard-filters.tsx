@@ -83,8 +83,15 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update filters when dateType changes
+  // Track if this is the initial mount to avoid double-triggering
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Update filters when dateType changes (but not on initial mount)
   useEffect(() => {
+    if (!isInitialized) {
+      setIsInitialized(true);
+      return;
+    }
     const yearNum = parseInt(selectedYear);
     if (dateType === "quarter") {
       const qDates = getQuarterDates(selectedQuarter, yearNum);
