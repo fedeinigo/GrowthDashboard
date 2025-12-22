@@ -424,16 +424,15 @@ export default function Dashboard() {
                             <div className="h-[250px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={(() => {
-                                        if (!quarterlyRegionComparison || quarterlyRegionComparison.length === 0) return [];
-                                        // Data format: [{region, data: [{quarter, meetings, logos, revenue}]}]
-                                        const allQuarters = new Set<string>();
-                                        quarterlyRegionComparison.forEach((r: any) => {
-                                            r.data?.forEach((d: any) => allQuarters.add(d.quarter));
-                                        });
-                                        const quarters = Array.from(allQuarters).sort();
+                                        if (!quarterlyRegionComparison) return [];
+                                        // Data format: {quarters: [...], regions: [{region, data: [{quarter, meetings, logos, revenue}]}]}
+                                        const qc = quarterlyRegionComparison as any;
+                                        const quarters = qc.quarters || [];
+                                        const regions = qc.regions || [];
+                                        if (!quarters.length || !regions.length) return [];
                                         return quarters.map((q: string) => {
                                             const point: Record<string, any> = { quarter: q };
-                                            quarterlyRegionComparison.forEach((r: any) => {
+                                            regions.forEach((r: any) => {
                                                 const qData = r.data?.find((d: any) => d.quarter === q);
                                                 point[r.region] = qData?.revenue || 0;
                                             });
