@@ -124,11 +124,15 @@ export function Layout({ children }: LayoutProps) {
 
   const displayName = user?.firstName && user?.lastName 
     ? `${user.firstName} ${user.lastName}` 
-    : user?.email?.split('@')[0] || 'Usuario';
+    : user?.firstName 
+      ? user.firstName 
+      : (user as any)?.username || user?.email?.split('@')[0] || 'Usuario';
   
   const initials = user?.firstName && user?.lastName
     ? `${user.firstName[0]}${user.lastName[0]}`
-    : displayName.substring(0, 2).toUpperCase();
+    : user?.firstName
+      ? user.firstName.substring(0, 2).toUpperCase()
+      : displayName.substring(0, 2).toUpperCase();
 
   return (
     <div className="min-h-screen bg-background flex">
