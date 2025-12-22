@@ -273,3 +273,37 @@ export async function fetchSalesCycleByRegion() {
   if (!res.ok) throw new Error('Failed to fetch sales cycle');
   return res.json();
 }
+
+export async function fetchConversionFunnel(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
+
+  const query = params.toString();
+  const url = `/api/dashboard/conversion-funnel${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch conversion funnel');
+  return res.json();
+}
+
+export async function fetchLossReasons(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
+
+  const query = params.toString();
+  const url = `/api/dashboard/loss-reasons${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch loss reasons');
+  return res.json();
+}

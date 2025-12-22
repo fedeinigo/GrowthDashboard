@@ -399,6 +399,62 @@ export async function registerRoutes(
     }
   });
 
+  // Get conversion funnel data
+  app.get("/api/dashboard/conversion-funnel", isAuthenticated, requireWisecxDomain, async (req, res) => {
+    try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
+      };
+      
+      const funnel = await pipedriveCache.getCachedConversionFunnel(filters);
+      res.json(funnel);
+    } catch (error) {
+      console.error("Error fetching conversion funnel:", error);
+      res.status(500).json({ error: "Failed to fetch conversion funnel" });
+    }
+  });
+
+  // Get loss reasons data
+  app.get("/api/dashboard/loss-reasons", isAuthenticated, requireWisecxDomain, async (req, res) => {
+    try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
+      };
+      
+      const lossReasons = await pipedriveCache.getCachedLossReasons(filters);
+      res.json(lossReasons);
+    } catch (error) {
+      console.error("Error fetching loss reasons:", error);
+      res.status(500).json({ error: "Failed to fetch loss reasons" });
+    }
+  });
+
   // Get direct meetings data (Directo Inbound + Outbound)
   app.get("/api/dashboard/direct-meetings", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {

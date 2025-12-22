@@ -5,7 +5,9 @@ import { DashboardFilters } from "@/components/dashboard-filters";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { EmptyState } from "@/components/empty-state";
 import { CacheStatusIndicator } from "@/components/cache-status";
-import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
+import { ConversionFunnel } from "@/components/conversion-funnel";
+import { LossReasons } from "@/components/loss-reasons";
+import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 import { 
   DollarSign, 
   Target, 
@@ -20,7 +22,11 @@ import {
   Search,
   Database,
   BarChart3,
-  Package
+  Package,
+  Filter,
+  FileDown,
+  FileText,
+  ChevronDown
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -32,8 +38,16 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import React, { useState } from "react";
 import { Progress } from "@/components/ui/progress";
+import { exportDashboardToCSV, exportToPDF } from "@/lib/export-utils";
 
 export default function Dashboard() {
   const [filters, setFilters] = useState<Record<string, any>>({});
@@ -49,6 +63,8 @@ export default function Dashboard() {
     companySizes,
     ncMeetings10Weeks,
     sourceDistribution,
+    conversionFunnel,
+    lossReasons,
     isLoading,
     isError
   } = useDashboardData(filters);
@@ -139,9 +155,40 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex gap-2 flex-shrink-0">
-             <div className="bg-primary text-primary-foreground px-3 sm:px-4 py-2 rounded-md text-sm font-medium shadow-md shadow-primary/20 hover:bg-primary/90 cursor-pointer transition-colors min-h-[44px] flex items-center">
-                Exportar Reporte
-             </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  data-testid="export-dropdown"
+                  className="bg-primary text-primary-foreground px-3 sm:px-4 py-2 rounded-md text-sm font-medium shadow-md shadow-primary/20 hover:bg-primary/90 cursor-pointer transition-colors min-h-[44px] flex items-center gap-2"
+                >
+                  Exportar Reporte
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  data-testid="export-csv"
+                  onClick={() => exportDashboardToCSV({
+                    metrics,
+                    rankings,
+                    products,
+                    filters
+                  })}
+                  className="cursor-pointer"
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Descargar CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  data-testid="export-pdf"
+                  onClick={exportToPDF}
+                  className="cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Exportar PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -260,6 +307,12 @@ export default function Dashboard() {
                     />
                 </div>
 
+                {/* Conversion Funnel and Loss Reasons Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6 md:mt-8">
+                  <ConversionFunnel data={conversionFunnel} />
+                  <LossReasons data={lossReasons} />
+                </div>
+
                 {/* Rankings Section */}
                 <h3 className="text-lg sm:text-xl font-heading font-bold mt-4 sm:mt-6 md:mt-8 mb-3 sm:mb-4">Rankings de Rendimiento</h3>
                 {hasNoRankings ? (
@@ -288,20 +341,37 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent className="px-4 sm:px-6">
                             {rankings?.byTeam?.length ? (
+                            <TooltipProvider>
                             <div className="space-y-3 sm:space-y-4">
-                                {rankings?.byTeam?.map((item, index) => {
+                                {rankings?.byTeam?.map((item: any, index) => {
                                     const maxValue = rankings?.byTeam?.[0]?.value || 1;
+                                    const teamId = item.id || item.teamId || item.name;
                                     return (
-                                    <div key={item.name} className="flex flex-col gap-1">
-                                        <div className="flex justify-between items-start text-xs sm:text-sm font-medium gap-2">
-                                            <span className="truncate min-w-0">{index + 1}. {item.name}</span>
-                                            <span className="text-emerald-600 font-semibold flex-shrink-0">{item.valueFormatted}</span>
+                                    <Tooltip key={item.name}>
+                                      <TooltipTrigger asChild>
+                                        <div 
+                                          data-testid={`ranking-team-${teamId}`}
+                                          className="flex flex-col gap-1 cursor-pointer rounded-md p-2 -mx-2 transition-all hover:bg-muted/50 group"
+                                          onClick={() => handleFilterChange({ team: String(teamId) })}
+                                        >
+                                            <div className="flex justify-between items-start text-xs sm:text-sm font-medium gap-2">
+                                                <span className="truncate min-w-0 flex items-center gap-1.5">
+                                                    {index + 1}. {item.name}
+                                                    <Filter className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </span>
+                                                <span className="text-emerald-600 font-semibold flex-shrink-0">{item.valueFormatted}</span>
+                                            </div>
+                                            <Progress value={(item.value / maxValue) * 100} className="h-2" />
                                         </div>
-                                        <Progress value={(item.value / maxValue) * 100} className="h-2" />
-                                    </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top">
+                                        <p className="text-xs">Click para filtrar por este equipo</p>
+                                      </TooltipContent>
+                                    </Tooltip>
                                     );
                                 })}
                             </div>
+                            </TooltipProvider>
                             ) : (
                               <div className="py-6 text-center text-sm text-muted-foreground">
                                 Sin datos de equipos
@@ -320,20 +390,37 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent className="px-4 sm:px-6">
                             {rankings?.byPerson?.length ? (
+                            <TooltipProvider>
                             <div className="space-y-3 sm:space-y-4">
-                                {rankings?.byPerson?.map((item, index) => {
+                                {rankings?.byPerson?.map((item: any, index) => {
                                     const maxValue = rankings?.byPerson?.[0]?.value || 1;
+                                    const personId = item.id || item.personId || item.name;
                                     return (
-                                    <div key={item.name} className="flex flex-col gap-1">
-                                        <div className="flex justify-between text-xs sm:text-sm font-medium gap-2">
-                                            <span className="truncate min-w-0">{index + 1}. {item.name}</span>
-                                            <span className="text-emerald-600 font-semibold flex-shrink-0">{item.valueFormatted}</span>
+                                    <Tooltip key={item.name}>
+                                      <TooltipTrigger asChild>
+                                        <div 
+                                          data-testid={`ranking-person-${personId}`}
+                                          className="flex flex-col gap-1 cursor-pointer rounded-md p-2 -mx-2 transition-all hover:bg-muted/50 group"
+                                          onClick={() => handleFilterChange({ person: String(personId) })}
+                                        >
+                                            <div className="flex justify-between text-xs sm:text-sm font-medium gap-2">
+                                                <span className="truncate min-w-0 flex items-center gap-1.5">
+                                                    {index + 1}. {item.name}
+                                                    <Filter className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </span>
+                                                <span className="text-emerald-600 font-semibold flex-shrink-0">{item.valueFormatted}</span>
+                                            </div>
+                                            <Progress value={(item.value / maxValue) * 100} className="h-2 bg-muted" indicatorClassName="bg-emerald-500" />
                                         </div>
-                                        <Progress value={(item.value / maxValue) * 100} className="h-2 bg-muted" indicatorClassName="bg-emerald-500" />
-                                    </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top">
+                                        <p className="text-xs">Click para filtrar por este ejecutivo</p>
+                                      </TooltipContent>
+                                    </Tooltip>
                                     );
                                 })}
                             </div>
+                            </TooltipProvider>
                             ) : (
                               <div className="py-6 text-center text-sm text-muted-foreground">
                                 Sin datos de ejecutivos
@@ -352,18 +439,43 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent className="px-4 sm:px-6">
                             {rankings?.bySource?.length ? (
+                            <TooltipProvider>
                             <div className="space-y-3 sm:space-y-4">
-                                {rankings?.bySource?.map((item, index) => (
-                                    <div key={item.name} className="flex items-center justify-between py-2 border-b border-border last:border-0 gap-2">
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="text-xs sm:text-sm font-medium truncate">{index + 1}. {item.name}</span>
+                                {rankings?.bySource?.map((item: any, index) => {
+                                    const sourceId = item.id || item.sourceId || item.name;
+                                    return (
+                                    <Tooltip key={item.name}>
+                                      <TooltipTrigger asChild>
+                                        <div 
+                                          data-testid={`ranking-source-${sourceId}`}
+                                          className="flex items-center justify-between py-2 px-2 -mx-2 rounded-md border-b border-border last:border-0 gap-2 cursor-pointer transition-all hover:bg-muted/50 group"
+                                          onClick={() => {
+                                            const currentSources = filters?.sources || [];
+                                            const newSources = currentSources.includes(String(sourceId))
+                                              ? currentSources.filter((s: string) => s !== String(sourceId))
+                                              : [...currentSources, String(sourceId)];
+                                            handleFilterChange({ sources: newSources.length > 0 ? newSources : undefined });
+                                          }}
+                                        >
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-xs sm:text-sm font-medium truncate flex items-center gap-1.5">
+                                                    {index + 1}. {item.name}
+                                                    <Filter className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </span>
+                                            </div>
+                                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold flex-shrink-0 text-xs">
+                                                {item.valueFormatted}
+                                            </Badge>
                                         </div>
-                                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold flex-shrink-0 text-xs">
-                                            {item.valueFormatted}
-                                        </Badge>
-                                    </div>
-                                ))}
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top">
+                                        <p className="text-xs">Click para filtrar por este origen</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                    );
+                                })}
                             </div>
+                            </TooltipProvider>
                             ) : (
                               <div className="py-6 text-center text-sm text-muted-foreground">
                                 Sin datos de orígenes

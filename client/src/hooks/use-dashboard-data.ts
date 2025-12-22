@@ -15,6 +15,8 @@ import {
   fetchQuarterlyRegionComparison,
   fetchTopOriginsByRegion,
   fetchSalesCycleByRegion,
+  fetchConversionFunnel,
+  fetchLossReasons,
 } from "@/lib/api";
 
 export function useDashboardData(filters?: any) {
@@ -104,6 +106,16 @@ export function useDashboardData(filters?: any) {
     queryFn: fetchSalesCycleByRegion,
   });
 
+  const conversionFunnel = useQuery({
+    queryKey: ['conversion-funnel', apiFilters],
+    queryFn: () => fetchConversionFunnel(apiFilters),
+  });
+
+  const lossReasons = useQuery({
+    queryKey: ['loss-reasons', apiFilters],
+    queryFn: () => fetchLossReasons(apiFilters),
+  });
+
   const isLoading = 
     metrics.isLoading ||
     revenueHistory.isLoading ||
@@ -119,7 +131,9 @@ export function useDashboardData(filters?: any) {
     ncMeetings10Weeks.isLoading ||
     quarterlyRegionComparison.isLoading ||
     topOriginsByRegion.isLoading ||
-    salesCycleByRegion.isLoading;
+    salesCycleByRegion.isLoading ||
+    conversionFunnel.isLoading ||
+    lossReasons.isLoading;
 
   const isError = 
     metrics.isError ||
@@ -136,7 +150,9 @@ export function useDashboardData(filters?: any) {
     ncMeetings10Weeks.isError ||
     quarterlyRegionComparison.isError ||
     topOriginsByRegion.isError ||
-    salesCycleByRegion.isError;
+    salesCycleByRegion.isError ||
+    conversionFunnel.isError ||
+    lossReasons.isError;
 
   // Transform metrics data to match the expected format
   // Support both old field names (revenue, logos, avgSalesCycle) and new cached format (totalRevenue, logosWon, salesCycle)
@@ -248,6 +264,8 @@ export function useDashboardData(filters?: any) {
     quarterlyRegionComparison: quarterlyRegionComparison.data || null,
     topOriginsByRegion: topOriginsByRegion.data || [],
     salesCycleByRegion: salesCycleByRegion.data || [],
+    conversionFunnel: conversionFunnel.data || null,
+    lossReasons: lossReasons.data || null,
     isLoading,
     isError,
   };

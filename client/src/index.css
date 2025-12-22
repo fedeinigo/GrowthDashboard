@@ -195,3 +195,53 @@
     @apply hidden;
   }
 }
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print,
+  [data-testid="sidebar"],
+  [data-testid="export-dropdown"],
+  [data-testid="dashboard-filters"],
+  nav,
+  aside,
+  .sidebar,
+  button:not(.print-visible) {
+    display: none !important;
+  }
+
+  .print-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  h2, h3 {
+    page-break-after: avoid;
+  }
+
+  .card, [class*="Card"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  table {
+    font-size: 10px;
+  }
+
+  .recharts-wrapper {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
