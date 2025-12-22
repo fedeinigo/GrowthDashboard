@@ -18,6 +18,7 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import wiseCxLogo from "@assets/logo_blanco_1766330983084.png";
+import { useAuth } from "@/hooks/use-auth";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,7 +31,7 @@ const navItems = [
   { icon: Settings, label: "Configuración", href: "/configuracion" },
 ];
 
-function SidebarContent() {
+function SidebarContent({ onLogout }: { onLogout?: () => void }) {
   const [location] = useLocation();
 
   return (
@@ -60,9 +61,14 @@ function SidebarContent() {
       </div>
 
       <div className="p-4 border-t border-sidebar-border">
-        <Button variant="ghost" className="w-full justify-start text-sidebar-foreground/70 hover:text-white hover:bg-sidebar-accent/50">
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start text-sidebar-foreground/70 hover:text-white hover:bg-sidebar-accent/50"
+          onClick={onLogout}
+          data-testid="button-logout"
+        >
           <LogOut className="w-4 h-4 mr-2" />
-          Cerrar Sesión
+          Cerrar Sesion
         </Button>
       </div>
     </div>
@@ -71,12 +77,21 @@ function SidebarContent() {
 
 export function Layout({ children }: LayoutProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useAuth();
+
+  const displayName = user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}` 
+    : user?.email?.split('@')[0] || 'Usuario';
+  
+  const initials = user?.firstName && user?.lastName
+    ? `${user.firstName[0]}${user.lastName[0]}`
+    : displayName.substring(0, 2).toUpperCase();
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
       <aside className="hidden md:block w-64 bg-sidebar border-r border-sidebar-border shadow-xl z-20">
-        <SidebarContent />
+        <SidebarContent onLogout={logout} />
       </aside>
 
       {/* Mobile Sidebar */}
@@ -85,7 +100,7 @@ export function Layout({ children }: LayoutProps) {
            <VisuallyHidden.Root>
              <SheetTitle>Navigation Menu</SheetTitle>
            </VisuallyHidden.Root>
-           <SidebarContent />
+           <SidebarContent onLogout={logout} />
         </SheetContent>
       </Sheet>
 
@@ -115,12 +130,12 @@ export function Layout({ children }: LayoutProps) {
             <div className="h-8 w-[1px] bg-border mx-1" />
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-foreground">Franco Landoni</p>
-                <p className="text-xs text-muted-foreground">Head of Growth</p>
+                <p className="text-sm font-medium text-foreground" data-testid="text-user-name">{displayName}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
               <Avatar className="h-9 w-9 border border-border">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>FL</AvatarFallback>
+                <AvatarImage src={user?.profileImageUrl || undefined} />
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
             </div>
           </div>
