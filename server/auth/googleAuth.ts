@@ -28,6 +28,14 @@ declare global {
 export function setupGoogleAuth(app: Express): void {
   const PgStore = connectPgSimple(session);
 
+  // Detect production environment (Replit deployment or NODE_ENV)
+  const isProduction = process.env.REPLIT_DEPLOYMENT === "1" || process.env.NODE_ENV === "production";
+
+  // Trust proxy in production (required for secure cookies behind Replit's proxy)
+  if (isProduction) {
+    app.set("trust proxy", 1);
+  }
+
   // Session configuration - table already exists from previous auth setup
   app.use(
     session({
@@ -40,7 +48,7 @@ export function setupGoogleAuth(app: Express): void {
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: process.env.NODE_ENV === "production",
+        secure: isProduction, // Use secure cookies in production
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         sameSite: "lax",
