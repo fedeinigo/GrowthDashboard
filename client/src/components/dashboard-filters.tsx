@@ -58,6 +58,18 @@ interface DashboardFiltersProps {
   onFilterChange: (filters: any) => void;
 }
 
+// Derive quarter from a date string (YYYY-MM-DD)
+function getQuarterFromDate(dateStr: string | undefined): string {
+  if (!dateStr) return getCurrentQuarter();
+  const date = new Date(dateStr);
+  return `q${Math.floor(date.getMonth() / 3) + 1}`;
+}
+
+function getYearFromDate(dateStr: string | undefined): string {
+  if (!dateStr) return new Date().getFullYear().toString();
+  return new Date(dateStr).getFullYear().toString();
+}
+
 export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersProps) {
   // Default to current quarter
   const currentQ = getCurrentQuarterDates();
@@ -68,13 +80,15 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
   });
 
   const [dateType, setDateType] = useState("quarter"); // Default to quarter
-  const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  
+  // Derive selectedQuarter and selectedYear from filters to stay in sync
+  const selectedQuarter = getQuarterFromDate(filters?.startDate);
+  const selectedYear = getYearFromDate(filters?.startDate);
 
   // Send initial quarter filter on mount - only if no date filters exist
   useEffect(() => {
     if (!filters?.startDate && !filters?.endDate) {
-      const qDates = getQuarterDates(selectedQuarter, parseInt(selectedYear));
+      const qDates = getQuarterDates(getCurrentQuarter(), new Date().getFullYear());
       onFilterChange({ 
         startDate: format(qDates.startDate, 'yyyy-MM-dd'),
         endDate: format(qDates.endDate, 'yyyy-MM-dd'),
@@ -303,7 +317,6 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
               <div className="flex-1 min-w-[100px]">
                   <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Trimestre</label>
                   <Select value={selectedQuarter} onValueChange={(val) => {
-                    setSelectedQuarter(val);
                     const qDates = getQuarterDates(val, parseInt(selectedYear));
                     onFilterChange({ 
                       startDate: format(qDates.startDate, 'yyyy-MM-dd'),
@@ -325,7 +338,6 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                <div className="flex-1 min-w-[100px]">
                   <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Año</label>
                   <Select value={selectedYear} onValueChange={(val) => {
-                    setSelectedYear(val);
                     const qDates = getQuarterDates(selectedQuarter, parseInt(val));
                     onFilterChange({ 
                       startDate: format(qDates.startDate, 'yyyy-MM-dd'),
@@ -351,7 +363,6 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
             <div className="flex-1 min-w-[100px]">
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Año</label>
                 <Select value={selectedYear} onValueChange={(val) => {
-                  setSelectedYear(val);
                   const yearNum = parseInt(val);
                   onFilterChange({ 
                     startDate: format(new Date(yearNum, 0, 1), 'yyyy-MM-dd'),
