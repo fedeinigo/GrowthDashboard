@@ -162,6 +162,24 @@ export function useDashboardData(filters?: any) {
     }
   } : undefined;
 
+  const formatRankingValue = (value: number) => `$${(value || 0).toLocaleString()}`;
+
+  const transformedRankingsByTeam = (rankingsByTeam.data || []).map(item => ({
+    ...item,
+    valueFormatted: formatRankingValue(item.value),
+  }));
+
+  const transformedRankingsByPerson = (rankingsByPerson.data || []).map((item: any) => ({
+    ...item,
+    value: item.revenue || item.value || 0,
+    valueFormatted: formatRankingValue(item.revenue || item.value || 0),
+  }));
+
+  const transformedRankingsBySource = (rankingsBySource.data || []).map(item => ({
+    ...item,
+    valueFormatted: formatRankingValue(item.value),
+  }));
+
   return {
     metrics: transformedMetrics,
     revenueHistory: revenueHistory.data || [],
@@ -169,9 +187,9 @@ export function useDashboardData(filters?: any) {
     closureRateHistory: closureRateHistory.data || [],
     products: productStats.data || [],
     rankings: {
-      byTeam: rankingsByTeam.data || [],
-      byPerson: rankingsByPerson.data || [],
-      bySource: rankingsBySource.data || [],
+      byTeam: transformedRankingsByTeam,
+      byPerson: transformedRankingsByPerson,
+      bySource: transformedRankingsBySource,
     },
     regionalData: regionalData.data || [],
     companySizes: companySizeDistribution.data || [],

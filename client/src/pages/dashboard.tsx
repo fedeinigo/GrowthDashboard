@@ -291,20 +291,18 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {rankings?.byTeam?.map((item, index) => (
+                                {rankings?.byTeam?.map((item, index) => {
+                                    const maxValue = rankings?.byTeam?.[0]?.value || 1;
+                                    return (
                                     <div key={item.name} className="flex flex-col gap-1">
                                         <div className="flex justify-between items-start text-sm font-medium">
                                             <span>{index + 1}. {item.name}</span>
-                                            <div className="flex flex-col items-end">
-                                                <span>{item.valueFormatted}</span>
-                                                <span className={item.change && item.change > 0 ? "text-emerald-600 text-xs" : "text-destructive text-xs"}>
-                                                    {item.change && item.change > 0 ? "+" : ""}{item.change}%
-                                                </span>
-                                            </div>
+                                            <span className="text-emerald-600 font-semibold">{item.valueFormatted}</span>
                                         </div>
-                                        <Progress value={item.value / 1500} className="h-2" />
+                                        <Progress value={(item.value / maxValue) * 100} className="h-2" />
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </CardContent>
                     </Card>
@@ -319,20 +317,18 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {rankings?.byPerson?.map((item, index) => (
+                                {rankings?.byPerson?.map((item, index) => {
+                                    const maxValue = rankings?.byPerson?.[0]?.value || 1;
+                                    return (
                                     <div key={item.name} className="flex flex-col gap-1">
                                         <div className="flex justify-between text-sm font-medium">
-                                            <span>{item.name}</span>
-                                            <span className={item.change && item.change > 0 ? "text-emerald-600" : "text-destructive"}>
-                                                {item.change && item.change > 0 ? "+" : ""}{item.change}%
-                                            </span>
+                                            <span>{index + 1}. {item.name}</span>
+                                            <span className="text-emerald-600 font-semibold">{item.valueFormatted}</span>
                                         </div>
-                                        <div className="flex justify-between text-xs text-muted-foreground">
-                                            <span>{item.valueFormatted} generado</span>
-                                        </div>
-                                        <Progress value={item.value / 600} className="h-2 bg-muted" indicatorClassName="bg-emerald-500" />
+                                        <Progress value={(item.value / maxValue) * 100} className="h-2 bg-muted" indicatorClassName="bg-emerald-500" />
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </CardContent>
                     </Card>
@@ -350,11 +346,10 @@ export default function Dashboard() {
                                 {rankings?.bySource?.map((item, index) => (
                                     <div key={item.name} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-medium">{item.name}</span>
-                                            <span className="text-xs text-muted-foreground">{item.valueFormatted}</span>
+                                            <span className="text-sm font-medium">{index + 1}. {item.name}</span>
                                         </div>
-                                        <Badge variant="outline" className={item.change && item.change > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""}>
-                                            {item.change && item.change > 0 ? "+" : ""}{item.change}%
+                                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold">
+                                            {item.valueFormatted}
                                         </Badge>
                                     </div>
                                 ))}
