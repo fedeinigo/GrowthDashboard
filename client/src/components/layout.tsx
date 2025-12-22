@@ -90,7 +90,7 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-64 bg-sidebar border-r border-sidebar-border shadow-xl z-20">
+      <aside className="hidden md:block w-64 bg-sidebar border-r border-sidebar-border shadow-xl z-20 fixed h-screen">
         <SidebarContent onLogout={logout} />
       </aside>
 
@@ -105,7 +105,7 @@ export function Layout({ children }: LayoutProps) {
       </Sheet>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 bg-secondary/30">
+      <main className="flex-1 flex flex-col min-w-0 bg-secondary/30 md:ml-64">
         <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 backdrop-blur-sm bg-background/80">
           <div className="flex items-center gap-4">
             <Button 
