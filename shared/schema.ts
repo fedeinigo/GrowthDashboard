@@ -160,3 +160,18 @@ export const cacheMetadata = pgTable("cache_metadata", {
 });
 
 export type CacheMetadata = typeof cacheMetadata.$inferSelect;
+
+// Pipedrive deal products cache table
+export const pipedriveDealProducts = pgTable("pipedrive_deal_products", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").notNull(),
+  productId: integer("product_id").notNull(),
+  productName: text("product_name"),
+  quantity: integer("quantity").default(1),
+  itemPrice: decimal("item_price", { precision: 12, scale: 2 }),
+  discount: decimal("discount", { precision: 5, scale: 2 }),
+  sum: decimal("sum", { precision: 12, scale: 2 }),
+  cachedAt: timestamp("cached_at").defaultNow().notNull(),
+});
+
+export type PipedriveDealProduct = typeof pipedriveDealProducts.$inferSelect;

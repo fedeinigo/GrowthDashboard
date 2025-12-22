@@ -563,6 +563,41 @@ export async function getMeetingsHistory(filters?: { startDate?: string; endDate
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
+// Get products from Pipedrive
+export async function getProducts(): Promise<any[]> {
+  let allProducts: any[] = [];
+  let start = 0;
+  const limit = 500;
+  let hasMore = true;
+
+  while (hasMore) {
+    const response = await pipedriveRequest("/products", {
+      start: start.toString(),
+      limit: limit.toString(),
+    });
+
+    if (response.data && response.data.length > 0) {
+      allProducts = allProducts.concat(response.data);
+      start += limit;
+      hasMore = response.additional_data?.pagination?.more_items_in_collection || false;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allProducts;
+}
+
+// Get products attached to a deal
+export async function getDealProducts(dealId: number): Promise<any[]> {
+  try {
+    const response = await pipedriveRequest(`/deals/${dealId}/products`);
+    return response.data || [];
+  } catch (error) {
+    return [];
+  }
+}
+
 // Get deal types for filtering
 export async function getDealTypes() {
   return [

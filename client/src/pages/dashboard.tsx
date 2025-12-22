@@ -374,33 +374,28 @@ export default function Dashboard() {
                     <Card className="border-none shadow-sm">
                         <CardHeader>
                             <CardTitle>Rendimiento por Producto</CardTitle>
-                            <CardDescription>Desglose de ventas e ingresos por línea de producto</CardDescription>
+                            <CardDescription>Desglose de ventas e ingresos por línea de producto (Pipedrive)</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Table>
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent">
                                         <TableHead className="w-[300px]">Producto</TableHead>
-                                        <TableHead>Categoría</TableHead>
                                         <TableHead className="text-right">Unidades Vendidas</TableHead>
-                                        <TableHead className="text-right">Ingresos Totales</TableHead>
-                                        <TableHead className="text-right">Tendencia</TableHead>
+                                        <TableHead className="text-right">Ingresos Totales (USD)</TableHead>
+                                        <TableHead className="text-right">Promedio por Unidad</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {products.map((product) => (
-                                        <TableRow key={product.name} className="hover:bg-muted/30">
+                                    {products.map((product: any) => (
+                                        <TableRow key={product.id || product.name} className="hover:bg-muted/30">
                                             <TableCell className="font-medium text-foreground">{product.name}</TableCell>
-                                            <TableCell>
-                                                <Badge variant="secondary" className="font-normal">{product.category}</Badge>
-                                            </TableCell>
                                             <TableCell className="text-right">{product.sold}</TableCell>
                                             <TableCell className="text-right font-medium">${product.revenue.toLocaleString()}</TableCell>
                                             <TableCell className="text-right">
-                                                <div className="flex justify-end items-center text-emerald-600">
-                                                    <TrendingUp className="w-4 h-4 mr-1" />
-                                                    <span className="text-xs">+12%</span>
-                                                </div>
+                                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                                    ${product.averageTicket?.toLocaleString() || '0'}
+                                                </Badge>
                                             </TableCell>
                                         </TableRow>
                                     ))}

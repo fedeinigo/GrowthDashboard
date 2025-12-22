@@ -160,19 +160,25 @@ export async function registerRoutes(
     }
   });
 
-  // Get product stats
+  // Get product stats from Pipedrive deals
   app.get("/api/dashboard/product-stats", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      
+      const filters = {
         teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
         personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
       };
       
-      const stats = await storage.getProductStats(filters);
+      const stats = await pipedriveCache.getCachedProductStats(filters);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching product stats:", error);

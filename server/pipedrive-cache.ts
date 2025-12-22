@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { pipedriveDeals, cacheMetadata } from "@shared/schema";
+import { pipedriveDeals, cacheMetadata, pipedriveDealProducts } from "@shared/schema";
 import { eq, sql, and, gte, lte, inArray } from "drizzle-orm";
 import * as pipedrive from "./pipedrive";
 
@@ -735,4 +735,115 @@ export async function getCachedRankingsBySource(filters: DashboardFilters) {
     }))
     .filter(s => s.value > 0)
     .sort((a, b) => b.value - a.value);
+}
+
+// Get product stats from won deals with products
+export async function getCachedProductStats(filters: DashboardFilters) {
+  const startDate = filters.startDate ? new Date(filters.startDate) : null;
+  const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
+
+  let allowedUserIds: number[] | null = null;
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
+  // Get won deals from cache
+  const allDeals = await db.select().from(pipedriveDeals).where(eq(pipedriveDeals.status, "won"));
+  
+  // Filter deals
+  const filteredDeals = allDeals.filter(deal => {
+    if (filters.dealType && deal.dealType !== filters.dealType) return false;
+    if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
+    if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
+    
+    const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+    if (!wonTime) return false;
+    if (startDate && wonTime < startDate) return false;
+    if (endDate && wonTime > endDate) return false;
+    
+    return true;
+  });
+
+  // Check if we have cached products
+  const cachedProducts = await db.select().from(pipedriveDealProducts);
+  
+  // If no cached products, try to fetch them for the filtered deals (limited batch)
+  if (cachedProducts.length === 0 && filteredDeals.length > 0) {
+    console.log(`[Cache] Fetching products for ${Math.min(filteredDeals.length, 100)} deals...`);
+    
+    // Limit to 100 deals to avoid rate limits
+    const dealsToFetch = filteredDeals.slice(0, 100);
+    const allProducts: any[] = [];
+    
+    for (const deal of dealsToFetch) {
+      try {
+        const products = await pipedrive.getDealProducts(deal.id);
+        for (const p of products) {
+          allProducts.push({
+            dealId: deal.id,
+            productId: p.product_id,
+            productName: p.name || p.product?.name || `Producto ${p.product_id}`,
+            quantity: p.quantity || 1,
+            itemPrice: p.item_price?.toString() || "0",
+            discount: p.discount?.toString() || "0",
+            sum: p.sum?.toString() || "0",
+            cachedAt: new Date(),
+          });
+        }
+      } catch (err) {
+        console.error(`[Cache] Error fetching products for deal ${deal.id}:`, err);
+      }
+    }
+    
+    // Save to cache
+    if (allProducts.length > 0) {
+      await db.delete(pipedriveDealProducts);
+      const batchSize = 50;
+      for (let i = 0; i < allProducts.length; i += batchSize) {
+        const batch = allProducts.slice(i, i + batchSize);
+        await db.insert(pipedriveDealProducts).values(batch);
+      }
+      console.log(`[Cache] Cached ${allProducts.length} deal products`);
+    }
+    
+    // Use the products we just fetched
+    return aggregateProductStats(allProducts, filteredDeals);
+  }
+
+  // Use cached products
+  const dealIds = new Set(filteredDeals.map(d => d.id));
+  const relevantProducts = cachedProducts.filter(p => dealIds.has(p.dealId));
+  
+  return aggregateProductStats(relevantProducts, filteredDeals);
+}
+
+function aggregateProductStats(products: any[], deals: any[]) {
+  const productStats: Record<number, { name: string; units: number; revenue: number }> = {};
+  
+  products.forEach(p => {
+    const productId = p.productId || p.product_id;
+    const productName = p.productName || p.name || `Producto ${productId}`;
+    const quantity = parseInt(p.quantity) || 1;
+    const sum = parseFloat(p.sum) || 0;
+    
+    if (!productStats[productId]) {
+      productStats[productId] = { name: productName, units: 0, revenue: 0 };
+    }
+    productStats[productId].units += quantity;
+    productStats[productId].revenue += sum;
+  });
+
+  return Object.entries(productStats)
+    .map(([id, data]) => ({
+      id: parseInt(id),
+      name: data.name,
+      sold: data.units,
+      revenue: Math.round(data.revenue * 100) / 100,
+      averageTicket: data.units > 0 ? Math.round((data.revenue / data.units) * 100) / 100 : 0,
+    }))
+    .filter(p => p.sold > 0 || p.revenue > 0)
+    .sort((a, b) => b.revenue - a.revenue);
 }
