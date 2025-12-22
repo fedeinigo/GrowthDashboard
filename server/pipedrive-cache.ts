@@ -925,6 +925,219 @@ export async function getCachedEmployeeCountDistribution(filters: {
   }));
 }
 
+// Get NC meetings history last 10 weeks by region
+export async function getNCMeetingsLast10Weeks() {
+  const allDeals = await db.select().from(pipedriveDeals)
+    .where(eq(pipedriveDeals.dealType, NEW_CUSTOMER_ID));
+  
+  // Get last 10 weeks
+  const now = new Date();
+  const tenWeeksAgo = new Date(now);
+  tenWeeksAgo.setDate(tenWeeksAgo.getDate() - 70);
+  
+  const filteredDeals = allDeals.filter(deal => {
+    const addTime = deal.addTime ? new Date(deal.addTime) : null;
+    if (!addTime) return false;
+    return addTime >= tenWeeksAgo;
+  });
+
+  const weeklyData: Record<string, number> = {};
+  
+  filteredDeals.forEach(deal => {
+    const addTime = new Date(deal.addTime!);
+    const weekKey = getWeekKey(addTime);
+    weeklyData[weekKey] = (weeklyData[weekKey] || 0) + 1;
+  });
+
+  // Sort chronologically by parsing year and week number
+  const sortedWeeks = Object.entries(weeklyData)
+    .map(([week, cardsCreated]) => {
+      const [year, weekNum] = week.split('-W');
+      return { 
+        week, 
+        cardsCreated, 
+        sortKey: parseInt(year) * 100 + parseInt(weekNum) 
+      };
+    })
+    .sort((a, b) => a.sortKey - b.sortKey)
+    .slice(-10)
+    .map(({ week, cardsCreated }) => ({ week, cardsCreated }));
+  
+  return sortedWeeks;
+}
+
+// Get quarterly comparison by region (last 5 quarters)
+export async function getQuarterlyRegionComparison() {
+  const allDeals = await db.select().from(pipedriveDeals);
+  
+  const dealFields = await pipedrive.getDealFields();
+  const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
+  const countryField = dealFields.find((f: any) => f.key === COUNTRY_FIELD_KEY);
+  const countryOptions = countryField?.options || [];
+  const countryLabels = new Map(countryOptions.map((o: any) => [o.id.toString(), o.label]));
+
+  const getCellForCountry = (countryName: string): string => {
+    const normalized = countryName.toLowerCase();
+    if (normalized === "colombia") return "Colombia";
+    if (normalized === "argentina") return "Argentina";
+    if (normalized === "mexico" || normalized === "méxico") return "Mexico";
+    if (normalized === "brasil") return "Brasil";
+    if (normalized === "españa") return "España";
+    return "Rest Latam";
+  };
+
+  const getQuarterKey = (date: Date): string => {
+    const year = date.getFullYear();
+    const quarter = Math.floor(date.getMonth() / 3) + 1;
+    return `${year}-Q${quarter}`;
+  };
+
+  // Calculate last 5 quarters
+  const quarters: string[] = [];
+  const now = new Date();
+  for (let i = 4; i >= 0; i--) {
+    const d = new Date(now);
+    d.setMonth(d.getMonth() - (i * 3));
+    quarters.push(getQuarterKey(d));
+  }
+
+  const regions = ["Colombia", "Argentina", "Mexico", "Brasil", "España", "Rest Latam"];
+  
+  // Initialize data structure
+  const data: Record<string, Record<string, { meetings: number; logos: number; revenue: number }>> = {};
+  regions.forEach(region => {
+    data[region] = {};
+    quarters.forEach(q => {
+      data[region][q] = { meetings: 0, logos: 0, revenue: 0 };
+    });
+  });
+
+  allDeals.forEach(deal => {
+    const countryName = countryLabels.get(deal.country || "") || "Unknown";
+    const region = getCellForCountry(countryName);
+    
+    // Count meetings (cards created) by add_time
+    if (deal.addTime) {
+      const addTime = new Date(deal.addTime);
+      const quarterKey = getQuarterKey(addTime);
+      if (data[region]?.[quarterKey]) {
+        data[region][quarterKey].meetings++;
+      }
+    }
+    
+    // Count logos and revenue by won_time
+    if (deal.status === "won" && deal.wonTime) {
+      const wonTime = new Date(deal.wonTime);
+      const quarterKey = getQuarterKey(wonTime);
+      if (data[region]?.[quarterKey]) {
+        data[region][quarterKey].logos++;
+        data[region][quarterKey].revenue += parseFloat(deal.value || "0");
+      }
+    }
+  });
+
+  return {
+    quarters,
+    regions: regions.map(region => ({
+      region,
+      data: quarters.map(q => ({
+        quarter: q,
+        meetings: data[region][q].meetings,
+        logos: data[region][q].logos,
+        revenue: Math.round(data[region][q].revenue),
+      })),
+    })),
+  };
+}
+
+// Get top origins by region
+export async function getTopOriginsByRegion() {
+  const allDeals = await db.select().from(pipedriveDeals)
+    .where(eq(pipedriveDeals.status, "won"));
+  
+  const dealFields = await pipedrive.getDealFields();
+  const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
+  const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
+  const countryField = dealFields.find((f: any) => f.key === COUNTRY_FIELD_KEY);
+  const originField = dealFields.find((f: any) => f.key === ORIGEN_FIELD_KEY);
+  const countryLabels = new Map(countryField?.options?.map((o: any) => [o.id.toString(), o.label]) || []);
+  const originLabels = new Map(originField?.options?.map((o: any) => [o.id.toString(), o.label]) || []);
+
+  const getCellForCountry = (countryName: string): string => {
+    const normalized = countryName.toLowerCase();
+    if (normalized === "colombia") return "Colombia";
+    if (normalized === "argentina") return "Argentina";
+    if (normalized === "mexico" || normalized === "méxico") return "Mexico";
+    if (normalized === "brasil") return "Brasil";
+    if (normalized === "españa") return "España";
+    return "Rest Latam";
+  };
+
+  const regions = ["Colombia", "Argentina", "Mexico", "Brasil", "España", "Rest Latam"];
+  const data: Record<string, Record<string, number>> = {};
+  regions.forEach(r => { data[r] = {}; });
+
+  allDeals.forEach(deal => {
+    const countryName = countryLabels.get(deal.country || "") || "Unknown";
+    const region = getCellForCountry(countryName);
+    const originName = originLabels.get(deal.origin || "") || "Directo";
+    
+    if (!data[region][originName]) {
+      data[region][originName] = 0;
+    }
+    data[region][originName] += parseFloat(deal.value || "0");
+  });
+
+  return regions.map(region => ({
+    region,
+    origins: Object.entries(data[region])
+      .map(([origin, revenue]) => ({ origin, revenue: Math.round(revenue) }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5),
+  }));
+}
+
+// Get sales cycle by region
+export async function getSalesCycleByRegion() {
+  const allDeals = await db.select().from(pipedriveDeals)
+    .where(eq(pipedriveDeals.status, "won"));
+  
+  const dealFields = await pipedrive.getDealFields();
+  const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
+  const countryField = dealFields.find((f: any) => f.key === COUNTRY_FIELD_KEY);
+  const countryLabels = new Map(countryField?.options?.map((o: any) => [o.id.toString(), o.label]) || []);
+
+  const getCellForCountry = (countryName: string): string => {
+    const normalized = countryName.toLowerCase();
+    if (normalized === "colombia") return "Colombia";
+    if (normalized === "argentina") return "Argentina";
+    if (normalized === "mexico" || normalized === "méxico") return "Mexico";
+    if (normalized === "brasil") return "Brasil";
+    if (normalized === "españa") return "España";
+    return "Rest Latam";
+  };
+
+  const regions = ["Colombia", "Argentina", "Mexico", "Brasil", "España", "Rest Latam"];
+  const data: Record<string, { totalDays: number; count: number }> = {};
+  regions.forEach(r => { data[r] = { totalDays: 0, count: 0 }; });
+
+  allDeals.forEach(deal => {
+    if (!deal.salesCycleDays || deal.salesCycleDays <= 0) return;
+    
+    const countryName = countryLabels.get(deal.country || "") || "Unknown";
+    const region = getCellForCountry(countryName);
+    
+    data[region].totalDays += deal.salesCycleDays;
+    data[region].count++;
+  });
+
+  return regions.map(region => ({
+    region,
+    avgDays: data[region].count > 0 ? Math.round(data[region].totalDays / data[region].count) : 0,
+    deals: data[region].count,
+  }));
+}
+
 function aggregateProductStats(products: any[], deals: any[]) {
   const productStats: Record<number, { name: string; units: number; revenue: number }> = {};
   

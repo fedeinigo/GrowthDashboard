@@ -3,6 +3,7 @@ import { KPICard } from "@/components/kpi-card";
 import { RevenueChart, MeetingsChart, ClosureChart, CompanySizeChart } from "@/components/charts";
 import { DashboardFilters } from "@/components/dashboard-filters";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import { 
   DollarSign, 
   Target, 
@@ -66,6 +67,10 @@ export default function Dashboard() {
     rankings,
     regionalData,
     companySizes,
+    ncMeetings10Weeks,
+    quarterlyRegionComparison,
+    topOriginsByRegion,
+    salesCycleByRegion,
     isLoading,
     isError
   } = useDashboardData(filters);
@@ -407,6 +412,122 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="regions" className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+                {/* 4 Regional Reports Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Report 1: NC Meetings Last 10 Weeks */}
+                    <Card className="border-none shadow-sm">
+                        <CardHeader>
+                            <CardTitle className="text-base">Reuniones NC - Últimas 10 Semanas</CardTitle>
+                            <CardDescription>Tarjetas New Customer creadas por semana</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={ncMeetings10Weeks}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis dataKey="week" tick={{ fontSize: 10 }} />
+                                        <YAxis tick={{ fontSize: 10 }} />
+                                        <Tooltip />
+                                        <Bar dataKey="cardsCreated" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Report 2: Sales Cycle by Region */}
+                    <Card className="border-none shadow-sm">
+                        <CardHeader>
+                            <CardTitle className="text-base">Ciclo de Ventas por Región</CardTitle>
+                            <CardDescription>Promedio de días para cerrar (deals ganados)</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={salesCycleByRegion} layout="vertical">
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis type="number" tick={{ fontSize: 10 }} />
+                                        <YAxis dataKey="region" type="category" tick={{ fontSize: 10 }} width={80} />
+                                        <Tooltip formatter={(value: any) => [`${value} días`, 'Ciclo Promedio']} />
+                                        <Bar dataKey="avgDays" fill="#10b981" radius={[0, 4, 4, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Report 3: Quarterly Comparison */}
+                    <Card className="border-none shadow-sm col-span-1 md:col-span-2">
+                        <CardHeader>
+                            <CardTitle className="text-base">Comparativo Últimos 5 Trimestres por Región</CardTitle>
+                            <CardDescription>Reuniones, Logos Vendidos y USD Total</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-[120px]">Región</TableHead>
+                                            {quarterlyRegionComparison?.quarters?.map((q: string) => (
+                                                <TableHead key={q} className="text-center" colSpan={3}>
+                                                    {q}
+                                                </TableHead>
+                                            ))}
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableHead></TableHead>
+                                            {quarterlyRegionComparison?.quarters?.map((q: string) => (
+                                                <React.Fragment key={`sub-${q}`}>
+                                                    <TableHead className="text-right text-xs">Reuniones</TableHead>
+                                                    <TableHead className="text-right text-xs">Logos</TableHead>
+                                                    <TableHead className="text-right text-xs">USD</TableHead>
+                                                </React.Fragment>
+                                            ))}
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {quarterlyRegionComparison?.regions?.map((region: any) => (
+                                            <TableRow key={region.region}>
+                                                <TableCell className="font-medium">{region.region}</TableCell>
+                                                {region.data?.map((d: any) => (
+                                                    <React.Fragment key={`${region.region}-${d.quarter}`}>
+                                                        <TableCell className="text-right">{d.meetings}</TableCell>
+                                                        <TableCell className="text-right">{d.logos}</TableCell>
+                                                        <TableCell className="text-right">${d.revenue.toLocaleString()}</TableCell>
+                                                    </React.Fragment>
+                                                ))}
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Report 4: Top Origins by Region */}
+                    <Card className="border-none shadow-sm col-span-1 md:col-span-2">
+                        <CardHeader>
+                            <CardTitle className="text-base">Top 5 Orígenes por Región</CardTitle>
+                            <CardDescription>Orígenes con mayor revenue por cada célula</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                {topOriginsByRegion.map((region: any) => (
+                                    <div key={region.region} className="space-y-2">
+                                        <h4 className="font-semibold text-sm border-b pb-1">{region.region}</h4>
+                                        {region.origins?.slice(0, 5).map((origin: any, idx: number) => (
+                                            <div key={`${region.region}-${origin.origin}-${idx}`} className="flex justify-between text-xs">
+                                                <span className="truncate max-w-[80px]" title={origin.origin}>{origin.origin}</span>
+                                                <span className="font-medium">${origin.revenue.toLocaleString()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
                 <Card className="border-none shadow-sm">
                     <CardHeader>
                         <CardTitle>Métricas por Región Estratégica</CardTitle>

@@ -10,6 +10,10 @@ import {
   fetchRankingsBySource,
   fetchRegionalData,
   fetchCompanySizeDistribution,
+  fetchNCMeetings10Weeks,
+  fetchQuarterlyRegionComparison,
+  fetchTopOriginsByRegion,
+  fetchSalesCycleByRegion,
 } from "@/lib/api";
 
 export function useDashboardData(filters?: any) {
@@ -74,6 +78,26 @@ export function useDashboardData(filters?: any) {
     queryFn: () => fetchCompanySizeDistribution(apiFilters),
   });
 
+  const ncMeetings10Weeks = useQuery({
+    queryKey: ['nc-meetings-10weeks'],
+    queryFn: fetchNCMeetings10Weeks,
+  });
+
+  const quarterlyRegionComparison = useQuery({
+    queryKey: ['quarterly-region-comparison'],
+    queryFn: fetchQuarterlyRegionComparison,
+  });
+
+  const topOriginsByRegion = useQuery({
+    queryKey: ['top-origins-by-region'],
+    queryFn: fetchTopOriginsByRegion,
+  });
+
+  const salesCycleByRegion = useQuery({
+    queryKey: ['sales-cycle-by-region'],
+    queryFn: fetchSalesCycleByRegion,
+  });
+
   const isLoading = 
     metrics.isLoading ||
     revenueHistory.isLoading ||
@@ -84,7 +108,11 @@ export function useDashboardData(filters?: any) {
     rankingsByPerson.isLoading ||
     rankingsBySource.isLoading ||
     regionalData.isLoading ||
-    companySizeDistribution.isLoading;
+    companySizeDistribution.isLoading ||
+    ncMeetings10Weeks.isLoading ||
+    quarterlyRegionComparison.isLoading ||
+    topOriginsByRegion.isLoading ||
+    salesCycleByRegion.isLoading;
 
   const isError = 
     metrics.isError ||
@@ -96,7 +124,11 @@ export function useDashboardData(filters?: any) {
     rankingsByPerson.isError ||
     rankingsBySource.isError ||
     regionalData.isError ||
-    companySizeDistribution.isError;
+    companySizeDistribution.isError ||
+    ncMeetings10Weeks.isError ||
+    quarterlyRegionComparison.isError ||
+    topOriginsByRegion.isError ||
+    salesCycleByRegion.isError;
 
   // Transform metrics data to match the expected format
   // Support both old field names (revenue, logos, avgSalesCycle) and new cached format (totalRevenue, logosWon, salesCycle)
@@ -203,6 +235,10 @@ export function useDashboardData(filters?: any) {
     },
     regionalData: regionalData.data || [],
     companySizes: companySizeDistribution.data || [],
+    ncMeetings10Weeks: ncMeetings10Weeks.data || [],
+    quarterlyRegionComparison: quarterlyRegionComparison.data || null,
+    topOriginsByRegion: topOriginsByRegion.data || [],
+    salesCycleByRegion: salesCycleByRegion.data || [],
     isLoading,
     isError,
   };

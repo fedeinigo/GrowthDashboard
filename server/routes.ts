@@ -266,6 +266,50 @@ export async function registerRoutes(
     }
   });
 
+  // Get NC meetings last 10 weeks
+  app.get("/api/dashboard/nc-meetings-10weeks", async (req, res) => {
+    try {
+      const data = await pipedriveCache.getNCMeetingsLast10Weeks();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching NC meetings 10 weeks:", error);
+      res.status(500).json({ error: "Failed to fetch NC meetings" });
+    }
+  });
+
+  // Get quarterly region comparison
+  app.get("/api/dashboard/quarterly-region-comparison", async (req, res) => {
+    try {
+      const data = await pipedriveCache.getQuarterlyRegionComparison();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching quarterly region comparison:", error);
+      res.status(500).json({ error: "Failed to fetch quarterly comparison" });
+    }
+  });
+
+  // Get top origins by region
+  app.get("/api/dashboard/top-origins-by-region", async (req, res) => {
+    try {
+      const data = await pipedriveCache.getTopOriginsByRegion();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching top origins by region:", error);
+      res.status(500).json({ error: "Failed to fetch top origins" });
+    }
+  });
+
+  // Get sales cycle by region
+  app.get("/api/dashboard/sales-cycle-by-region", async (req, res) => {
+    try {
+      const data = await pipedriveCache.getSalesCycleByRegion();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching sales cycle by region:", error);
+      res.status(500).json({ error: "Failed to fetch sales cycle" });
+    }
+  });
+
   // Get regional data from cache
   app.get("/api/dashboard/regional-data", async (req, res) => {
     try {

@@ -232,3 +232,27 @@ export async function refreshCache() {
   if (!res.ok) throw new Error('Failed to refresh cache');
   return res.json();
 }
+
+export async function fetchNCMeetings10Weeks() {
+  const res = await fetch('/api/dashboard/nc-meetings-10weeks');
+  if (!res.ok) throw new Error('Failed to fetch NC meetings');
+  return res.json();
+}
+
+export async function fetchQuarterlyRegionComparison() {
+  const res = await fetch('/api/dashboard/quarterly-region-comparison');
+  if (!res.ok) throw new Error('Failed to fetch quarterly comparison');
+  return res.json();
+}
+
+export async function fetchTopOriginsByRegion() {
+  const res = await fetch('/api/dashboard/top-origins-by-region');
+  if (!res.ok) throw new Error('Failed to fetch top origins');
+  return res.json();
+}
+
+export async function fetchSalesCycleByRegion() {
+  const res = await fetch('/api/dashboard/sales-cycle-by-region');
+  if (!res.ok) throw new Error('Failed to fetch sales cycle');
+  return res.json();
+}
