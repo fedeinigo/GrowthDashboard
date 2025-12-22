@@ -4,34 +4,15 @@ import { storage } from "./storage";
 import type { DashboardFilters } from "./storage";
 import * as pipedrive from "./pipedrive";
 import * as pipedriveCache from "./pipedrive-cache";
-import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
-
-// Middleware to check if user has @wisecx.com domain
-const requireWisecxDomain: RequestHandler = (req, res, next) => {
-  const user = req.user as any;
-  const email = user?.claims?.email;
-  
-  if (!email) {
-    return res.status(403).json({ error: "Email not available" });
-  }
-  
-  if (!email.endsWith("@wisecx.com")) {
-    return res.status(403).json({ 
-      error: "Access denied. Only @wisecx.com users are allowed.",
-      email: email
-    });
-  }
-  
-  next();
-};
+import { setupGoogleAuth, registerGoogleAuthRoutes, isAuthenticated, requireWisecxDomain } from "./auth/googleAuth";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Setup authentication FIRST
-  await setupAuth(app);
-  registerAuthRoutes(app);
+  // Setup Google OAuth authentication FIRST
+  setupGoogleAuth(app);
+  registerGoogleAuthRoutes(app);
   
   // Dashboard API routes - using cached data (protected)
   
