@@ -71,6 +71,7 @@ export default function Dashboard() {
     quarterlyRegionComparison,
     topOriginsByRegion,
     salesCycleByRegion,
+    sourceDistribution,
     isLoading,
     isError
   } = useDashboardData(filters);
@@ -291,6 +292,13 @@ export default function Dashboard() {
                         title="Tamaño de Empresas"
                         description="Distribución por cantidad de empleados (Click para filtrar)"
                         onClick={(data) => handleChartClick(data, "companySize")}
+                    />
+
+                    {/* Source Distribution Chart */}
+                    <CompanySizeChart 
+                        data={sourceDistribution}
+                        title="Distribución por Source"
+                        description="Top 10 sources por cantidad de tarjetas"
                     />
                 </div>
 

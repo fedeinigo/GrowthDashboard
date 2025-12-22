@@ -173,6 +173,23 @@ export async function fetchCompanySizeDistribution(filters?: any) {
   return res.json();
 }
 
+export async function fetchSourceDistribution(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
+
+  const query = params.toString();
+  const url = `/api/dashboard/source-distribution${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch source distribution');
+  return res.json();
+}
+
 export async function fetchTeams() {
   const res = await fetch('/api/teams');
   if (!res.ok) throw new Error('Failed to fetch teams');

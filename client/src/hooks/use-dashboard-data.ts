@@ -10,6 +10,7 @@ import {
   fetchRankingsBySource,
   fetchRegionalData,
   fetchCompanySizeDistribution,
+  fetchSourceDistribution,
   fetchNCMeetings10Weeks,
   fetchQuarterlyRegionComparison,
   fetchTopOriginsByRegion,
@@ -78,6 +79,11 @@ export function useDashboardData(filters?: any) {
     queryFn: () => fetchCompanySizeDistribution(apiFilters),
   });
 
+  const sourceDistribution = useQuery({
+    queryKey: ['source-distribution', apiFilters],
+    queryFn: () => fetchSourceDistribution(apiFilters),
+  });
+
   const ncMeetings10Weeks = useQuery({
     queryKey: ['nc-meetings-10weeks'],
     queryFn: fetchNCMeetings10Weeks,
@@ -109,6 +115,7 @@ export function useDashboardData(filters?: any) {
     rankingsBySource.isLoading ||
     regionalData.isLoading ||
     companySizeDistribution.isLoading ||
+    sourceDistribution.isLoading ||
     ncMeetings10Weeks.isLoading ||
     quarterlyRegionComparison.isLoading ||
     topOriginsByRegion.isLoading ||
@@ -125,6 +132,7 @@ export function useDashboardData(filters?: any) {
     rankingsBySource.isError ||
     regionalData.isError ||
     companySizeDistribution.isError ||
+    sourceDistribution.isError ||
     ncMeetings10Weeks.isError ||
     quarterlyRegionComparison.isError ||
     topOriginsByRegion.isError ||
@@ -235,6 +243,7 @@ export function useDashboardData(filters?: any) {
     },
     regionalData: regionalData.data || [],
     companySizes: companySizeDistribution.data || [],
+    sourceDistribution: sourceDistribution.data || [],
     ncMeetings10Weeks: ncMeetings10Weeks.data || [],
     quarterlyRegionComparison: quarterlyRegionComparison.data || null,
     topOriginsByRegion: topOriginsByRegion.data || [],

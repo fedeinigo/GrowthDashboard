@@ -67,6 +67,7 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
     const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
     const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
     const EMPLOYEE_COUNT_FIELD_KEY = "f488b70aa96b8a83c49fa816f926c82f4a9a9ab4";
+    const SOURCE_FIELD_KEY = "552c1914dddd36582917f20f82b71c475bfbd132";
 
     const dedupeMap = new Map<number, any>();
     deals.forEach(deal => {
@@ -110,6 +111,7 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
         country: (deal as any)[COUNTRY_FIELD_KEY]?.toString() || null,
         origin: (deal as any)[ORIGEN_FIELD_KEY]?.toString() || null,
         employeeCount: (deal as any)[EMPLOYEE_COUNT_FIELD_KEY]?.toString() || null,
+        sourceField: (deal as any)[SOURCE_FIELD_KEY]?.toString() || null,
         salesCycleDays,
         cachedAt: new Date(),
       };
@@ -1136,6 +1138,70 @@ export async function getSalesCycleByRegion() {
     avgDays: data[region].count > 0 ? Math.round(data[region].totalDays / data[region].count) : 0,
     deals: data[region].count,
   }));
+}
+
+// Get source distribution from cached deals
+export async function getSourceDistribution(filters?: DashboardFilters) {
+  const cachedDeals = await db.select().from(pipedriveDeals);
+  
+  // Get people assignments for team filtering
+  const peopleList = await db.select().from(people);
+  const personToTeam: Record<number, number> = {};
+  peopleList.forEach(p => {
+    if (p.pipedriveUserId && p.teamId) {
+      personToTeam[p.pipedriveUserId] = p.teamId;
+    }
+  });
+  
+  // Get source field options from Pipedrive
+  const dealFields = await pipedrive.getDealFields();
+  const SOURCE_FIELD_KEY = "552c1914dddd36582917f20f82b71c475bfbd132";
+  const sourceField = dealFields.find((f: any) => f.key === SOURCE_FIELD_KEY);
+  const sourceLabels = new Map(sourceField?.options?.map((o: any) => [o.id.toString(), o.label]) || []);
+  
+  // Filter deals based on criteria
+  let filteredDeals = cachedDeals.filter(deal => {
+    if (filters?.startDate && deal.addTime) {
+      const addDate = new Date(deal.addTime);
+      if (addDate < new Date(filters.startDate)) return false;
+    }
+    if (filters?.endDate && deal.addTime) {
+      const addDate = new Date(deal.addTime);
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      if (addDate > endDate) return false;
+    }
+    if (filters?.dealType && deal.dealType !== filters.dealType) return false;
+    if (filters?.countries && filters.countries.length > 0) {
+      if (!deal.country || !filters.countries.includes(deal.country)) return false;
+    }
+    if (filters?.origins && filters.origins.length > 0) {
+      if (!deal.origin || !filters.origins.includes(deal.origin)) return false;
+    }
+    if (filters?.teamId && deal.userId) {
+      const dealTeamId = personToTeam[deal.userId];
+      if (dealTeamId !== filters.teamId) return false;
+    }
+    if (filters?.personId && deal.userId !== filters.personId) return false;
+    return true;
+  });
+  
+  // Count deals by source
+  const countBySource: Record<string, number> = {};
+  
+  filteredDeals.forEach(deal => {
+    const sourceId = deal.sourceField;
+    if (!sourceId || sourceId.trim() === "") return;
+    
+    const sourceName = sourceLabels.get(sourceId.trim()) || `Source ${sourceId}`;
+    countBySource[sourceName] = (countBySource[sourceName] || 0) + 1;
+  });
+  
+  // Sort by count descending and take top 10
+  return Object.entries(countBySource)
+    .map(([name, value]) => ({ date: name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10);
 }
 
 function aggregateProductStats(products: any[], deals: any[]) {

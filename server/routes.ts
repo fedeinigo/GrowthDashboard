@@ -366,6 +366,34 @@ export async function registerRoutes(
     }
   });
 
+  // Get source distribution from Pipedrive cache (by source field)
+  app.get("/api/dashboard/source-distribution", async (req, res) => {
+    try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
+      };
+      
+      const distribution = await pipedriveCache.getSourceDistribution(filters);
+      res.json(distribution);
+    } catch (error) {
+      console.error("Error fetching source distribution:", error);
+      res.status(500).json({ error: "Failed to fetch source distribution" });
+    }
+  });
+
   // Filter options routes
   app.get("/api/teams", async (req, res) => {
     try {
