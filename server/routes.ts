@@ -132,23 +132,31 @@ export async function registerRoutes(
     }
   });
 
-  // Get closure rate history
+  // Get closure rate (single value for last 6 months)
   app.get("/api/dashboard/closure-rate-history", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
       };
       
-      const history = await storage.getClosureRateHistory(filters);
-      res.json(history);
+      const result = await pipedriveCache.getCachedClosureRate(filters);
+      res.json(result);
     } catch (error) {
-      console.error("Error fetching closure rate history:", error);
-      res.status(500).json({ error: "Failed to fetch closure rate history" });
+      console.error("Error fetching closure rate:", error);
+      res.status(500).json({ error: "Failed to fetch closure rate" });
     }
   });
 

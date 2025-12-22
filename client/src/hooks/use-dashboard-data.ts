@@ -180,11 +180,21 @@ export function useDashboardData(filters?: any) {
     valueFormatted: formatRankingValue(item.value),
   }));
 
+  const transformedRevenueHistory = (revenueHistory.data || []).map((item: any) => ({
+    date: item.week || item.month,
+    value: item.revenue,
+  }));
+
+  const transformedMeetingsHistory = (meetingsHistory.data || []).map((item: any) => ({
+    date: item.week || item.month,
+    value: item.cardsCreated || item.meetings,
+  }));
+
   return {
     metrics: transformedMetrics,
-    revenueHistory: revenueHistory.data || [],
-    meetingsHistory: meetingsHistory.data || [],
-    closureRateHistory: closureRateHistory.data || [],
+    revenueHistory: transformedRevenueHistory,
+    meetingsHistory: transformedMeetingsHistory,
+    closureRateHistory: closureRateHistory.data || {},
     products: productStats.data || [],
     rankings: {
       byTeam: transformedRankingsByTeam,

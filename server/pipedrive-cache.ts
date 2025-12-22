@@ -365,6 +365,14 @@ export async function getCachedDashboardMetrics(filters: DashboardFilters) {
   };
 }
 
+function getWeekKey(date: Date): string {
+  const year = date.getFullYear();
+  const startOfYear = new Date(year, 0, 1);
+  const days = Math.floor((date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+  const weekNum = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+  return `${year}-W${String(weekNum).padStart(2, '0')}`;
+}
+
 export async function getCachedRevenueHistory(filters: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals).where(eq(pipedriveDeals.status, "won"));
   
@@ -390,17 +398,17 @@ export async function getCachedRevenueHistory(filters: DashboardFilters) {
     return true;
   });
 
-  const monthlyData: Record<string, number> = {};
+  const weeklyData: Record<string, number> = {};
   
   filteredDeals.forEach(deal => {
     const wonTime = new Date(deal.wonTime!);
-    const monthKey = `${wonTime.getFullYear()}-${String(wonTime.getMonth() + 1).padStart(2, '0')}`;
-    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + parseFloat(deal.value || "0");
+    const weekKey = getWeekKey(wonTime);
+    weeklyData[weekKey] = (weeklyData[weekKey] || 0) + parseFloat(deal.value || "0");
   });
 
-  return Object.entries(monthlyData)
-    .map(([month, revenue]) => ({ month, revenue: Math.round(revenue) }))
-    .sort((a, b) => a.month.localeCompare(b.month));
+  return Object.entries(weeklyData)
+    .map(([week, revenue]) => ({ week, revenue: Math.round(revenue) }))
+    .sort((a, b) => a.week.localeCompare(b.week));
 }
 
 export async function getCachedMeetingsHistory(filters: DashboardFilters) {
@@ -428,17 +436,56 @@ export async function getCachedMeetingsHistory(filters: DashboardFilters) {
     return true;
   });
 
-  const monthlyData: Record<string, number> = {};
+  const weeklyData: Record<string, number> = {};
   
   filteredDeals.forEach(deal => {
     const addTime = new Date(deal.addTime!);
-    const monthKey = `${addTime.getFullYear()}-${String(addTime.getMonth() + 1).padStart(2, '0')}`;
-    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+    const weekKey = getWeekKey(addTime);
+    weeklyData[weekKey] = (weeklyData[weekKey] || 0) + 1;
   });
 
-  return Object.entries(monthlyData)
-    .map(([month, meetings]) => ({ month, meetings }))
-    .sort((a, b) => a.month.localeCompare(b.month));
+  return Object.entries(weeklyData)
+    .map(([week, cardsCreated]) => ({ week, cardsCreated }))
+    .sort((a, b) => a.week.localeCompare(b.week));
+}
+
+export async function getCachedClosureRate(filters: DashboardFilters) {
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  
+  const allDeals = await db.select().from(pipedriveDeals)
+    .where(eq(pipedriveDeals.dealType, NEW_CUSTOMER_ID));
+
+  let allowedUserIds: number[] | null = null;
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
+  const filteredDeals = allDeals.filter(deal => {
+    if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
+    if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
+    
+    const addTime = deal.addTime ? new Date(deal.addTime) : null;
+    if (!addTime) return false;
+    if (addTime < sixMonthsAgo) return false;
+    
+    return deal.status === "won" || deal.status === "lost";
+  });
+
+  const wonDeals = filteredDeals.filter(d => d.status === "won");
+  const totalClosed = filteredDeals.length;
+  
+  const closureRate = totalClosed > 0 ? (wonDeals.length / totalClosed) * 100 : 0;
+  
+  return {
+    closureRate: Math.round(closureRate * 10) / 10,
+    won: wonDeals.length,
+    lost: totalClosed - wonDeals.length,
+    total: totalClosed,
+  };
 }
 
 export async function getCachedRegionalData(filters: DashboardFilters) {

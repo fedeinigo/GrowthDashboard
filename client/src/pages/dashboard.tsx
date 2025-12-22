@@ -247,8 +247,8 @@ export default function Dashboard() {
                     {/* Main Revenue Chart */}
                     <RevenueChart 
                         data={revenueHistory} 
-                        title="Evolución de Ingresos (ARR)" 
-                        description="Ingresos acumulados últimos 30 días"
+                        title="Evolución de Ingresos" 
+                        description="Ingresos semanales (USD)"
                         dataKey="value"
                         onClick={(data) => handleChartClick(data, "revenue")}
                     />
@@ -256,18 +256,29 @@ export default function Dashboard() {
                     {/* Secondary Charts Row */}
                     <MeetingsChart 
                         data={meetingsHistory}
-                        title="Actividad de Reuniones"
-                        description="Reuniones agendadas vs canceladas"
+                        title="Tarjetas NC Creadas"
+                        description="Cantidad de tarjetas New Customer creadas por semana"
                         dataKey="value"
                         onClick={(data) => handleChartClick(data, "meetings")}
                     />
-                    <ClosureChart 
-                        data={closureRateHistory}
-                        title="Tendencia de Cierre"
-                        description="Variación semanal de tasa de conversión"
-                        dataKey="value"
-                        onClick={(data) => handleChartClick(data, "closure")}
-                    />
+                    <Card className="col-span-4 lg:col-span-2 border-none shadow-sm hover:shadow-md transition-shadow">
+                        <CardHeader>
+                            <CardTitle>Tasa de Cierre</CardTitle>
+                            <CardDescription>Tarjetas New Customer (últimos 6 meses): Ganadas / (Ganadas + Perdidas)</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col items-center justify-center h-[200px]">
+                            <div className="text-6xl font-bold text-primary">
+                                {typeof closureRateHistory === 'object' && 'closureRate' in closureRateHistory 
+                                    ? `${closureRateHistory.closureRate}%` 
+                                    : '0%'}
+                            </div>
+                            <div className="text-sm text-muted-foreground mt-4">
+                                {typeof closureRateHistory === 'object' && 'won' in closureRateHistory
+                                    ? `${closureRateHistory.won} ganadas / ${closureRateHistory.total} cerradas`
+                                    : ''}
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Company Size Distribution - Interactive Filter */}
                     <CompanySizeChart 
