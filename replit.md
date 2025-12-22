@@ -7,6 +7,42 @@ A commercial metrics dashboard for the WiseCX Growth Team. This application prov
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+UI preferences: Prioritize aesthetics, usability, and spacing. Elements should not be too close together. Dynamic and creative visual design.
+
+## Recent Changes (December 2025)
+
+### New Features Implemented
+- **Dark/Light Theme Toggle**: Elegant theme switcher with smooth animations using next-themes
+- **Responsive Design**: Auto-collapsing sidebar on mobile/tablet (<1024px), optimized grids for all screen sizes
+- **Clickable Rankings**: Click on team/person/source rankings to filter the entire dashboard
+- **KPI Card Enhancements**:
+  - Status colors (green/yellow/red) based on performance thresholds
+  - Period comparison display (+X% vs previous period)
+  - Tooltips explaining each metric
+  - Clickable cards to open deals modal
+- **Conversion Funnel Widget**: Visual funnel showing Meeting → Propuesta → Cierre stages
+- **Loss Reasons Widget**: Bar chart showing most common reasons for lost deals
+- **Empty States**: Friendly messages when no data matches current filters
+- **Cache Status Indicator**: Visible last-sync time with manual refresh capability
+- **Export Features**: Dropdown with CSV download and PDF (print dialog) options
+- **Deals Modal**: Click on KPI cards to see individual deals table with search/pagination
+- **Drag-and-Drop Widgets**: Reorder dashboard sections by dragging, persists to localStorage
+
+### New API Endpoints
+- `GET /api/dashboard/conversion-funnel` - Funnel stage data
+- `GET /api/dashboard/loss-reasons` - Lost deal reasons
+- `GET /api/dashboard/deals` - Individual deals for modal
+
+### New Components
+- `client/src/components/theme-toggle.tsx` - Theme switcher
+- `client/src/components/conversion-funnel.tsx` - Visual funnel
+- `client/src/components/loss-reasons.tsx` - Loss reasons chart
+- `client/src/components/empty-state.tsx` - No-data states
+- `client/src/components/cache-status.tsx` - Cache indicator
+- `client/src/components/deals-modal.tsx` - Deals detail modal
+- `client/src/components/draggable-widget.tsx` - Drag-and-drop wrapper
+- `client/src/hooks/use-widget-order.ts` - Widget order persistence
+- `client/src/lib/export-utils.ts` - Export utilities
 
 ## System Architecture
 
