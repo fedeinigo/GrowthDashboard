@@ -293,6 +293,11 @@ export async function getActivityTypes(): Promise<any[]> {
   return response.data || [];
 }
 
+export async function getDealFields(): Promise<any[]> {
+  const response = await pipedriveRequest("/dealFields");
+  return response.data || [];
+}
+
 // Helper to get dashboard metrics from Pipedrive
 export async function getPipedriveDashboardMetrics(filters?: { 
   startDate?: string; 

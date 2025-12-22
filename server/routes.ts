@@ -172,19 +172,23 @@ export async function registerRoutes(
     }
   });
 
-  // Get rankings by team
+  // Get rankings by team from cache
   app.get("/api/dashboard/rankings/teams", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      
+      const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
       };
       
-      const rankings = await storage.getRankingsByTeam(filters);
+      const rankings = await pipedriveCache.getCachedRankingsByTeam(filters);
       res.json(rankings);
     } catch (error) {
       console.error("Error fetching team rankings:", error);
@@ -220,19 +224,27 @@ export async function registerRoutes(
     }
   });
 
-  // Get rankings by source
+  // Get rankings by source from cache
   app.get("/api/dashboard/rankings/sources", async (req, res) => {
     try {
-      const filters: DashboardFilters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        sourceId: req.query.sourceId ? parseInt(req.query.sourceId as string) : undefined,
-        regionId: req.query.regionId ? parseInt(req.query.regionId as string) : undefined,
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
       };
       
-      const rankings = await storage.getRankingsBySource(filters);
+      const rankings = await pipedriveCache.getCachedRankingsBySource(filters);
       res.json(rankings);
     } catch (error) {
       console.error("Error fetching source rankings:", error);

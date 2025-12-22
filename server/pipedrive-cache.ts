@@ -561,3 +561,105 @@ export async function getCachedRankingsByUser(filters: DashboardFilters) {
     }))
     .sort((a, b) => b.revenue - a.revenue);
 }
+
+import { teams } from "@shared/schema";
+
+export async function getCachedRankingsByTeam(filters: DashboardFilters) {
+  const allDeals = await db.select().from(pipedriveDeals).where(eq(pipedriveDeals.status, "won"));
+  
+  const startDate = filters.startDate ? new Date(filters.startDate) : null;
+  const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
+
+  const allTeams = await db.select().from(teams);
+  const allPeople = await db.select().from(people);
+  
+  const userIdToTeamId = new Map<number, number>();
+  allPeople.forEach(p => {
+    if (p.pipedriveUserId && p.teamId) {
+      userIdToTeamId.set(p.pipedriveUserId, p.teamId);
+    }
+  });
+
+  const teamRevenue: Record<number, number> = {};
+  allTeams.forEach(t => {
+    teamRevenue[t.id] = 0;
+  });
+
+  allDeals.forEach(deal => {
+    if (filters.dealType && deal.dealType !== filters.dealType) return;
+    if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return;
+    if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return;
+    
+    const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+    if (!wonTime) return;
+    if (startDate && wonTime < startDate) return;
+    if (endDate && wonTime > endDate) return;
+    
+    const userId = deal.userId;
+    if (!userId) return;
+    
+    const teamId = userIdToTeamId.get(userId);
+    if (!teamId) return;
+    
+    teamRevenue[teamId] += parseFloat(deal.value || "0");
+  });
+
+  const teamMap = new Map(allTeams.map(t => [t.id, t.displayName]));
+
+  return Object.entries(teamRevenue)
+    .map(([id, value]) => ({
+      name: teamMap.get(parseInt(id)) || `Equipo ${id}`,
+      value: Math.round(value),
+    }))
+    .filter(t => t.value > 0)
+    .sort((a, b) => b.value - a.value);
+}
+
+export async function getCachedRankingsBySource(filters: DashboardFilters) {
+  const allDeals = await db.select().from(pipedriveDeals).where(eq(pipedriveDeals.status, "won"));
+  
+  const startDate = filters.startDate ? new Date(filters.startDate) : null;
+  const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
+
+  let allowedUserIds: number[] | null = null;
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
+  const sourceRevenue: Record<string, number> = {};
+
+  allDeals.forEach(deal => {
+    if (filters.dealType && deal.dealType !== filters.dealType) return;
+    if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return;
+    if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
+    
+    const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+    if (!wonTime) return;
+    if (startDate && wonTime < startDate) return;
+    if (endDate && wonTime > endDate) return;
+    
+    const origin = deal.origin;
+    if (!origin) return;
+    
+    if (!sourceRevenue[origin]) {
+      sourceRevenue[origin] = 0;
+    }
+    sourceRevenue[origin] += parseFloat(deal.value || "0");
+  });
+
+  const dealFields = await pipedrive.getDealFields();
+  const originField = dealFields.find((f: any) => f.key === "a9241093db8147d20f4c1c7f6c1998477f819ef4");
+  const originOptions = originField?.options || [];
+  const originLabels = new Map(originOptions.map((o: any) => [o.id.toString(), o.label]));
+
+  return Object.entries(sourceRevenue)
+    .map(([id, value]) => ({
+      name: originLabels.get(id) || `Origen ${id}`,
+      value: Math.round(value),
+    }))
+    .filter(s => s.value > 0)
+    .sort((a, b) => b.value - a.value);
+}
