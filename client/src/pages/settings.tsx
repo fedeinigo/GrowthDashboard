@@ -3,8 +3,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Users, Building2, Save, UserPlus, X } from "lucide-react";
+import { ArrowLeft, Users, Building2, Save, UserPlus, X, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Team {
@@ -57,12 +59,25 @@ async function addPersonToTeam(pipedriveUserId: number, displayName: string, tea
   if (!res.ok) throw new Error("Failed to add person to team");
 }
 
+async function createTeam(name: string, displayName: string): Promise<Team> {
+  const res = await fetch("/api/teams", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, displayName }),
+  });
+  if (!res.ok) throw new Error("Failed to create team");
+  return res.json();
+}
+
 export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
   const [addingPerson, setAddingPerson] = useState<number | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<string>("");
+  const [showNewTeamForm, setShowNewTeamForm] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamDisplayName, setNewTeamDisplayName] = useState("");
 
   const teamsQuery = useQuery({ queryKey: ["teams"], queryFn: fetchTeams });
   const pipedriveUsersQuery = useQuery({ queryKey: ["people"], queryFn: fetchPeople });
@@ -105,6 +120,21 @@ export default function Settings() {
     },
   });
 
+  const createTeamMutation = useMutation({
+    mutationFn: ({ name, displayName }: { name: string; displayName: string }) =>
+      createTeam(name, displayName),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      setShowNewTeamForm(false);
+      setNewTeamName("");
+      setNewTeamDisplayName("");
+      toast({ title: "Equipo creado", description: "El nuevo equipo fue creado correctamente." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "No se pudo crear el equipo.", variant: "destructive" });
+    },
+  });
+
   const teams = teamsQuery.data || [];
   const pipedriveUsers = pipedriveUsersQuery.data || [];
   const peopleWithTeams = peopleWithTeamsQuery.data || [];
@@ -132,6 +162,14 @@ export default function Settings() {
         teamId 
       });
     }
+  };
+
+  const handleCreateTeam = () => {
+    if (!newTeamName.trim() || !newTeamDisplayName.trim()) return;
+    createTeamMutation.mutate({
+      name: newTeamName.toLowerCase().replace(/\s+/g, '_'),
+      displayName: newTeamDisplayName.trim(),
+    });
   };
 
   return (
@@ -256,6 +294,78 @@ export default function Settings() {
               </Card>
             );
           })}
+
+          {/* Card para crear nuevo equipo */}
+          <Card className="border-dashed border-2" data-testid="card-new-team">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-gray-600">
+                <Plus className="h-4 w-4" />
+                Nuevo Equipo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {showNewTeamForm ? (
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="teamDisplayName">Nombre del equipo</Label>
+                    <Input
+                      id="teamDisplayName"
+                      placeholder="Ej: Águilas"
+                      value={newTeamDisplayName}
+                      onChange={(e) => {
+                        setNewTeamDisplayName(e.target.value);
+                        setNewTeamName(e.target.value.toLowerCase().replace(/\s+/g, '_'));
+                      }}
+                      data-testid="input-team-display-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="teamName" className="text-xs text-gray-500">ID interno (generado automáticamente)</Label>
+                    <Input
+                      id="teamName"
+                      value={newTeamName}
+                      onChange={(e) => setNewTeamName(e.target.value)}
+                      className="text-sm"
+                      data-testid="input-team-name"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      size="sm"
+                      onClick={handleCreateTeam}
+                      disabled={!newTeamName.trim() || !newTeamDisplayName.trim() || createTeamMutation.isPending}
+                      data-testid="button-confirm-create-team"
+                    >
+                      <Save className="h-3 w-3 mr-1" />
+                      Crear
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setShowNewTeamForm(false);
+                        setNewTeamName("");
+                        setNewTeamDisplayName("");
+                      }}
+                      data-testid="button-cancel-create-team"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setShowNewTeamForm(true)}
+                  data-testid="button-show-new-team-form"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar nuevo equipo
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {teamsQuery.isLoading && (

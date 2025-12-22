@@ -416,6 +416,20 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/teams", async (req, res) => {
+    try {
+      const { name, displayName } = req.body;
+      if (!name || !displayName) {
+        return res.status(400).json({ error: "Name and displayName are required" });
+      }
+      const team = await storage.createTeam({ name, displayName });
+      res.json(team);
+    } catch (error) {
+      console.error("Error creating team:", error);
+      res.status(500).json({ error: "Failed to create team" });
+    }
+  });
+
   app.get("/api/people", async (req, res) => {
     try {
       const users = await pipedrive.getUsers();
