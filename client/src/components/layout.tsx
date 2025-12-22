@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import wiseCxLogo from "@assets/logo_blanco_1766330983084.png";
@@ -54,7 +54,7 @@ function SidebarContent({ onLogout, collapsed = false }: { onLogout?: () => void
           const linkContent = (
             <Link key={item.href} href={item.href} className={cn(
               "flex items-center rounded-md text-sm font-medium transition-all duration-200 group relative",
-              collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
+              collapsed ? "justify-center p-2.5 min-h-[44px]" : "gap-3 px-3 py-2.5 min-h-[44px]",
               isActive 
                 ? "bg-sidebar-accent text-white shadow-sm" 
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-white"
@@ -123,6 +123,19 @@ export function Layout({ children }: LayoutProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, logout } = useAuth();
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsCollapsed(true);
+      }
+    };
+    
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const displayName = user?.firstName && user?.lastName 
     ? `${user.firstName} ${user.lastName}` 
     : user?.firstName 
@@ -160,11 +173,11 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Mobile Sidebar */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="left" className="p-0 bg-sidebar border-sidebar-border w-64">
+        <SheetContent side="left" className="p-0 bg-sidebar border-sidebar-border w-[280px] max-w-[85vw]">
            <VisuallyHidden.Root>
              <SheetTitle>Navigation Menu</SheetTitle>
            </VisuallyHidden.Root>
-           <SidebarContent onLogout={logout} />
+           <SidebarContent onLogout={() => { logout(); setIsOpen(false); }} />
         </SheetContent>
       </Sheet>
 
@@ -178,8 +191,9 @@ export function Layout({ children }: LayoutProps) {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="md:hidden"
+              className="md:hidden min-h-[44px] min-w-[44px]"
               onClick={() => setIsOpen(true)}
+              data-testid="button-mobile-menu"
             >
               <Menu className="w-5 h-5" />
             </Button>
@@ -189,13 +203,13 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative min-h-[44px] min-w-[44px]">
               <Bell className="w-5 h-5" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full border-2 border-background"></span>
             </Button>
-            <div className="h-8 w-[1px] bg-border mx-1" />
+            <div className="h-8 w-[1px] bg-border mx-1 hidden sm:block" />
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-foreground" data-testid="text-user-name">{displayName}</p>
@@ -209,8 +223,8 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </header>
 
-        <div className="flex-1 p-4 md:p-8 overflow-y-auto">
-          <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-y-auto">
+          <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {children}
           </div>
         </div>
