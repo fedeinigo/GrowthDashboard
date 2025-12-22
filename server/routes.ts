@@ -372,7 +372,15 @@ export async function registerRoutes(
 
   app.get("/api/sources", async (req, res) => {
     try {
-      const sources = await storage.getAllSources();
+      const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
+      const dealFields = await pipedrive.getDealFields();
+      const originField = dealFields.find((f: any) => f.key === ORIGEN_FIELD_KEY);
+      const originOptions = originField?.options || [];
+      const sources = originOptions.map((o: any) => ({
+        id: o.id,
+        name: o.label,
+        displayName: o.label
+      }));
       res.json(sources);
     } catch (error) {
       console.error("Error fetching sources:", error);
