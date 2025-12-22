@@ -71,13 +71,16 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
   const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
 
-  // Send initial quarter filter on mount
+  // Send initial quarter filter on mount - only if no date filters exist
   useEffect(() => {
-    const qDates = getQuarterDates(selectedQuarter, parseInt(selectedYear));
-    onFilterChange({ 
-      startDate: format(qDates.startDate, 'yyyy-MM-dd'),
-      endDate: format(qDates.endDate, 'yyyy-MM-dd'),
-    });
+    if (!filters?.startDate && !filters?.endDate) {
+      const qDates = getQuarterDates(selectedQuarter, parseInt(selectedYear));
+      onFilterChange({ 
+        startDate: format(qDates.startDate, 'yyyy-MM-dd'),
+        endDate: format(qDates.endDate, 'yyyy-MM-dd'),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch filter options from API
