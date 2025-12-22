@@ -399,12 +399,17 @@ export async function registerRoutes(
     try {
       const countriesParam = req.query.countries as string | undefined;
       const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
       
       const filters = {
         startDate: req.query.startDate as string | undefined,
         endDate: req.query.endDate as string | undefined,
         personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
+        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
         countries,
+        origins,
+        dealType: req.query.dealType as string | undefined,
       };
       const data = await pipedriveCache.getDirectMeetingsData(filters);
       res.json(data);

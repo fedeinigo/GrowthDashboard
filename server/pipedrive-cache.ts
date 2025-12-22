@@ -1244,7 +1244,10 @@ interface DirectMeetingsFilters {
   startDate?: string;
   endDate?: string;
   personId?: number;
+  teamId?: number;
   countries?: string[];
+  origins?: string[];
+  dealType?: string;
 }
 
 export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
@@ -1264,6 +1267,22 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     startDate.setDate(startDate.getDate() - 84); // Default: 12 weeks
   }
   
+  // Get team members for team filtering
+  const users = await pipedrive.getUsers();
+  const userNames = new Map(users.map(u => [u.id, u.name]));
+  
+  // Build team member map if teamId filter is specified
+  let teamMemberIds: Set<number> | undefined;
+  if (filters?.teamId) {
+    const teams = await db.select().from(teamsTable);
+    const teamMembers = await db.select().from(teamMembersTable);
+    const team = teams.find(t => t.id === filters.teamId);
+    if (team) {
+      const memberRelations = teamMembers.filter(tm => tm.teamId === team.id);
+      teamMemberIds = new Set(memberRelations.map(tm => tm.pipedriveUserId));
+    }
+  }
+
   // Filter to pipeline 1 (Deals) only
   const pipeline1Deals = cachedDeals.filter(deal => {
     if (deal.pipelineId !== 1) return false;
@@ -1274,9 +1293,22 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     // Filter by person if specified
     if (filters?.personId && deal.userId !== filters.personId) return false;
     
+    // Filter by team if specified
+    if (teamMemberIds && deal.userId && !teamMemberIds.has(deal.userId)) return false;
+    
     // Filter by countries if specified
     if (filters?.countries && filters.countries.length > 0) {
       if (!deal.country || !filters.countries.includes(deal.country)) return false;
+    }
+    
+    // Filter by origins if specified
+    if (filters?.origins && filters.origins.length > 0) {
+      if (!deal.origin || !filters.origins.includes(deal.origin)) return false;
+    }
+    
+    // Filter by deal type if specified
+    if (filters?.dealType && filters.dealType !== 'all') {
+      if (!deal.dealType || deal.dealType !== filters.dealType) return false;
     }
     
     return true;
@@ -1292,10 +1324,6 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
   const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
   const countryField = dealFields.find((f: any) => f.key === COUNTRY_FIELD_KEY);
   const countryLabels = new Map(countryField?.options?.map((o: any) => [o.id.toString(), o.label]) || []);
-  
-  // Get user info for person names
-  const users = await pipedrive.getUsers();
-  const userNames = new Map(users.map(u => [u.id, u.name]));
   
   // Helper function to map country to region
   const getCellForCountry = (countryName: string): string => {
