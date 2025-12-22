@@ -23,6 +23,7 @@ interface KPICardProps {
   statusThresholds?: StatusThresholds;
   lowerIsBetter?: boolean;
   tooltip?: string;
+  onClick?: () => void;
 }
 
 function getStatusColor(
@@ -83,7 +84,8 @@ export function KPICard({
   comparisonLabel,
   statusThresholds,
   lowerIsBetter = false,
-  tooltip
+  tooltip,
+  onClick
 }: KPICardProps) {
   const isUp = change >= 0;
   const trendColor = isUp ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50";
@@ -100,11 +102,16 @@ export function KPICard({
   const statusStyles = statusColor ? statusColorMap[statusColor] : null;
 
   return (
-    <Card className={cn(
-      "overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 group",
-      statusStyles && `border-l-4 ${statusStyles.border}`,
-      className
-    )}>
+    <Card 
+      className={cn(
+        "overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 group",
+        statusStyles && `border-l-4 ${statusStyles.border}`,
+        onClick && "cursor-pointer hover:scale-[1.02] active:scale-[0.98]",
+        className
+      )}
+      onClick={onClick}
+      data-testid={onClick ? "kpi-card-clickable" : "kpi-card"}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-2">
           <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">

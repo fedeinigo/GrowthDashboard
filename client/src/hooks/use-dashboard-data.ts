@@ -220,7 +220,7 @@ export function useDashboardData(filters?: any) {
 
   const formatRankingValue = (value: number) => `$${(value || 0).toLocaleString()}`;
 
-  const transformedRankingsByTeam = (rankingsByTeam.data || []).map(item => ({
+  const transformedRankingsByTeam = (rankingsByTeam.data || []).map((item: any) => ({
     ...item,
     valueFormatted: formatRankingValue(item.value),
   }));
@@ -231,7 +231,7 @@ export function useDashboardData(filters?: any) {
     valueFormatted: formatRankingValue(item.revenue || item.value || 0),
   }));
 
-  const transformedRankingsBySource = (rankingsBySource.data || []).map(item => ({
+  const transformedRankingsBySource = (rankingsBySource.data || []).map((item: any) => ({
     ...item,
     valueFormatted: formatRankingValue(item.value),
   }));

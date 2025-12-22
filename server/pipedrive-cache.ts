@@ -1603,3 +1603,140 @@ export async function getCachedLossReasons(filters: DashboardFilters): Promise<{
 
   return { reasons };
 }
+
+export interface DealsModalFilters {
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+  teamId?: number;
+  personId?: number;
+  countries?: string[];
+  origins?: string[];
+  dealType?: string;
+  metricType?: string;
+}
+
+export interface DealForModal {
+  id: number;
+  title: string;
+  value: number;
+  currency: string;
+  status: string;
+  personName: string;
+  teamName: string;
+  createdDate: string;
+  wonDate: string | null;
+  lostDate: string | null;
+}
+
+export async function getCachedDealsForModal(filters: DealsModalFilters): Promise<DealForModal[]> {
+  const allDeals = await db.select().from(pipedriveDeals);
+  const users = await pipedrive.getUsers();
+  const userMap = new Map(users.map(u => [u.id, u.name]));
+  
+  const teamsList = await db.select().from(teams);
+  const peopleList = await db.select().from(people);
+  
+  const personToTeam = new Map<number, string>();
+  peopleList.forEach(p => {
+    if (p.pipedriveUserId && p.teamId) {
+      const team = teamsList.find(t => t.id === p.teamId);
+      if (team) {
+        personToTeam.set(p.pipedriveUserId, team.displayName);
+      }
+    }
+  });
+
+  const startDate = filters.startDate ? new Date(filters.startDate) : null;
+  const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
+
+  let allowedUserIds: number[] | null = null;
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
+  const filteredDeals = allDeals.filter(deal => {
+    if (filters.status) {
+      if (filters.status === "closed") {
+        if (deal.status !== "won" && deal.status !== "lost") return false;
+      } else if (deal.status !== filters.status) {
+        return false;
+      }
+    }
+    
+    if (filters.dealType && deal.dealType !== filters.dealType) return false;
+    if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
+    if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
+    
+    if (filters.metricType === "revenue" || filters.metricType === "logos" || filters.metricType === "avgTicket") {
+      if (deal.status !== "won") return false;
+      const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+      if (!wonTime) return false;
+      if (startDate && wonTime < startDate) return false;
+      if (endDate && wonTime > endDate) return false;
+    } else if (filters.metricType === "closureRate") {
+      if (deal.status !== "won" && deal.status !== "lost") return false;
+      if (deal.dealType !== NEW_CUSTOMER_ID) return false;
+      const closeTime = deal.wonTime || deal.lostTime;
+      if (!closeTime) return false;
+      const closeDate = new Date(closeTime);
+      if (startDate && closeDate < startDate) return false;
+      if (endDate && closeDate > endDate) return false;
+    } else if (filters.metricType === "meetings") {
+      if (deal.dealType !== NEW_CUSTOMER_ID) return false;
+      const addTime = deal.addTime ? new Date(deal.addTime) : null;
+      if (!addTime) return false;
+      if (startDate && addTime < startDate) return false;
+      if (endDate && addTime > endDate) return false;
+    } else if (filters.metricType === "avgSalesCycle") {
+      if (deal.status !== "won") return false;
+      if (deal.dealType !== NEW_CUSTOMER_ID) return false;
+      if (!deal.salesCycleDays || deal.salesCycleDays <= 0) return false;
+      const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+      if (!wonTime) return false;
+      if (startDate && wonTime < startDate) return false;
+      if (endDate && wonTime > endDate) return false;
+    } else {
+      const addTime = deal.addTime ? new Date(deal.addTime) : null;
+      if (startDate || endDate) {
+        if (deal.status === "won" && deal.wonTime) {
+          const wonTime = new Date(deal.wonTime);
+          if (startDate && wonTime < startDate) return false;
+          if (endDate && wonTime > endDate) return false;
+        } else if (addTime) {
+          if (startDate && addTime < startDate) return false;
+          if (endDate && addTime > endDate) return false;
+        }
+      }
+    }
+    
+    return true;
+  });
+
+  const sortedDeals = filteredDeals.sort((a, b) => {
+    const dateA = a.wonTime || a.addTime;
+    const dateB = b.wonTime || b.addTime;
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return new Date(dateB).getTime() - new Date(dateA).getTime();
+  });
+
+  const limitedDeals = sortedDeals.slice(0, 100);
+
+  return limitedDeals.map(deal => ({
+    id: deal.id,
+    title: deal.title || "Sin título",
+    value: parseFloat(deal.value || "0"),
+    currency: deal.currency || "USD",
+    status: deal.status || "open",
+    personName: deal.userId ? (userMap.get(deal.userId) || "Desconocido") : "Sin asignar",
+    teamName: deal.userId ? (personToTeam.get(deal.userId) || "Sin equipo") : "Sin equipo",
+    createdDate: deal.addTime ? new Date(deal.addTime).toISOString() : "",
+    wonDate: deal.wonTime ? new Date(deal.wonTime).toISOString() : null,
+    lostDate: deal.lostTime ? new Date(deal.lostTime).toISOString() : null,
+  }));
+}

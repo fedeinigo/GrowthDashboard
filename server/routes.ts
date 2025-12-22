@@ -584,6 +584,36 @@ export async function registerRoutes(
     }
   });
 
+  // Get deals for modal
+  app.get("/api/dashboard/deals", isAuthenticated, requireWisecxDomain, async (req, res) => {
+    try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        status: req.query.status as string | undefined,
+        dealType: req.query.dealType as string | undefined,
+        metricType: req.query.metricType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
+      };
+      
+      const deals = await pipedriveCache.getCachedDealsForModal(filters);
+      res.json(deals);
+    } catch (error) {
+      console.error("Error fetching deals for modal:", error);
+      res.status(500).json({ error: "Failed to fetch deals" });
+    }
+  });
+
   // Cache status endpoint
   app.get("/api/cache/status", async (req, res) => {
     try {
