@@ -61,11 +61,18 @@ export function setupGoogleAuth(app: Express): void {
   }
 
   // Determine callback URL based on environment
-  const baseUrl = process.env.REPLIT_DEV_DOMAIN
-    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-    : process.env.REPLIT_DEPLOYMENT_URL
-      ? `https://${process.env.REPLIT_DEPLOYMENT_URL}`
-      : "http://localhost:5000";
+  // In production (deployed), use REPLIT_DEPLOYMENT_URL
+  // In development, use REPLIT_DEV_DOMAIN
+  let baseUrl: string;
+  if (process.env.REPLIT_DEPLOYMENT_URL) {
+    // Production deployment - always use deployment URL
+    baseUrl = `https://${process.env.REPLIT_DEPLOYMENT_URL}`;
+  } else if (process.env.REPLIT_DEV_DOMAIN) {
+    // Development environment
+    baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  } else {
+    baseUrl = "http://localhost:5000";
+  }
 
   const callbackURL = `${baseUrl}/auth/google/callback`;
   console.log(`[Auth] Google OAuth callback URL: ${callbackURL}`);
