@@ -544,16 +544,14 @@ export async function getCachedRegionalData(filters: DashboardFilters) {
     }
   });
 
-  const COUNTRY_LABELS: Record<string, string> = {
-    "59": "Argentina", "60": "Bolivia", "64": "Chile", "65": "Colombia", 
-    "69": "Ecuador", "75": "Guatemala", "84": "Mexico", "87": "Nicaragua",
-    "88": "Panama", "89": "Paraguay", "90": "Peru", "101": "Spain",
-    "105": "Uruguay", "106": "Venezuela", "73": "El Salvador",
-    "79": "Honduras", "66": "Costa Rica", "95": "Dominican Republic"
-  };
+  const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
+  const dealFields = await pipedrive.getDealFields();
+  const countryField = dealFields.find((f: any) => f.key === COUNTRY_FIELD_KEY);
+  const countryOptions = countryField?.options || [];
+  const countryLabels = new Map(countryOptions.map((o: any) => [o.id.toString(), o.label]));
 
   return Object.entries(countryData).map(([countryId, data]) => ({
-    country: COUNTRY_LABELS[countryId] || `País ${countryId}`,
+    country: countryLabels.get(countryId) || `País ${countryId}`,
     countryId,
     ...data,
   }));
