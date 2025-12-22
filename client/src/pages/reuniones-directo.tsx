@@ -98,8 +98,10 @@ export default function ReunionesDirecto() {
     const params = new URLSearchParams();
     if (filters.startDate) params.append('startDate', filters.startDate);
     if (filters.endDate) params.append('endDate', filters.endDate);
-    if (filters.personId) params.append('personId', filters.personId);
-    if (filters.teamId) params.append('teamId', filters.teamId);
+    // Map 'person' from filter component to 'personId' for API
+    if (filters.person && filters.person !== 'all') params.append('personId', filters.person);
+    // Map 'team' from filter component to 'teamId' for API
+    if (filters.team && filters.team !== 'all') params.append('teamId', filters.team);
     if (filters.sources?.length) params.append('sources', filters.sources.join(','));
     if (filters.dealType && filters.dealType !== 'all') params.append('dealType', filters.dealType);
     if (filters.countries?.length) params.append('countries', filters.countries.join(','));
