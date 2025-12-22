@@ -58,16 +58,26 @@ interface DashboardFiltersProps {
   onFilterChange: (filters: any) => void;
 }
 
-// Derive quarter from a date string (YYYY-MM-DD)
+// Derive quarter from a date string (YYYY-MM-DD) - parse directly to avoid timezone issues
 function getQuarterFromDate(dateStr: string | undefined): string {
   if (!dateStr) return getCurrentQuarter();
-  const date = new Date(dateStr);
-  return `q${Math.floor(date.getMonth() / 3) + 1}`;
+  // Parse YYYY-MM-DD directly to avoid timezone conversion issues
+  const parts = dateStr.split('-');
+  if (parts.length >= 2) {
+    const month = parseInt(parts[1], 10) - 1; // 0-indexed month
+    return `q${Math.floor(month / 3) + 1}`;
+  }
+  return getCurrentQuarter();
 }
 
 function getYearFromDate(dateStr: string | undefined): string {
   if (!dateStr) return new Date().getFullYear().toString();
-  return new Date(dateStr).getFullYear().toString();
+  // Parse YYYY-MM-DD directly to avoid timezone conversion issues
+  const parts = dateStr.split('-');
+  if (parts.length >= 1) {
+    return parts[0];
+  }
+  return new Date().getFullYear().toString();
 }
 
 export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersProps) {
