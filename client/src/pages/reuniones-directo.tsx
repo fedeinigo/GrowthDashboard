@@ -8,7 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, LineChart, Line 
 } from "recharts";
-import { Loader2, Calendar, DollarSign, TrendingUp } from "lucide-react";
+import { Loader2, Calendar, DollarSign, TrendingUp, Users } from "lucide-react";
 import { KPICard } from "@/components/kpi-card";
 import { DashboardFilters } from "@/components/dashboard-filters";
 import { format } from "date-fns";
@@ -17,6 +17,9 @@ interface DirectMeetingsData {
   weeklyMeetings: Array<{ week: string; count: number; value: number }>;
   byPerson: Array<{ name: string; meetings: number; value: number }>;
   byRegion: Array<{ region: string; meetings: number; value: number }>;
+  sdrBdrAssignment: Array<{ sdr: string; bdr: string; deals: number; percentage: number }>;
+  sdrSummary: Array<{ sdr: string; totalDeals: number }>;
+  bdrSummary: Array<{ bdr: string; totalDeals: number }>;
   totals: { meetings: number; value: number; avgTicket: number };
 }
 
@@ -97,7 +100,18 @@ export default function ReunionesDirecto() {
   const weeklyData = data?.weeklyMeetings || [];
   const byPerson = data?.byPerson || [];
   const byRegion = data?.byRegion || [];
+  const sdrBdrAssignment = data?.sdrBdrAssignment || [];
+  const sdrSummary = data?.sdrSummary || [];
+  const bdrSummary = data?.bdrSummary || [];
   const totals = data?.totals || { meetings: 0, value: 0, avgTicket: 0 };
+
+  const groupedBySdr: Record<string, Array<{ bdr: string; deals: number; percentage: number }>> = {};
+  sdrBdrAssignment.forEach(item => {
+    if (!groupedBySdr[item.sdr]) {
+      groupedBySdr[item.sdr] = [];
+    }
+    groupedBySdr[item.sdr].push({ bdr: item.bdr, deals: item.deals, percentage: item.percentage });
+  });
 
   return (
     <Layout>
@@ -105,7 +119,7 @@ export default function ReunionesDirecto() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-heading font-bold text-foreground tracking-tight">Reuniones Directo</h2>
-            <p className="text-muted-foreground mt-1">Análisis de deals de origen directo (Pipeline 1 - Inbound + Outbound)</p>
+            <p className="text-muted-foreground mt-1">Analisis de deals de origen directo (Pipeline 1 - Inbound + Outbound)</p>
           </div>
         </div>
 
@@ -138,11 +152,87 @@ export default function ReunionesDirecto() {
           />
         </div>
 
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Asignacion SDR - BDR (Owner Actual)
+            </CardTitle>
+            <CardDescription>
+              Muestra quien creo el deal (SDR) y quien es el propietario actual (BDR). El porcentaje indica la proporcion de deals del SDR asignados a cada BDR.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <h4 className="text-sm font-medium mb-3">Detalle por SDR</h4>
+                <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                  {Object.entries(groupedBySdr).map(([sdr, assignments]) => {
+                    const sdrTotal = sdrSummary.find(s => s.sdr === sdr)?.totalDeals || 0;
+                    return (
+                      <div key={sdr} className="border rounded-lg p-3">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-sm">{sdr}</span>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {sdrTotal} deals creados
+                          </Badge>
+                        </div>
+                        <div className="space-y-1">
+                          {assignments.map((a, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">-</span>
+                                <span>{a.bdr}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">{a.deals} deals</span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {a.percentage}%
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium mb-3">Top SDRs (Creadores)</h4>
+                  <div className="space-y-2">
+                    {sdrSummary.slice(0, 8).map((s, idx) => (
+                      <div key={s.sdr} className="flex justify-between items-center text-sm">
+                        <span className="truncate">{idx + 1}. {s.sdr}</span>
+                        <Badge variant="outline">{s.totalDeals}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium mb-3">Top BDRs (Owners)</h4>
+                  <div className="space-y-2">
+                    {bdrSummary.slice(0, 8).map((b, idx) => (
+                      <div key={b.bdr} className="flex justify-between items-center text-sm">
+                        <span className="truncate">{idx + 1}. {b.bdr}</span>
+                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">{b.totalDeals}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-none shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Reuniones Directas por Semana</CardTitle>
-              <CardDescription>Evolución semanal de reuniones</CardDescription>
+              <CardDescription>Evolucion semanal de reuniones</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[250px]">
@@ -189,7 +279,7 @@ export default function ReunionesDirecto() {
           <Card className="border-none shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Top Ejecutivos - Reuniones Directas</CardTitle>
-              <CardDescription>Ejecutivos con más reuniones de origen directo</CardDescription>
+              <CardDescription>Ejecutivos con mas reuniones de origen directo</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -219,8 +309,8 @@ export default function ReunionesDirecto() {
 
           <Card className="border-none shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base">Reuniones Directas por Región</CardTitle>
-              <CardDescription>Distribución por célula geográfica</CardDescription>
+              <CardTitle className="text-base">Reuniones Directas por Region</CardTitle>
+              <CardDescription>Distribucion por celula geografica</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[250px]">

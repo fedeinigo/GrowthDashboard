@@ -130,7 +130,8 @@ export const pipedriveDeals = pgTable("pipedrive_deals", {
   status: text("status"), // open, won, lost
   stageId: integer("stage_id"),
   pipelineId: integer("pipeline_id"),
-  userId: integer("user_id"),
+  userId: integer("user_id"), // Current owner (BDR)
+  creatorUserId: integer("creator_user_id"), // Creator (SDR)
   personId: integer("person_id"),
   orgId: integer("org_id"),
   addTime: timestamp("add_time"),

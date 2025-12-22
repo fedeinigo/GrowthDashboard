@@ -95,6 +95,7 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
       }
 
       const userId = typeof deal.user_id === 'object' ? deal.user_id?.id : deal.user_id;
+      const creatorUserId = typeof deal.creator_user_id === 'object' ? deal.creator_user_id?.id : deal.creator_user_id;
       const personId = typeof deal.person_id === 'object' ? deal.person_id?.value : deal.person_id;
       const orgId = typeof deal.org_id === 'object' ? deal.org_id?.value : deal.org_id;
 
@@ -107,6 +108,7 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
         stageId: deal.stage_id || null,
         pipelineId: deal.pipeline_id || null,
         userId: userId || null,
+        creatorUserId: creatorUserId || null,
         personId: personId || null,
         orgId: orgId || null,
         addTime: deal.add_time ? new Date(deal.add_time) : null,
@@ -1355,6 +1357,10 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
   const byPerson: Record<number, { name: string; meetings: number; value: number }> = {};
   const byRegion: Record<string, { meetings: number; value: number }> = {};
   
+  // SDR → BDR assignment tracking
+  const sdrBdrMatrix: Record<string, Record<string, number>> = {};
+  const sdrTotals: Record<string, number> = {};
+  
   let totalMeetings = 0;
   let totalValue = 0;
   
@@ -1390,6 +1396,22 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     byRegion[region].meetings++;
     byRegion[region].value += value;
     
+    // SDR → BDR assignment
+    const sdrId = deal.creatorUserId;
+    const bdrId = deal.userId;
+    const sdrName = sdrId ? (userNames.get(sdrId) || `User ${sdrId}`) : "Sin SDR";
+    const bdrName = bdrId ? (userNames.get(bdrId) || `User ${bdrId}`) : "Sin owner";
+    
+    if (!sdrBdrMatrix[sdrName]) {
+      sdrBdrMatrix[sdrName] = {};
+      sdrTotals[sdrName] = 0;
+    }
+    if (!sdrBdrMatrix[sdrName][bdrName]) {
+      sdrBdrMatrix[sdrName][bdrName] = 0;
+    }
+    sdrBdrMatrix[sdrName][bdrName]++;
+    sdrTotals[sdrName]++;
+    
     totalMeetings++;
     totalValue += value;
   });
@@ -1410,10 +1432,48 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     .map(([region, data]) => ({ region, meetings: data.meetings, value: Math.round(data.value) }))
     .sort((a, b) => b.meetings - a.meetings);
   
+  // Format SDR → BDR assignment data
+  const sdrBdrAssignment: Array<{ sdr: string; bdr: string; deals: number; percentage: number }> = [];
+  Object.entries(sdrBdrMatrix).forEach(([sdr, bdrs]) => {
+    const sdrTotal = sdrTotals[sdr];
+    Object.entries(bdrs).forEach(([bdr, count]) => {
+      sdrBdrAssignment.push({
+        sdr,
+        bdr,
+        deals: count,
+        percentage: Math.round((count / sdrTotal) * 100),
+      });
+    });
+  });
+  // Sort by SDR name, then by deals descending
+  sdrBdrAssignment.sort((a, b) => {
+    if (a.sdr !== b.sdr) return a.sdr.localeCompare(b.sdr);
+    return b.deals - a.deals;
+  });
+  
+  // Calculate SDR totals for summary
+  const sdrSummary = Object.entries(sdrTotals)
+    .map(([sdr, total]) => ({ sdr, totalDeals: total }))
+    .sort((a, b) => b.totalDeals - a.totalDeals);
+  
+  // Calculate BDR totals for summary
+  const bdrTotals: Record<string, number> = {};
+  Object.values(sdrBdrMatrix).forEach(bdrs => {
+    Object.entries(bdrs).forEach(([bdr, count]) => {
+      bdrTotals[bdr] = (bdrTotals[bdr] || 0) + count;
+    });
+  });
+  const bdrSummary = Object.entries(bdrTotals)
+    .map(([bdr, total]) => ({ bdr, totalDeals: total }))
+    .sort((a, b) => b.totalDeals - a.totalDeals);
+  
   return {
     weeklyMeetings,
     byPerson: personList,
     byRegion: regionList,
+    sdrBdrAssignment,
+    sdrSummary,
+    bdrSummary,
     totals: {
       meetings: totalMeetings,
       value: Math.round(totalValue),
