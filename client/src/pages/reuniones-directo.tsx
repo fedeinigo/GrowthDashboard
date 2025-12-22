@@ -176,7 +176,7 @@ export default function ReunionesDirecto() {
             change={0} 
             trend="neutral" 
             icon={Calendar}
-            className="border-l-4 border-l-primary bg-gradient-to-br from-white to-blue-50/30"
+            className="border-l-4 border-l-primary"
           />
           <KPICard 
             title="Valor Total" 
@@ -185,7 +185,7 @@ export default function ReunionesDirecto() {
             trend="neutral" 
             prefix="$"
             icon={DollarSign}
-            className="border-l-4 border-l-emerald-500 bg-gradient-to-br from-white to-emerald-50/30"
+            className="border-l-4 border-l-emerald-500"
           />
           <KPICard 
             title="Ticket Promedio" 
@@ -194,16 +194,16 @@ export default function ReunionesDirecto() {
             trend="neutral" 
             prefix="$"
             icon={TrendingUp}
-            className="border-l-4 border-l-amber-500 bg-gradient-to-br from-white to-amber-50/30"
+            className="border-l-4 border-l-amber-500"
           />
         </div>
 
         <Card className="border shadow-sm">
-          <CardHeader className="pb-3 border-b bg-gradient-to-r from-slate-50 to-blue-50/30">
+          <CardHeader className="pb-3 border-b bg-muted/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Users className="w-5 h-5 text-blue-600" />
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                  <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
                   <CardTitle className="text-lg">Asignacion SDR → BDR (Owner Actual)</CardTitle>
@@ -214,18 +214,18 @@ export default function ReunionesDirecto() {
               </div>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 bg-white">
+                  <Button variant="outline" size="sm" className="gap-2">
                     <Settings className="w-4 h-4" />
                     Ajustar
                     {excludedSdrs.size > 0 && (
-                      <Badge variant="secondary" className="ml-1 text-xs bg-amber-100 text-amber-700">
+                      <Badge variant="secondary" className="ml-1 text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
                         {excludedSdrs.size} ocultos
                       </Badge>
                     )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[320px] p-0" align="end">
-                  <div className="p-4 border-b bg-slate-50">
+                  <div className="p-4 border-b bg-muted/50">
                     <h4 className="font-semibold text-sm">Filtrar Creadores (SDRs)</h4>
                     <p className="text-xs text-muted-foreground mt-1">Deselecciona los creadores que no quieres mostrar</p>
                   </div>
@@ -249,7 +249,7 @@ export default function ReunionesDirecto() {
                     ))}
                   </div>
                   {excludedSdrs.size > 0 && (
-                    <div className="border-t p-3 bg-slate-50">
+                    <div className="border-t p-3 bg-muted/50">
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -270,7 +270,7 @@ export default function ReunionesDirecto() {
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-sm font-semibold text-foreground">Detalle por SDR</h4>
                   {excludedSdrs.size > 0 && (
-                    <span className="text-xs text-muted-foreground bg-slate-100 px-2 py-1 rounded-full">
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                       {sortedSdrs.length} de {sdrSummary.length} SDRs
                     </span>
                   )}
@@ -283,23 +283,23 @@ export default function ReunionesDirecto() {
                     return (
                       <div 
                         key={sdr} 
-                        className="border rounded-xl p-4 bg-gradient-to-r from-white to-slate-50/50 hover:shadow-md transition-shadow"
+                        className="border rounded-xl p-4 bg-card hover:shadow-md transition-shadow"
                       >
                         <div className="flex justify-between items-center mb-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
+                            <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-xs font-bold text-blue-700 dark:text-blue-300">
                               {idx + 1}
                             </div>
                             <span className="font-semibold text-sm">{sdr}</span>
                           </div>
-                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">
+                          <Badge className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/70">
                             {sdrTotal} deals
                           </Badge>
                         </div>
                         <div className="mb-3">
                           <Progress value={percentage} className="h-1.5" />
                         </div>
-                        <div className="space-y-2 pl-2 border-l-2 border-slate-200">
+                        <div className="space-y-2 pl-2 border-l-2 border-muted">
                           {assignments.map((a, i) => (
                             <div key={i} className="flex items-center justify-between text-sm py-1">
                               <div className="flex items-center gap-2">
@@ -312,10 +312,10 @@ export default function ReunionesDirecto() {
                                   variant="outline" 
                                   className={`text-xs tabular-nums ${
                                     a.percentage >= 50 
-                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                      ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700' 
                                       : a.percentage >= 25 
-                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                        : 'bg-slate-50 text-slate-600 border-slate-200'
+                                        ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700'
+                                        : 'bg-muted text-muted-foreground border-muted'
                                   }`}
                                 >
                                   {a.percentage}%
@@ -331,8 +331,8 @@ export default function ReunionesDirecto() {
               </div>
               
               <div className="space-y-6">
-                <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-xl p-4">
-                  <h4 className="text-sm font-semibold mb-4 flex items-center gap-2 text-blue-800">
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-xl p-4">
+                  <h4 className="text-sm font-semibold mb-4 flex items-center gap-2 text-blue-800 dark:text-blue-300">
                     <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                     Top SDRs (Creadores)
                   </h4>
@@ -343,7 +343,7 @@ export default function ReunionesDirecto() {
                         <div key={s.sdr} className="space-y-1">
                           <div className="flex justify-between items-center text-sm">
                             <span className="truncate font-medium">{idx + 1}. {s.sdr}</span>
-                            <Badge variant="outline" className="tabular-nums bg-white">{s.totalDeals}</Badge>
+                            <Badge variant="outline" className="tabular-nums bg-background">{s.totalDeals}</Badge>
                           </div>
                           <Progress value={percentage} className="h-1" />
                         </div>
@@ -352,8 +352,8 @@ export default function ReunionesDirecto() {
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 rounded-xl p-4">
-                  <h4 className="text-sm font-semibold mb-4 flex items-center gap-2 text-emerald-800">
+                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-800 rounded-xl p-4">
+                  <h4 className="text-sm font-semibold mb-4 flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
                     <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                     Top BDRs (Owners)
                   </h4>
@@ -364,7 +364,7 @@ export default function ReunionesDirecto() {
                         <div key={b.bdr} className="space-y-1">
                           <div className="flex justify-between items-center text-sm">
                             <span className="truncate font-medium">{idx + 1}. {b.bdr}</span>
-                            <Badge variant="outline" className="tabular-nums bg-white border-emerald-200 text-emerald-700">{b.totalDeals}</Badge>
+                            <Badge variant="outline" className="tabular-nums bg-background border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300">{b.totalDeals}</Badge>
                           </div>
                           <Progress value={percentage} className="h-1 [&>div]:bg-emerald-500" />
                         </div>
@@ -378,7 +378,7 @@ export default function ReunionesDirecto() {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border shadow-sm bg-gradient-to-br from-white to-slate-50">
+          <Card className="border shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-primary" />
@@ -390,11 +390,13 @@ export default function ReunionesDirecto() {
               <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="week" tick={{ fontSize: 10, fill: '#64748b' }} />
-                    <YAxis tick={{ fontSize: 10, fill: '#64748b' }} />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="week" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      itemStyle={{ color: 'hsl(var(--foreground))' }}
                       formatter={(value: number, name: string) => [
                         name === 'count' ? value : `$${value.toLocaleString()}`,
                         name === 'count' ? 'Reuniones' : 'Valor'
@@ -407,10 +409,10 @@ export default function ReunionesDirecto() {
             </CardContent>
           </Card>
 
-          <Card className="border shadow-sm bg-gradient-to-br from-white to-slate-50">
+          <Card className="border shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
+                <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <CardTitle className="text-base">Valor por Semana</CardTitle>
               </div>
               <CardDescription>USD en reuniones directas por semana</CardDescription>
@@ -419,11 +421,13 @@ export default function ReunionesDirecto() {
               <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="week" tick={{ fontSize: 10, fill: '#64748b' }} />
-                    <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="week" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      itemStyle={{ color: 'hsl(var(--foreground))' }}
                       formatter={(value: number) => [`$${value.toLocaleString()}`, 'Valor']} 
                     />
                     <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4, fill: '#10b981' }} />
@@ -436,7 +440,7 @@ export default function ReunionesDirecto() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border shadow-sm">
-            <CardHeader className="pb-3 border-b bg-slate-50/50">
+            <CardHeader className="pb-3 border-b bg-muted/30">
               <CardTitle className="text-base">Top Ejecutivos - Reuniones Directas</CardTitle>
               <CardDescription>Ejecutivos con mas reuniones de origen directo</CardDescription>
             </CardHeader>
@@ -451,7 +455,7 @@ export default function ReunionesDirecto() {
                 </TableHeader>
                 <TableBody>
                   {byPerson.slice(0, 10).map((person, idx) => (
-                    <TableRow key={person.name} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                    <TableRow key={person.name} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
@@ -462,7 +466,7 @@ export default function ReunionesDirecto() {
                       </TableCell>
                       <TableCell className="text-right tabular-nums font-medium">{person.meetings}</TableCell>
                       <TableCell className="text-right">
-                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 tabular-nums">
+                        <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700 tabular-nums">
                           ${person.value.toLocaleString()}
                         </Badge>
                       </TableCell>
@@ -474,7 +478,7 @@ export default function ReunionesDirecto() {
           </Card>
 
           <Card className="border shadow-sm">
-            <CardHeader className="pb-3 border-b bg-slate-50/50">
+            <CardHeader className="pb-3 border-b bg-muted/30">
               <CardTitle className="text-base">Reuniones Directas por Region</CardTitle>
               <CardDescription>Distribucion por celula geografica</CardDescription>
             </CardHeader>
@@ -482,11 +486,13 @@ export default function ReunionesDirecto() {
               <div className="h-[320px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={byRegion} layout="vertical" margin={{ left: 10, right: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} />
-                    <YAxis dataKey="region" type="category" tick={{ fontSize: 11, fill: '#64748b' }} width={85} />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis type="number" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <YAxis dataKey="region" type="category" tick={{ fontSize: 11 }} className="fill-muted-foreground" width={85} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      itemStyle={{ color: 'hsl(var(--foreground))' }}
                       formatter={(value: number, name: string) => [
                         name === 'meetings' ? value : `$${value.toLocaleString()}`,
                         name === 'meetings' ? 'Reuniones' : 'Valor'

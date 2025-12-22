@@ -416,12 +416,12 @@ export default function Regiones() {
                               <TableCell className="text-right text-muted-foreground tabular-nums">
                                 ${row.proposalsValue ? row.proposalsValue.toLocaleString() : "0"}
                               </TableCell>
-                              <TableCell className="text-right font-semibold text-emerald-700 tabular-nums">
+                              <TableCell className="text-right font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
                                 ${row.closingsValue ? row.closingsValue.toLocaleString() : "0"}
                               </TableCell>
                               <TableCell className="text-right">
                                 {row.closings > 0 ? (
-                                  <Badge variant="outline" className="bg-slate-100 border-slate-300 tabular-nums">
+                                  <Badge variant="outline" className="bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-foreground tabular-nums">
                                     ${Math.round(row.closingsValue / row.closings).toLocaleString()}
                                   </Badge>
                                 ) : (
