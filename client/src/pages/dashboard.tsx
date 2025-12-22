@@ -3,7 +3,7 @@ import { KPICard } from "@/components/kpi-card";
 import { RevenueChart, MeetingsChart, ClosureChart, CompanySizeChart } from "@/components/charts";
 import { DashboardFilters } from "@/components/dashboard-filters";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
-import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LineChart, Line, Legend } from "recharts";
 import { 
   DollarSign, 
   Target, 
@@ -414,22 +414,44 @@ export default function Dashboard() {
             <TabsContent value="regions" className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
                 {/* 4 Regional Reports Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Report 1: NC Meetings Last 10 Weeks */}
+                    {/* Report 1: Revenue by Region - Last 5 Quarters */}
                     <Card className="border-none shadow-sm">
                         <CardHeader>
-                            <CardTitle className="text-base">Reuniones NC - Últimas 10 Semanas</CardTitle>
-                            <CardDescription>Tarjetas New Customer creadas por semana</CardDescription>
+                            <CardTitle className="text-base">USD Cerrados por Región - Últimos 5Q</CardTitle>
+                            <CardDescription>Evolución de ingresos por región en los últimos 5 trimestres</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-[200px]">
+                            <div className="h-[250px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={ncMeetings10Weeks}>
+                                    <LineChart data={(() => {
+                                        if (!quarterlyRegionComparison || quarterlyRegionComparison.length === 0) return [];
+                                        // Data format: [{region, data: [{quarter, meetings, logos, revenue}]}]
+                                        const allQuarters = new Set<string>();
+                                        quarterlyRegionComparison.forEach((r: any) => {
+                                            r.data?.forEach((d: any) => allQuarters.add(d.quarter));
+                                        });
+                                        const quarters = Array.from(allQuarters).sort();
+                                        return quarters.map((q: string) => {
+                                            const point: Record<string, any> = { quarter: q };
+                                            quarterlyRegionComparison.forEach((r: any) => {
+                                                const qData = r.data?.find((d: any) => d.quarter === q);
+                                                point[r.region] = qData?.revenue || 0;
+                                            });
+                                            return point;
+                                        });
+                                    })()}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="week" tick={{ fontSize: 10 }} />
-                                        <YAxis tick={{ fontSize: 10 }} />
-                                        <Tooltip />
-                                        <Bar dataKey="cardsCreated" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
+                                        <XAxis dataKey="quarter" tick={{ fontSize: 10 }} />
+                                        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
+                                        <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, '']} />
+                                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                                        <Line type="monotone" dataKey="Colombia" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+                                        <Line type="monotone" dataKey="Argentina" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+                                        <Line type="monotone" dataKey="Mexico" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                                        <Line type="monotone" dataKey="Brasil" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
+                                        <Line type="monotone" dataKey="España" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                                        <Line type="monotone" dataKey="Rest Latam" stroke="#6b7280" strokeWidth={2} dot={{ r: 3 }} />
+                                    </LineChart>
                                 </ResponsiveContainer>
                             </div>
                         </CardContent>
