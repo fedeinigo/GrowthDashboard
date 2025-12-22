@@ -6,12 +6,30 @@ import { Badge } from "@/components/ui/badge";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, LineChart, Line, Legend 
+  ResponsiveContainer, LineChart, Line, Legend, Cell
 } from "recharts";
-import { ArrowUpDown, ArrowUp, ArrowDown, Loader2 } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Loader2, Globe, TrendingUp, Clock, MapPin } from "lucide-react";
 
 type SortField = "meetings" | "proposals" | "closings" | "meetingsValue" | "proposalsValue" | "closingsValue" | null;
 type SortOrder = "asc" | "desc";
+
+const REGION_COLORS: Record<string, string> = {
+  "Colombia": "#3b82f6",
+  "Argentina": "#10b981",
+  "Mexico": "#f59e0b",
+  "Brasil": "#ef4444",
+  "España": "#8b5cf6",
+  "Rest Latam": "#6b7280",
+};
+
+const REGION_BG_COLORS: Record<string, string> = {
+  "Colombia": "bg-blue-50 border-blue-200",
+  "Argentina": "bg-emerald-50 border-emerald-200",
+  "Mexico": "bg-amber-50 border-amber-200",
+  "Brasil": "bg-red-50 border-red-200",
+  "España": "bg-violet-50 border-violet-200",
+  "Rest Latam": "bg-gray-50 border-gray-200",
+};
 
 export default function Regiones() {
   const { 
@@ -68,20 +86,30 @@ export default function Regiones() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-heading font-bold text-foreground tracking-tight">Regiones Estratégicas</h2>
-          <p className="text-muted-foreground mt-1">Análisis de rendimiento por región geográfica</p>
+      <div className="space-y-8">
+        <div className="border-b pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Globe className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-heading font-bold text-foreground tracking-tight">Regiones Estrategicas</h2>
+              <p className="text-muted-foreground mt-1">Analisis de rendimiento por region geografica</p>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">USD Cerrados por Región - Últimos 5Q</CardTitle>
-              <CardDescription>Evolución de ingresos por región en los últimos 5 trimestres</CardDescription>
+          <Card className="border shadow-sm bg-gradient-to-br from-white to-slate-50">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                <CardTitle className="text-base">USD Cerrados por Region - Ultimos 5Q</CardTitle>
+              </div>
+              <CardDescription>Evolucion de ingresos por region en los ultimos 5 trimestres</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[250px]">
+              <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={(() => {
                     if (!quarterlyRegionComparison) return [];
@@ -98,254 +126,318 @@ export default function Regiones() {
                       return point;
                     });
                   })()}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="quarter" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
-                    <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, '']} />
-                    <Legend wrapperStyle={{ fontSize: 10 }} />
-                    <Line type="monotone" dataKey="Colombia" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="Argentina" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="Mexico" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="Brasil" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="España" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="Rest Latam" stroke="#6b7280" strokeWidth={2} dot={{ r: 3 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="quarter" tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      formatter={(value: number) => [`$${value.toLocaleString()}`, '']} 
+                    />
+                    <Legend wrapperStyle={{ fontSize: 11, paddingTop: '10px' }} />
+                    <Line type="monotone" dataKey="Colombia" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 4, fill: '#3b82f6' }} />
+                    <Line type="monotone" dataKey="Argentina" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4, fill: '#10b981' }} />
+                    <Line type="monotone" dataKey="Mexico" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 4, fill: '#f59e0b' }} />
+                    <Line type="monotone" dataKey="Brasil" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 4, fill: '#ef4444' }} />
+                    <Line type="monotone" dataKey="España" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 4, fill: '#8b5cf6' }} />
+                    <Line type="monotone" dataKey="Rest Latam" stroke="#6b7280" strokeWidth={2.5} dot={{ r: 4, fill: '#6b7280' }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Ciclo de Ventas por Región</CardTitle>
-              <CardDescription>Promedio de días para cerrar (deals ganados)</CardDescription>
+          <Card className="border shadow-sm bg-gradient-to-br from-white to-slate-50">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-emerald-600" />
+                <CardTitle className="text-base">Ciclo de Ventas por Region</CardTitle>
+              </div>
+              <CardDescription>Promedio de dias para cerrar (deals ganados)</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[200px]">
+              <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={salesCycleByRegion} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis type="number" tick={{ fontSize: 10 }} />
-                    <YAxis dataKey="region" type="category" tick={{ fontSize: 10 }} width={80} />
-                    <Tooltip formatter={(value: any) => [`${value} días`, 'Ciclo Promedio']} />
-                    <Bar dataKey="avgDays" fill="#10b981" radius={[0, 4, 4, 0]} />
+                  <BarChart data={salesCycleByRegion} layout="vertical" margin={{ left: 10, right: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <YAxis dataKey="region" type="category" tick={{ fontSize: 11, fill: '#64748b' }} width={85} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      formatter={(value: any) => [`${value} dias`, 'Ciclo Promedio']} 
+                    />
+                    <Bar dataKey="avgDays" radius={[0, 6, 6, 0]}>
+                      {salesCycleByRegion?.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={REGION_COLORS[entry.region] || '#6b7280'} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          <Card className="border-none shadow-sm col-span-1 md:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-base">Comparativo Últimos 5 Trimestres por Región</CardTitle>
-              <CardDescription>Reuniones, Logos Vendidos y USD Total</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[120px]">Región</TableHead>
-                      {quarterlyRegionComparison?.quarters?.map((q: string) => (
-                        <TableHead key={q} className="text-center" colSpan={3}>
-                          {q}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                    <TableRow>
-                      <TableHead></TableHead>
-                      {quarterlyRegionComparison?.quarters?.map((q: string) => (
-                        <React.Fragment key={`sub-${q}`}>
-                          <TableHead className="text-right text-xs">Reuniones</TableHead>
-                          <TableHead className="text-right text-xs">Logos</TableHead>
-                          <TableHead className="text-right text-xs">USD</TableHead>
-                        </React.Fragment>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {quarterlyRegionComparison?.regions?.map((region: any) => (
-                      <TableRow key={region.region}>
-                        <TableCell className="font-medium">{region.region}</TableCell>
-                        {region.data?.map((d: any) => (
-                          <React.Fragment key={`${region.region}-${d.quarter}`}>
-                            <TableCell className="text-right">{d.meetings}</TableCell>
-                            <TableCell className="text-right">{d.logos}</TableCell>
-                            <TableCell className="text-right">${d.revenue.toLocaleString()}</TableCell>
-                          </React.Fragment>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-sm col-span-1 md:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-base">Top 5 Orígenes por Región</CardTitle>
-              <CardDescription>Orígenes con mayor revenue por cada célula</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {topOriginsByRegion.map((region: any) => (
-                  <div key={region.region} className="space-y-2">
-                    <h4 className="font-semibold text-sm border-b pb-1">{region.region}</h4>
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-3 border-b bg-slate-50/50">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              <CardTitle className="text-base">Top 5 Origenes por Region</CardTitle>
+            </div>
+            <CardDescription>Origenes con mayor revenue por cada celula</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {topOriginsByRegion.map((region: any) => (
+                <div key={region.region} className={`rounded-lg border p-3 ${REGION_BG_COLORS[region.region] || 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-current/10">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: REGION_COLORS[region.region] || '#6b7280' }}></div>
+                    <h4 className="font-semibold text-sm">{region.region}</h4>
+                  </div>
+                  <div className="space-y-2">
                     {region.origins?.slice(0, 5).map((origin: any, idx: number) => (
-                      <div key={`${region.region}-${origin.origin}-${idx}`} className="flex justify-between text-xs">
-                        <span className="truncate max-w-[80px]" title={origin.origin}>{origin.origin}</span>
-                        <span className="font-medium">${origin.revenue.toLocaleString()}</span>
+                      <div key={`${region.region}-${origin.origin}-${idx}`} className="flex justify-between text-xs gap-2">
+                        <span className="truncate text-muted-foreground" title={origin.origin}>{origin.origin}</span>
+                        <span className="font-semibold text-foreground whitespace-nowrap">${origin.revenue.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle>Métricas por Región Estratégica</CardTitle>
-            <CardDescription>Análisis de conversión por célula y origen</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent border-b-2">
-                  <TableHead className="w-[200px]">Células x Región</TableHead>
-                  <TableHead className="w-[250px]">Origen</TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => handleSort('meetings')}
-                  >
-                    <div className="flex items-center justify-end">
-                      Reuniones {getSortIcon('meetings')}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => handleSort('proposals')}
-                  >
-                    <div className="flex items-center justify-end">
-                      Propuesta {getSortIcon('proposals')}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => handleSort('closings')}
-                  >
-                    <div className="flex items-center justify-end">
-                      Cierre {getSortIcon('closings')}
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-right">Conversión</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedRegionalData.map((region: any, index: number) => {
-                  if (region.rows && Array.isArray(region.rows)) {
-                    return (
-                      <React.Fragment key={region.region}>
-                        {region.rows.map((row: any, rowIndex: number) => (
-                          <TableRow key={`${region.region}-${row.origin}`} className="hover:bg-muted/30 border-b">
-                            <TableCell className={`font-medium align-top ${rowIndex === 0 ? "text-foreground" : ""}`}>
-                              {rowIndex === 0 ? region.region : ""}
-                            </TableCell>
-                            <TableCell>{row.origin}</TableCell>
-                            <TableCell className="text-right">{row.meetings}</TableCell>
-                            <TableCell className="text-right">{row.proposals}</TableCell>
-                            <TableCell className="text-right">{row.closings}</TableCell>
-                            <TableCell className="text-right">
-                              <Badge variant={row.closings > 0 ? "outline" : "secondary"} className={row.closings > 0 ? "border-emerald-200 text-emerald-700 bg-emerald-50" : ""}>
-                                {row.meetings > 0 ? ((row.closings / row.meetings) * 100).toFixed(1) + "%" : "0%"}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </React.Fragment>
-                    );
-                  }
-                  return null;
-                })}
-              </TableBody>
-            </Table>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle>Ingresos por Región Estratégica</CardTitle>
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-3 border-b bg-slate-50/50">
+            <CardTitle className="text-lg">Comparativo Ultimos 5 Trimestres por Region</CardTitle>
+            <CardDescription>Reuniones, Logos Vendidos y USD Total</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="w-[120px] font-semibold">Region</TableHead>
+                    {quarterlyRegionComparison?.quarters?.map((q: string) => (
+                      <TableHead key={q} className="text-center font-semibold border-l" colSpan={3}>
+                        {q}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                  <TableRow className="bg-muted/20">
+                    <TableHead></TableHead>
+                    {quarterlyRegionComparison?.quarters?.map((q: string) => (
+                      <React.Fragment key={`sub-${q}`}>
+                        <TableHead className="text-right text-xs font-medium text-blue-600 border-l">Reuniones</TableHead>
+                        <TableHead className="text-right text-xs font-medium text-amber-600">Logos</TableHead>
+                        <TableHead className="text-right text-xs font-medium text-emerald-600">USD</TableHead>
+                      </React.Fragment>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {quarterlyRegionComparison?.regions?.map((region: any, idx: number) => (
+                    <TableRow key={region.region} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                      <TableCell className="font-semibold">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: REGION_COLORS[region.region] || '#6b7280' }}></div>
+                          {region.region}
+                        </div>
+                      </TableCell>
+                      {region.data?.map((d: any) => (
+                        <React.Fragment key={`${region.region}-${d.quarter}`}>
+                          <TableCell className="text-right border-l tabular-nums">{d.meetings}</TableCell>
+                          <TableCell className="text-right tabular-nums">{d.logos}</TableCell>
+                          <TableCell className="text-right font-medium tabular-nums text-emerald-700">${d.revenue.toLocaleString()}</TableCell>
+                        </React.Fragment>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-3 border-b bg-slate-50/50">
+            <CardTitle className="text-lg">Metricas por Region Estrategica</CardTitle>
+            <CardDescription>Analisis de conversion por celula y origen</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-b-2 bg-muted/30">
+                    <TableHead className="w-[180px] font-semibold">Celulas x Region</TableHead>
+                    <TableHead className="w-[220px] font-semibold">Origen</TableHead>
+                    <TableHead 
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none font-semibold"
+                      onClick={() => handleSort('meetings')}
+                    >
+                      <div className="flex items-center justify-end">
+                        Reuniones {getSortIcon('meetings')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none font-semibold"
+                      onClick={() => handleSort('proposals')}
+                    >
+                      <div className="flex items-center justify-end">
+                        Propuesta {getSortIcon('proposals')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none font-semibold"
+                      onClick={() => handleSort('closings')}
+                    >
+                      <div className="flex items-center justify-end">
+                        Cierre {getSortIcon('closings')}
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-right font-semibold">Conversion</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedRegionalData.map((region: any, index: number) => {
+                    if (region.rows && Array.isArray(region.rows)) {
+                      return (
+                        <React.Fragment key={region.region}>
+                          {region.rows.map((row: any, rowIndex: number) => (
+                            <TableRow 
+                              key={`${region.region}-${row.origin}`} 
+                              className={`hover:bg-muted/30 ${rowIndex === 0 ? 'border-t-2' : ''}`}
+                            >
+                              <TableCell className="font-medium align-top">
+                                {rowIndex === 0 ? (
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: REGION_COLORS[region.region] || '#6b7280' }}></div>
+                                    <span className="font-semibold">{region.region}</span>
+                                  </div>
+                                ) : ""}
+                              </TableCell>
+                              <TableCell className="text-sm">{row.origin}</TableCell>
+                              <TableCell className="text-right tabular-nums">{row.meetings}</TableCell>
+                              <TableCell className="text-right tabular-nums">{row.proposals}</TableCell>
+                              <TableCell className="text-right tabular-nums font-medium">{row.closings}</TableCell>
+                              <TableCell className="text-right">
+                                {row.meetings > 0 && (
+                                  <Badge 
+                                    variant="outline" 
+                                    className={
+                                      (row.closings / row.meetings) >= 0.15 
+                                        ? "bg-emerald-100 text-emerald-800 border-emerald-300" 
+                                        : (row.closings / row.meetings) >= 0.05 
+                                          ? "bg-amber-100 text-amber-800 border-amber-300"
+                                          : "bg-slate-100 text-slate-600 border-slate-300"
+                                    }
+                                  >
+                                    {((row.closings / row.meetings) * 100).toFixed(1)}%
+                                  </Badge>
+                                )}
+                                {row.meetings === 0 && (
+                                  <span className="text-muted-foreground text-xs">-</span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
+                      );
+                    }
+                    return null;
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-3 border-b bg-slate-50/50">
+            <CardTitle className="text-lg">Ingresos por Region Estrategica</CardTitle>
             <CardDescription>Volumen de negocio en reuniones, propuestas y cierres (USD)</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent border-b-2">
-                  <TableHead className="w-[200px]">Células x Región</TableHead>
-                  <TableHead className="w-[250px]">Origen</TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => handleSort('meetingsValue')}
-                  >
-                    <div className="flex items-center justify-end">
-                      Reuniones ($) {getSortIcon('meetingsValue')}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => handleSort('proposalsValue')}
-                  >
-                    <div className="flex items-center justify-end">
-                      Propuesta ($) {getSortIcon('proposalsValue')}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => handleSort('closingsValue')}
-                  >
-                    <div className="flex items-center justify-end">
-                      Cierre ($) {getSortIcon('closingsValue')}
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-right">Ticket Promedio</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedRegionalData.map((region: any, index: number) => {
-                  if (region.rows && Array.isArray(region.rows)) {
-                    return (
-                      <React.Fragment key={`rev-${region.region}`}>
-                        {region.rows.map((row: any, rowIndex: number) => (
-                          <TableRow key={`rev-${region.region}-${row.origin}`} className="hover:bg-muted/30 border-b">
-                            <TableCell className={`font-medium align-top ${rowIndex === 0 ? "text-foreground" : ""}`}>
-                              {rowIndex === 0 ? region.region : ""}
-                            </TableCell>
-                            <TableCell>{row.origin}</TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              ${row.meetingsValue ? row.meetingsValue.toLocaleString() : "0"}
-                            </TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              ${row.proposalsValue ? row.proposalsValue.toLocaleString() : "0"}
-                            </TableCell>
-                            <TableCell className="text-right font-medium text-foreground">
-                              ${row.closingsValue ? row.closingsValue.toLocaleString() : "0"}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <span className="text-xs text-muted-foreground">
-                                {row.closings > 0 ? "$" + Math.round(row.closingsValue / row.closings).toLocaleString() : "-"}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </React.Fragment>
-                    );
-                  }
-                  return null;
-                })}
-              </TableBody>
-            </Table>
+          <CardContent className="pt-4">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-b-2 bg-muted/30">
+                    <TableHead className="w-[180px] font-semibold">Celulas x Region</TableHead>
+                    <TableHead className="w-[220px] font-semibold">Origen</TableHead>
+                    <TableHead 
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none font-semibold"
+                      onClick={() => handleSort('meetingsValue')}
+                    >
+                      <div className="flex items-center justify-end">
+                        Reuniones ($) {getSortIcon('meetingsValue')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none font-semibold"
+                      onClick={() => handleSort('proposalsValue')}
+                    >
+                      <div className="flex items-center justify-end">
+                        Propuesta ($) {getSortIcon('proposalsValue')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none font-semibold"
+                      onClick={() => handleSort('closingsValue')}
+                    >
+                      <div className="flex items-center justify-end">
+                        Cierre ($) {getSortIcon('closingsValue')}
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-right font-semibold">Ticket Prom.</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedRegionalData.map((region: any, index: number) => {
+                    if (region.rows && Array.isArray(region.rows)) {
+                      return (
+                        <React.Fragment key={`rev-${region.region}`}>
+                          {region.rows.map((row: any, rowIndex: number) => (
+                            <TableRow 
+                              key={`rev-${region.region}-${row.origin}`} 
+                              className={`hover:bg-muted/30 ${rowIndex === 0 ? 'border-t-2' : ''}`}
+                            >
+                              <TableCell className="font-medium align-top">
+                                {rowIndex === 0 ? (
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: REGION_COLORS[region.region] || '#6b7280' }}></div>
+                                    <span className="font-semibold">{region.region}</span>
+                                  </div>
+                                ) : ""}
+                              </TableCell>
+                              <TableCell className="text-sm">{row.origin}</TableCell>
+                              <TableCell className="text-right text-muted-foreground tabular-nums">
+                                ${row.meetingsValue ? row.meetingsValue.toLocaleString() : "0"}
+                              </TableCell>
+                              <TableCell className="text-right text-muted-foreground tabular-nums">
+                                ${row.proposalsValue ? row.proposalsValue.toLocaleString() : "0"}
+                              </TableCell>
+                              <TableCell className="text-right font-semibold text-emerald-700 tabular-nums">
+                                ${row.closingsValue ? row.closingsValue.toLocaleString() : "0"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {row.closings > 0 ? (
+                                  <Badge variant="outline" className="bg-slate-100 border-slate-300 tabular-nums">
+                                    ${Math.round(row.closingsValue / row.closings).toLocaleString()}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-muted-foreground text-xs">-</span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
+                      );
+                    }
+                    return null;
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>
