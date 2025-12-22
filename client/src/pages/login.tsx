@@ -14,7 +14,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
             <ShieldCheck className="w-10 h-10 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">WiseCX Growth Dashboard</CardTitle>
+          <CardTitle className="text-2xl font-bold">Growth Dashboard</CardTitle>
           <CardDescription className="mt-2">
             Dashboard de metricas comerciales del equipo Growth
           </CardDescription>
@@ -22,7 +22,6 @@ export default function LoginPage() {
         <CardContent className="space-y-6">
           <div className="text-center text-sm text-muted-foreground">
             <p>Inicia sesion con tu cuenta de Google corporativa</p>
-            <p className="mt-1 font-medium text-primary">Solo usuarios @wisecx.com</p>
           </div>
           
           <Button 
