@@ -28,13 +28,13 @@ declare global {
 export function setupGoogleAuth(app: Express): void {
   const PgStore = connectPgSimple(session);
 
-  // Session configuration
+  // Session configuration - table already exists from previous auth setup
   app.use(
     session({
       store: new PgStore({
         pool: pool,
-        createTableIfMissing: true,
-        errorLog: () => {}, // Suppress table already exists errors
+        createTableIfMissing: false, // Table already exists
+        tableName: "sessions",
       }),
       secret: process.env.SESSION_SECRET || "wisecx-growth-dashboard-secret-key",
       resave: false,
