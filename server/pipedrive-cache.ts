@@ -1240,20 +1240,46 @@ function aggregateProductStats(products: any[], deals: any[]) {
 
 // Get direct meetings data from cached Pipeline 9 (Reuniones) deals
 // Filters for Directo Inbound + Outbound origins
-export async function getDirectMeetingsData() {
-  // Get cached deals from pipeline 9 (last 12 weeks)
+interface DirectMeetingsFilters {
+  startDate?: string;
+  endDate?: string;
+  personId?: number;
+  countries?: string[];
+}
+
+export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
+  // Get cached deals from pipeline 9
   const cachedDeals = await db.select().from(pipedriveDeals);
   
-  const now = new Date();
-  const twelveWeeksAgo = new Date(now);
-  twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84);
+  // Date range: use filters or default to last 12 weeks
+  let startDate: Date;
+  let endDate: Date;
+  
+  if (filters?.startDate && filters?.endDate) {
+    startDate = new Date(filters.startDate);
+    endDate = new Date(filters.endDate + "T23:59:59");
+  } else {
+    endDate = new Date();
+    startDate = new Date();
+    startDate.setDate(startDate.getDate() - 84); // Default: 12 weeks
+  }
   
   // Filter to pipeline 9 deals only
   const pipeline9Deals = cachedDeals.filter(deal => {
     if (deal.pipelineId !== 9) return false;
     if (!deal.addTime) return false;
     const addDate = new Date(deal.addTime);
-    return addDate >= twelveWeeksAgo;
+    if (addDate < startDate || addDate > endDate) return false;
+    
+    // Filter by person if specified
+    if (filters?.personId && deal.userId !== filters.personId) return false;
+    
+    // Filter by countries if specified
+    if (filters?.countries && filters.countries.length > 0) {
+      if (!deal.country || !filters.countries.includes(deal.country)) return false;
+    }
+    
+    return true;
   });
   
   // Get origin field options from Pipedrive for labels

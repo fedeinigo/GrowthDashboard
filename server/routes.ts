@@ -397,7 +397,16 @@ export async function registerRoutes(
   // Get direct meetings data (Directo Inbound + Outbound)
   app.get("/api/dashboard/direct-meetings", async (req, res) => {
     try {
-      const data = await pipedriveCache.getDirectMeetingsData();
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string | undefined,
+        endDate: req.query.endDate as string | undefined,
+        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
+        countries,
+      };
+      const data = await pipedriveCache.getDirectMeetingsData(filters);
       res.json(data);
     } catch (error) {
       console.error("Error fetching direct meetings:", error);
