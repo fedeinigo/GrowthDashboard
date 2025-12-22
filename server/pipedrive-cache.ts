@@ -1271,6 +1271,17 @@ export async function getDirectMeetingsData() {
   const users = await pipedrive.getUsers();
   const userNames = new Map(users.map(u => [u.id, u.name]));
   
+  // Helper function to map country to region
+  const getCellForCountry = (countryName: string): string => {
+    const normalized = countryName.toLowerCase();
+    if (normalized === "colombia") return "Colombia";
+    if (normalized === "argentina") return "Argentina";
+    if (normalized === "mexico" || normalized === "méxico") return "Mexico";
+    if (normalized === "brasil" || normalized === "brazil") return "Brasil";
+    if (normalized === "españa" || normalized === "spain") return "España";
+    return "Rest Latam";
+  };
+  
   // Find direct origin IDs (Directo, Directo Inbound, Directo Outbound)
   const directOriginIds: string[] = [];
   originLabels.forEach((label, id) => {
