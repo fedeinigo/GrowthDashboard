@@ -61,12 +61,13 @@ export function setupGoogleAuth(app: Express): void {
   }
 
   // Determine callback URL based on environment
-  // In production (deployed), use REPLIT_DEPLOYMENT_URL
+  // In production (deployed), REPLIT_DEPLOYMENT=1 and REPLIT_DOMAINS has the domain
   // In development, use REPLIT_DEV_DOMAIN
   let baseUrl: string;
-  if (process.env.REPLIT_DEPLOYMENT_URL) {
-    // Production deployment - always use deployment URL
-    baseUrl = `https://${process.env.REPLIT_DEPLOYMENT_URL}`;
+  if (process.env.REPLIT_DEPLOYMENT === "1" && process.env.REPLIT_DOMAINS) {
+    // Production deployment - use first domain from REPLIT_DOMAINS
+    const productionDomain = process.env.REPLIT_DOMAINS.split(",")[0];
+    baseUrl = `https://${productionDomain}`;
   } else if (process.env.REPLIT_DEV_DOMAIN) {
     // Development environment
     baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN}`;
