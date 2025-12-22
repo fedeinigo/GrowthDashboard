@@ -23,12 +23,12 @@ const REGION_COLORS: Record<string, string> = {
 };
 
 const REGION_BG_COLORS: Record<string, string> = {
-  "Colombia": "bg-blue-50 border-blue-200",
-  "Argentina": "bg-emerald-50 border-emerald-200",
-  "Mexico": "bg-amber-50 border-amber-200",
-  "Brasil": "bg-red-50 border-red-200",
-  "España": "bg-violet-50 border-violet-200",
-  "Rest Latam": "bg-gray-50 border-gray-200",
+  "Colombia": "bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800",
+  "Argentina": "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800",
+  "Mexico": "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800",
+  "Brasil": "bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800",
+  "España": "bg-violet-50 dark:bg-violet-950/50 border-violet-200 dark:border-violet-800",
+  "Rest Latam": "bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700",
 };
 
 export default function Regiones() {
@@ -100,7 +100,7 @@ export default function Regiones() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border shadow-sm bg-gradient-to-br from-white to-slate-50">
+          <Card className="border shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />
@@ -146,10 +146,10 @@ export default function Regiones() {
             </CardContent>
           </Card>
 
-          <Card className="border shadow-sm bg-gradient-to-br from-white to-slate-50">
+          <Card className="border shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-emerald-600" />
+                <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <CardTitle className="text-base">Ciclo de Ventas por Region</CardTitle>
               </div>
               <CardDescription>Promedio de dias para cerrar (deals ganados)</CardDescription>
@@ -178,7 +178,7 @@ export default function Regiones() {
         </div>
 
         <Card className="border shadow-sm">
-          <CardHeader className="pb-3 border-b bg-slate-50/50">
+          <CardHeader className="pb-3 border-b bg-muted/30">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" />
               <CardTitle className="text-base">Top 5 Origenes por Region</CardTitle>
@@ -208,7 +208,7 @@ export default function Regiones() {
         </Card>
 
         <Card className="border shadow-sm">
-          <CardHeader className="pb-3 border-b bg-slate-50/50">
+          <CardHeader className="pb-3 border-b bg-muted/30">
             <CardTitle className="text-lg">Comparativo Ultimos 5 Trimestres por Region</CardTitle>
             <CardDescription>Reuniones, Logos Vendidos y USD Total</CardDescription>
           </CardHeader>
@@ -228,16 +228,16 @@ export default function Regiones() {
                     <TableHead></TableHead>
                     {quarterlyRegionComparison?.quarters?.map((q: string) => (
                       <React.Fragment key={`sub-${q}`}>
-                        <TableHead className="text-right text-xs font-medium text-blue-600 border-l">Reuniones</TableHead>
-                        <TableHead className="text-right text-xs font-medium text-amber-600">Logos</TableHead>
-                        <TableHead className="text-right text-xs font-medium text-emerald-600">USD</TableHead>
+                        <TableHead className="text-right text-xs font-medium text-blue-600 dark:text-blue-400 border-l">Reuniones</TableHead>
+                        <TableHead className="text-right text-xs font-medium text-amber-600 dark:text-amber-400">Logos</TableHead>
+                        <TableHead className="text-right text-xs font-medium text-emerald-600 dark:text-emerald-400">USD</TableHead>
                       </React.Fragment>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {quarterlyRegionComparison?.regions?.map((region: any, idx: number) => (
-                    <TableRow key={region.region} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                    <TableRow key={region.region} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
                       <TableCell className="font-semibold">
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: REGION_COLORS[region.region] || '#6b7280' }}></div>
@@ -248,7 +248,7 @@ export default function Regiones() {
                         <React.Fragment key={`${region.region}-${d.quarter}`}>
                           <TableCell className="text-right border-l tabular-nums">{d.meetings}</TableCell>
                           <TableCell className="text-right tabular-nums">{d.logos}</TableCell>
-                          <TableCell className="text-right font-medium tabular-nums text-emerald-700">${d.revenue.toLocaleString()}</TableCell>
+                          <TableCell className="text-right font-medium tabular-nums text-emerald-700 dark:text-emerald-400">${d.revenue.toLocaleString()}</TableCell>
                         </React.Fragment>
                       ))}
                     </TableRow>
@@ -260,7 +260,7 @@ export default function Regiones() {
         </Card>
 
         <Card className="border shadow-sm">
-          <CardHeader className="pb-3 border-b bg-slate-50/50">
+          <CardHeader className="pb-3 border-b bg-muted/30">
             <CardTitle className="text-lg">Metricas por Region Estrategica</CardTitle>
             <CardDescription>Analisis de conversion por celula y origen</CardDescription>
           </CardHeader>
@@ -326,10 +326,10 @@ export default function Regiones() {
                                     variant="outline" 
                                     className={
                                       (row.closings / row.meetings) >= 0.15 
-                                        ? "bg-emerald-100 text-emerald-800 border-emerald-300" 
+                                        ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700" 
                                         : (row.closings / row.meetings) >= 0.05 
-                                          ? "bg-amber-100 text-amber-800 border-amber-300"
-                                          : "bg-slate-100 text-slate-600 border-slate-300"
+                                          ? "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700"
+                                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600"
                                     }
                                   >
                                     {((row.closings / row.meetings) * 100).toFixed(1)}%
@@ -353,7 +353,7 @@ export default function Regiones() {
         </Card>
 
         <Card className="border shadow-sm">
-          <CardHeader className="pb-3 border-b bg-slate-50/50">
+          <CardHeader className="pb-3 border-b bg-muted/30">
             <CardTitle className="text-lg">Ingresos por Region Estrategica</CardTitle>
             <CardDescription>Volumen de negocio en reuniones, propuestas y cierres (USD)</CardDescription>
           </CardHeader>
