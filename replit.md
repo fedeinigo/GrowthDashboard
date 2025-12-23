@@ -11,6 +11,14 @@ UI preferences: Prioritize aesthetics, usability, and spacing. Elements should n
 
 ## Recent Changes (December 2025)
 
+### UI Enhancements (Latest)
+- **Header Redesign**: All pages now feature gradient headers with consistent visual style
+- **Improved KPI Grid**: Dashboard KPIs now use 3-column layout on large screens for better symmetry
+- **Section Titles**: Added icon-prefixed section titles for Charts and Rankings
+- **Dark Mode Polish**: Fixed badge and text colors for proper contrast in dark mode
+- **Cache Refresh Fix**: Made cache refresh asynchronous with faster polling (3s during refresh)
+- **Consistent Spacing**: Improved gap sizes across all grids and sections
+
 ### New Features Implemented
 - **Dark/Light Theme Toggle**: Elegant theme switcher with smooth animations using next-themes
 - **Responsive Design**: Auto-collapsing sidebar on mobile/tablet (<1024px), optimized grids for all screen sizes
