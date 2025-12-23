@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,11 +34,32 @@ function formatTimeAgo(date: Date): string {
 
 export function CacheStatusIndicator() {
   const queryClient = useQueryClient();
+  const [manualRefreshTriggered, setManualRefreshTriggered] = useState(false);
+  const prevIsRefreshing = useRef<boolean | undefined>(undefined);
 
   const { data: cacheStatus, isLoading } = useQuery<CacheStatus>({
     queryKey: ["/api/cache/status"],
-    refetchInterval: 30000,
+    // Poll faster (every 3s) when refresh is in progress, otherwise every 30s
+    refetchInterval: (query) => {
+      const data = query.state.data as CacheStatus | undefined;
+      return (data?.isRefreshing || manualRefreshTriggered) ? 3000 : 30000;
+    },
   });
+
+  // Reset manual trigger when refresh completes (in useEffect to avoid render loop)
+  useEffect(() => {
+    const wasRefreshing = prevIsRefreshing.current;
+    const nowRefreshing = cacheStatus?.isRefreshing;
+    
+    // Track previous state
+    prevIsRefreshing.current = nowRefreshing;
+    
+    // If refresh just finished (was true, now false), reset and invalidate
+    if (wasRefreshing === true && nowRefreshing === false && manualRefreshTriggered) {
+      setManualRefreshTriggered(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+    }
+  }, [cacheStatus?.isRefreshing, manualRefreshTriggered, queryClient]);
 
   const refreshMutation = useMutation({
     mutationFn: async () => {
@@ -46,13 +67,16 @@ export function CacheStatusIndicator() {
       if (!response.ok) throw new Error("Failed to refresh cache");
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cache/status"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+    onSuccess: (data) => {
+      // Only trigger if refresh actually started
+      if (data.success) {
+        setManualRefreshTriggered(true);
+        queryClient.invalidateQueries({ queryKey: ["/api/cache/status"] });
+      }
     },
   });
 
-  const isRefreshing = cacheStatus?.isRefreshing || refreshMutation.isPending;
+  const isRefreshing = cacheStatus?.isRefreshing || manualRefreshTriggered;
   const lastSyncAt = cacheStatus?.lastSyncAt
     ? new Date(cacheStatus.lastSyncAt)
     : null;

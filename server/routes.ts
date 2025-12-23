@@ -625,14 +625,25 @@ export async function registerRoutes(
     }
   });
 
-  // Manual cache refresh endpoint
+  // Manual cache refresh endpoint (async - responds immediately)
   app.post("/api/cache/refresh", async (req, res) => {
     try {
-      const result = await pipedriveCache.refreshCache();
-      res.json(result);
+      // Check if refresh is already in progress
+      const status = await pipedriveCache.getCacheStatus();
+      if (status.isRefreshing) {
+        return res.json({ success: false, message: "Refresh already in progress" });
+      }
+      
+      // Start refresh in background (don't await)
+      pipedriveCache.refreshCache().catch(err => {
+        console.error("[Cache] Background refresh error:", err);
+      });
+      
+      // Respond immediately
+      res.json({ success: true, message: "Refresh started" });
     } catch (error) {
-      console.error("Error refreshing cache:", error);
-      res.status(500).json({ error: "Failed to refresh cache" });
+      console.error("Error starting cache refresh:", error);
+      res.status(500).json({ error: "Failed to start cache refresh" });
     }
   });
 
