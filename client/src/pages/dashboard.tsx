@@ -187,14 +187,20 @@ export default function Dashboard() {
       <div className="space-y-4 sm:space-y-6 md:space-y-8">
         
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-          <div className="min-w-0">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-heading font-bold text-foreground tracking-tight truncate">Resumen General</h2>
-            <div className="mt-1">
-              <CacheStatusIndicator />
+        <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-primary/10 p-4 sm:p-6 border border-border/50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-heading font-bold text-foreground tracking-tight">
+                Resumen General
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1 hidden sm:block">
+                Panel de control de métricas comerciales
+              </p>
+              <div className="mt-2">
+                <CacheStatusIndicator />
+              </div>
             </div>
-          </div>
-          <div className="flex gap-2 flex-shrink-0">
+            <div className="flex gap-3 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -229,6 +235,7 @@ export default function Dashboard() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
         </div>
 
@@ -247,7 +254,7 @@ export default function Dashboard() {
                   case 'kpis':
                     return (
                       <DraggableWidget key="kpis" id="kpis">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                           <KPICard 
                             title={metrics.revenue?.label || "Revenue"} 
                             value={metrics.revenue?.value || 0} 
@@ -313,7 +320,12 @@ export default function Dashboard() {
                   case 'charts':
                     return (
                       <DraggableWidget key="charts" id="charts">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                        <div>
+                          <h3 className="text-lg sm:text-xl font-heading font-bold mb-4 flex items-center gap-2 text-foreground">
+                            <BarChart3 className="w-5 h-5 text-primary" />
+                            Análisis de Tendencias
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                           <RevenueChart 
                             data={revenueHistory} 
                             title="Evolución de Ingresos" 
@@ -357,6 +369,7 @@ export default function Dashboard() {
                             title="Distribución por Source"
                             description="Top 10 sources por cantidad de tarjetas"
                           />
+                          </div>
                         </div>
                       </DraggableWidget>
                     );
@@ -373,7 +386,10 @@ export default function Dashboard() {
                     return (
                       <DraggableWidget key="rankings" id="rankings">
                         <div>
-                          <h3 className="text-lg sm:text-xl font-heading font-bold mb-3 sm:mb-4">Rankings de Rendimiento</h3>
+                          <h3 className="text-lg sm:text-xl font-heading font-bold mb-4 flex items-center gap-2 text-foreground">
+                            <Trophy className="w-5 h-5 text-yellow-500" />
+                            Rankings de Rendimiento
+                          </h3>
                           {hasNoRankings ? (
                             <Card className="border-none shadow-sm">
                               <EmptyState
@@ -417,7 +433,7 @@ export default function Dashboard() {
                                                       {index + 1}. {item.name}
                                                       <Filter className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                                                     </span>
-                                                    <span className="text-emerald-600 font-semibold flex-shrink-0">{item.valueFormatted}</span>
+                                                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex-shrink-0">{item.valueFormatted}</span>
                                                   </div>
                                                   <Progress value={(item.value / maxValue) * 100} className="h-2" />
                                                 </div>
@@ -464,9 +480,9 @@ export default function Dashboard() {
                                                       {index + 1}. {item.name}
                                                       <Filter className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                                                     </span>
-                                                    <span className="text-emerald-600 font-semibold flex-shrink-0">{item.valueFormatted}</span>
+                                                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex-shrink-0">{item.valueFormatted}</span>
                                                   </div>
-                                                  <Progress value={(item.value / maxValue) * 100} className="h-2 bg-muted" indicatorClassName="bg-emerald-500" />
+                                                  <Progress value={(item.value / maxValue) * 100} className="h-2" />
                                                 </div>
                                               </TooltipTrigger>
                                               <TooltipContent side="top">
@@ -517,7 +533,7 @@ export default function Dashboard() {
                                                       <Filter className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                                                     </span>
                                                   </div>
-                                                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold flex-shrink-0 text-xs">
+                                                  <Badge variant="outline" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 font-semibold flex-shrink-0 text-xs">
                                                     {item.valueFormatted}
                                                   </Badge>
                                                 </div>
@@ -581,7 +597,7 @@ export default function Dashboard() {
                                         <TableCell className="text-right">{product.sold}</TableCell>
                                         <TableCell className="text-right font-medium hidden sm:table-cell">${product.revenue.toLocaleString()}</TableCell>
                                         <TableCell className="text-right pr-4 sm:pr-0">
-                                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                                          <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 text-xs">
                                             ${product.averageTicket?.toLocaleString() || '0'}
                                           </Badge>
                                         </TableCell>

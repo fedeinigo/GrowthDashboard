@@ -155,14 +155,14 @@ export default function ReunionesDirecto() {
   return (
     <Layout>
       <div className="space-y-8">
-        <div className="border-b pb-4">
+        <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-primary/10 p-4 sm:p-6 border border-border/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
+            <div className="p-2.5 bg-primary/10 rounded-xl">
               <Zap className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-3xl font-heading font-bold text-foreground tracking-tight">Reuniones Directo</h2>
-              <p className="text-muted-foreground mt-1">Analisis de deals de origen directo (Pipeline 1 - Inbound + Outbound)</p>
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold text-foreground tracking-tight">Reuniones Directo</h2>
+              <p className="text-sm text-muted-foreground mt-1">Análisis de deals de origen directo (Pipeline 1 - Inbound + Outbound)</p>
             </div>
           </div>
         </div>
