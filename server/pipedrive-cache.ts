@@ -8,11 +8,9 @@ const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 let isRefreshing = false;
 
-// Helper function to calculate deal revenue from Fee + OneShot
-function getDealRevenue(deal: { fee?: string | null; oneShot?: string | null }): number {
-  const fee = parseFloat(deal.fee || "0");
-  const oneShot = parseFloat(deal.oneShot || "0");
-  return fee + oneShot;
+// Helper function to get deal revenue (Fee Mensual only, not including One Shot)
+function getDealRevenue(deal: { fee?: string | null }): number {
+  return parseFloat(deal.fee || "0");
 }
 
 export async function getCacheStatus() {
