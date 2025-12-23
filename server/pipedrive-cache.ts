@@ -1400,9 +1400,11 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     }
   }
 
-  // Filter to pipeline 1 (Deals) only
+  // Filter to pipeline 1 (Deals) only - ONLY New Customer (exclude upsell)
   const pipeline1Deals = cachedDeals.filter(deal => {
     if (deal.pipelineId !== 1) return false;
+    // Only New Customer deals (exclude upselling)
+    if (deal.dealType !== NEW_CUSTOMER_ID) return false;
     if (!deal.addTime) return false;
     const addDate = new Date(deal.addTime);
     if (addDate < startDate || addDate > endDate) return false;
@@ -1421,11 +1423,6 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     // Filter by origins if specified
     if (filters?.origins && filters.origins.length > 0) {
       if (!deal.origin || !filters.origins.includes(deal.origin)) return false;
-    }
-    
-    // Filter by deal type if specified
-    if (filters?.dealType && filters.dealType !== 'all') {
-      if (!deal.dealType || deal.dealType !== filters.dealType) return false;
     }
     
     return true;
@@ -1475,6 +1472,11 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
   // SDR → BDR assignment tracking
   const sdrBdrMatrix: Record<string, Record<string, number>> = {};
   const sdrTotals: Record<string, number> = {};
+  
+  // Ejecutivo (owner) → SDR matrix (rows = ejecutivos, columns = SDRs)
+  const ejecutivosSdrMatrix: Record<string, Record<string, number>> = {};
+  const allSdrsSet = new Set<string>();
+  const allEjecutivosSet = new Set<string>();
   
   let totalMeetings = 0;
   let totalValue = 0;
@@ -1526,6 +1528,17 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     }
     sdrBdrMatrix[sdrName][bdrName]++;
     sdrTotals[sdrName]++;
+    
+    // Ejecutivo (owner/BDR) vs SDR matrix - rows are ejecutivos, columns are SDRs
+    allSdrsSet.add(sdrName);
+    allEjecutivosSet.add(bdrName);
+    if (!ejecutivosSdrMatrix[bdrName]) {
+      ejecutivosSdrMatrix[bdrName] = {};
+    }
+    if (!ejecutivosSdrMatrix[bdrName][sdrName]) {
+      ejecutivosSdrMatrix[bdrName][sdrName] = 0;
+    }
+    ejecutivosSdrMatrix[bdrName][sdrName]++;
     
     totalMeetings++;
     totalValue += value;
@@ -1582,6 +1595,31 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     .map(([bdr, total]) => ({ bdr, totalDeals: total }))
     .sort((a, b) => b.totalDeals - a.totalDeals);
   
+  // Format ejecutivos vs SDR table (rows = ejecutivos, columns = SDRs)
+  const allSdrs = Array.from(allSdrsSet).sort((a, b) => {
+    // Sort SDRs by total deals assigned (descending)
+    const totalA = sdrTotals[a] || 0;
+    const totalB = sdrTotals[b] || 0;
+    return totalB - totalA;
+  });
+  
+  // Calculate total deals per ejecutivo for sorting
+  const ejecutivoTotals: Record<string, number> = {};
+  Object.entries(ejecutivosSdrMatrix).forEach(([ejecutivo, sdrs]) => {
+    ejecutivoTotals[ejecutivo] = Object.values(sdrs).reduce((sum, count) => sum + count, 0);
+  });
+  
+  const ejecutivosSdrTable = Object.entries(ejecutivosSdrMatrix)
+    .map(([ejecutivo, sdrs]) => ({
+      ejecutivo,
+      total: ejecutivoTotals[ejecutivo],
+      sdrs: allSdrs.map(sdr => ({
+        sdr,
+        count: sdrs[sdr] || 0,
+      })),
+    }))
+    .sort((a, b) => b.total - a.total);
+  
   return {
     weeklyMeetings,
     byPerson: personList,
@@ -1589,6 +1627,10 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     sdrBdrAssignment,
     sdrSummary,
     bdrSummary,
+    ejecutivosSdrTable: {
+      sdrs: allSdrs,
+      rows: ejecutivosSdrTable,
+    },
     totals: {
       meetings: totalMeetings,
       value: Math.round(totalValue),

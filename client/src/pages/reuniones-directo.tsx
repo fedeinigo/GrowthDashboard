@@ -28,6 +28,10 @@ interface DirectMeetingsData {
   sdrBdrAssignment: Array<{ sdr: string; bdr: string; deals: number; percentage: number }>;
   sdrSummary: Array<{ sdr: string; totalDeals: number }>;
   bdrSummary: Array<{ bdr: string; totalDeals: number }>;
+  ejecutivosSdrTable: {
+    sdrs: string[];
+    rows: Array<{ ejecutivo: string; total: number; sdrs: Array<{ sdr: string; count: number }> }>;
+  };
   totals: { meetings: number; value: number; avgTicket: number };
 }
 
@@ -135,6 +139,7 @@ export default function ReunionesDirecto() {
   const sdrBdrAssignment = data?.sdrBdrAssignment || [];
   const sdrSummary = data?.sdrSummary || [];
   const bdrSummary = data?.bdrSummary || [];
+  const ejecutivosSdrTable = data?.ejecutivosSdrTable || { sdrs: [], rows: [] };
   const totals = data?.totals || { meetings: 0, value: 0, avgTicket: 0 };
 
   const groupedBySdr: Record<string, Array<{ bdr: string; deals: number; percentage: number }>> = {};
