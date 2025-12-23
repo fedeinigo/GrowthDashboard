@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Users, Building2, Save, UserPlus, X, Plus } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { ArrowLeft, Users, Building2, Save, UserPlus, X, Plus, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Team {
   id: number;
@@ -75,6 +77,7 @@ export default function Settings() {
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
   const [addingPerson, setAddingPerson] = useState<number | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<string>("");
+  const [personPopoverOpen, setPersonPopoverOpen] = useState(false);
   const [showNewTeamForm, setShowNewTeamForm] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDisplayName, setNewTeamDisplayName] = useState("");
@@ -245,18 +248,50 @@ export default function Settings() {
 
                     {isAddingToThisTeam ? (
                       <div className="space-y-2 mt-3 pt-3 border-t">
-                        <Select value={selectedPerson} onValueChange={setSelectedPerson}>
-                          <SelectTrigger data-testid={`select-person-${team.id}`}>
-                            <SelectValue placeholder="Seleccionar persona..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getAvailableUsers().map(user => (
-                              <SelectItem key={user.id} value={user.id.toString()}>
-                                {user.displayName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={personPopoverOpen} onOpenChange={setPersonPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={personPopoverOpen}
+                              className="w-full justify-between"
+                              data-testid={`select-person-${team.id}`}
+                            >
+                              {selectedPerson
+                                ? pipedriveUsers.find(u => u.id.toString() === selectedPerson)?.displayName
+                                : "Buscar persona..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[280px] p-0">
+                            <Command>
+                              <CommandInput placeholder="Escribir para buscar..." />
+                              <CommandList>
+                                <CommandEmpty>No se encontraron personas.</CommandEmpty>
+                                <CommandGroup>
+                                  {getAvailableUsers().map(user => (
+                                    <CommandItem
+                                      key={user.id}
+                                      value={user.displayName}
+                                      onSelect={() => {
+                                        setSelectedPerson(user.id.toString());
+                                        setPersonPopoverOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          selectedPerson === user.id.toString() ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      {user.displayName}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <div className="flex gap-2">
                           <Button 
                             size="sm" 
@@ -270,7 +305,7 @@ export default function Settings() {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => { setAddingPerson(null); setSelectedPerson(""); }}
+                            onClick={() => { setAddingPerson(null); setSelectedPerson(""); setPersonPopoverOpen(false); }}
                             data-testid={`button-cancel-add-${team.id}`}
                           >
                             Cancelar
