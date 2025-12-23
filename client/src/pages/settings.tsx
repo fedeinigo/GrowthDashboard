@@ -173,8 +173,8 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4">
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b px-6 py-4">
         <div className="flex items-center gap-4">
           <Link href="/">
             <Button variant="ghost" size="sm" data-testid="button-back-dashboard">
@@ -183,19 +183,19 @@ export default function Settings() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
-            <p className="text-gray-500 text-sm">Gestiona equipos y asignación de personas</p>
+            <h1 className="text-2xl font-bold text-foreground">Configuración</h1>
+            <p className="text-muted-foreground text-sm">Gestiona equipos y asignación de personas</p>
           </div>
         </div>
       </header>
 
       <main className="p-6 max-w-6xl mx-auto">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Building2 className="h-5 w-5" />
             Equipos y Personas
           </h2>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Asigna personas de Pipedrive a los equipos internos para filtrar correctamente los datos del dashboard.
           </p>
         </div>
@@ -210,10 +210,10 @@ export default function Settings() {
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center justify-between">
                     <span className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-purple-600" />
+                      <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                       {team.displayName}
                     </span>
-                    <span className="text-sm font-normal text-gray-500">
+                    <span className="text-sm font-normal text-muted-foreground">
                       {members.length} miembros
                     </span>
                   </CardTitle>
@@ -223,10 +223,10 @@ export default function Settings() {
                     {members.map(member => (
                       <div 
                         key={member.id} 
-                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                        className="flex items-center justify-between p-2 bg-muted rounded-lg"
                         data-testid={`row-member-${member.id}`}
                       >
-                        <span className="text-sm">{member.displayName}</span>
+                        <span className="text-sm text-foreground">{member.displayName}</span>
                         <Button 
                           variant="ghost" 
                           size="sm"
@@ -234,13 +234,13 @@ export default function Settings() {
                           disabled={removePersonMutation.isPending}
                           data-testid={`button-remove-${member.id}`}
                         >
-                          <X className="h-3 w-3 text-gray-400 hover:text-red-500" />
+                          <X className="h-3 w-3 text-muted-foreground hover:text-red-500" />
                         </Button>
                       </div>
                     ))}
 
                     {members.length === 0 && !isAddingToThisTeam && (
-                      <p className="text-sm text-gray-400 text-center py-2">Sin miembros asignados</p>
+                      <p className="text-sm text-muted-foreground text-center py-2">Sin miembros asignados</p>
                     )}
 
                     {isAddingToThisTeam ? (
@@ -298,7 +298,7 @@ export default function Settings() {
           {/* Card para crear nuevo equipo */}
           <Card className="border-dashed border-2" data-testid="card-new-team">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-gray-600">
+              <CardTitle className="flex items-center gap-2 text-muted-foreground">
                 <Plus className="h-4 w-4" />
                 Nuevo Equipo
               </CardTitle>
@@ -320,7 +320,7 @@ export default function Settings() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="teamName" className="text-xs text-gray-500">ID interno (generado automáticamente)</Label>
+                    <Label htmlFor="teamName" className="text-xs text-muted-foreground">ID interno (generado automáticamente)</Label>
                     <Input
                       id="teamName"
                       value={newTeamName}
@@ -369,7 +369,7 @@ export default function Settings() {
         </div>
 
         {teamsQuery.isLoading && (
-          <div className="text-center py-12 text-gray-500">Cargando equipos...</div>
+          <div className="text-center py-12 text-muted-foreground">Cargando equipos...</div>
         )}
       </main>
     </div>
