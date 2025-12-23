@@ -514,6 +514,68 @@ export default function ReunionesDirecto() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Tabla Ejecutivos vs SDR */}
+        {ejecutivosSdrTable.rows.length > 0 && (
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-3 border-b bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                <div>
+                  <CardTitle className="text-base">Ejecutivos vs SDR - Reuniones Agendadas</CardTitle>
+                  <CardDescription>Cantidad de reuniones que cada SDR agendó para cada ejecutivo (solo New Customer)</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/30">
+                      <TableHead className="font-semibold sticky left-0 bg-muted/30 z-10 min-w-[160px]">Ejecutivo</TableHead>
+                      <TableHead className="text-center font-semibold min-w-[80px]">Total</TableHead>
+                      {ejecutivosSdrTable.sdrs.map(sdr => (
+                        <TableHead key={sdr} className="text-center font-semibold min-w-[100px] text-xs">
+                          {sdr}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {ejecutivosSdrTable.rows.map((row, idx) => (
+                      <TableRow key={row.ejecutivo} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
+                        <TableCell className="font-medium sticky left-0 bg-inherit z-10">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                              {idx + 1}
+                            </div>
+                            <span className="truncate max-w-[120px]" title={row.ejecutivo}>{row.ejecutivo}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="secondary" className="font-bold tabular-nums">
+                            {row.total}
+                          </Badge>
+                        </TableCell>
+                        {row.sdrs.map(sdrData => (
+                          <TableCell key={sdrData.sdr} className="text-center tabular-nums">
+                            {sdrData.count > 0 ? (
+                              <span className={sdrData.count >= 5 ? 'font-bold text-primary' : sdrData.count >= 2 ? 'font-medium' : 'text-muted-foreground'}>
+                                {sdrData.count}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground/40">-</span>
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </Layout>
   );
