@@ -5,12 +5,18 @@ import * as pipedrive from "./pipedrive";
 
 const CACHE_KEY = "pipedrive_deals";
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const PIPELINE_DEALS = 1; // Only use Pipeline 1 (Deals) for all metrics
 
 let isRefreshing = false;
 
 // Helper function to get deal revenue (using Pipedrive value field)
 function getDealRevenue(deal: { value?: string | null }): number {
   return parseFloat(deal.value || "0");
+}
+
+// Helper function to filter deals by Pipeline 1 only
+function filterByPipeline1(deal: { pipelineId?: number | null }): boolean {
+  return deal.pipelineId === PIPELINE_DEALS;
 }
 
 export async function getCacheStatus() {
@@ -303,6 +309,7 @@ export async function getCachedConversionFunnel(filters: DashboardFilters) {
   }
 
   const ncDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     if (deal.dealType !== "13") return false;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
@@ -411,6 +418,7 @@ export async function getCachedDashboardMetrics(filters: DashboardFilters) {
   }
 
   const filteredDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     if (filters.dealType && deal.dealType !== filters.dealType) return false;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
@@ -493,6 +501,7 @@ export async function getCachedRevenueHistory(filters: DashboardFilters) {
   }
 
   const filteredDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     if (filters.dealType && deal.dealType !== filters.dealType) return false;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
@@ -532,6 +541,7 @@ export async function getCachedMeetingsHistory(filters: DashboardFilters) {
   }
 
   const filteredDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
     if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
@@ -570,6 +580,7 @@ export async function getCachedClosureRate(filters: DashboardFilters) {
   }
 
   const filteredDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
     if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
@@ -631,6 +642,7 @@ export async function getCachedRegionalData(filters: DashboardFilters) {
   const cellOriginData: Record<string, Record<string, CellOriginData>> = {};
 
   allDeals.forEach(deal => {
+    if (!filterByPipeline1(deal)) return; // Only Pipeline 1
     if (filters.dealType && deal.dealType !== filters.dealType) return;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return;
     if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
@@ -707,6 +719,7 @@ export async function getCachedRankingsByUser(filters: DashboardFilters) {
   const userData: Record<number, { closings: number; revenue: number }> = {};
 
   allDeals.forEach(deal => {
+    if (!filterByPipeline1(deal)) return; // Only Pipeline 1
     if (filters.dealType && deal.dealType !== filters.dealType) return;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return;
@@ -765,6 +778,7 @@ export async function getCachedRankingsByTeam(filters: DashboardFilters) {
   });
 
   allDeals.forEach(deal => {
+    if (!filterByPipeline1(deal)) return; // Only Pipeline 1
     if (filters.dealType && deal.dealType !== filters.dealType) return;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return;
@@ -810,6 +824,7 @@ export async function getCachedRankingsBySource(filters: DashboardFilters) {
   const sourceRevenue: Record<string, number> = {};
 
   allDeals.forEach(deal => {
+    if (!filterByPipeline1(deal)) return; // Only Pipeline 1
     if (filters.dealType && deal.dealType !== filters.dealType) return;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return;
@@ -860,6 +875,7 @@ export async function getCachedProductStats(filters: DashboardFilters) {
   
   // Filter deals
   const filteredDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     if (filters.dealType && deal.dealType !== filters.dealType) return false;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
@@ -950,6 +966,7 @@ export async function getCachedEmployeeCountDistribution(filters: {
   
   // Filter deals based on criteria
   let filteredDeals = cachedDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     // Date filter - only include deals with add_time in the date range (meetings/cards)
     if (filters.startDate && deal.addTime) {
       const addDate = new Date(deal.addTime);
@@ -1040,6 +1057,7 @@ export async function getNCMeetingsLast10Weeks() {
   tenWeeksAgo.setDate(tenWeeksAgo.getDate() - 70);
   
   const filteredDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     const addTime = deal.addTime ? new Date(deal.addTime) : null;
     if (!addTime) return false;
     return addTime >= tenWeeksAgo;
@@ -1117,6 +1135,7 @@ export async function getQuarterlyRegionComparison() {
   });
 
   allDeals.forEach(deal => {
+    if (!filterByPipeline1(deal)) return; // Only Pipeline 1
     const countryName = countryLabels.get(deal.country || "") || "Unknown";
     const region = getCellForCountry(countryName);
     
@@ -1182,6 +1201,7 @@ export async function getTopOriginsByRegion() {
   regions.forEach(r => { data[r] = {}; });
 
   allDeals.forEach(deal => {
+    if (!filterByPipeline1(deal)) return; // Only Pipeline 1
     const countryName = countryLabels.get(deal.country || "") || "Unknown";
     const region = getCellForCountry(countryName);
     const originName = originLabels.get(deal.origin || "") || "Directo";
@@ -1226,6 +1246,7 @@ export async function getSalesCycleByRegion() {
   regions.forEach(r => { data[r] = { totalDays: 0, count: 0 }; });
 
   allDeals.forEach(deal => {
+    if (!filterByPipeline1(deal)) return; // Only Pipeline 1
     if (!deal.salesCycleDays || deal.salesCycleDays <= 0) return;
     
     const countryName = countryLabels.get(deal.country || "") || "Unknown";
@@ -1263,6 +1284,7 @@ export async function getSourceDistribution(filters?: DashboardFilters) {
   
   // Filter deals based on criteria
   let filteredDeals = cachedDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     if (filters?.startDate && deal.addTime) {
       const addDate = new Date(deal.addTime);
       if (addDate < new Date(filters.startDate)) return false;
@@ -1597,6 +1619,7 @@ export async function getCachedLossReasons(filters: DashboardFilters): Promise<{
   }
 
   const lostDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     if (deal.status !== "lost") return false;
     if (filters.dealType && deal.dealType !== filters.dealType) return false;
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
@@ -1693,6 +1716,7 @@ export async function getCachedDealsForModal(filters: DealsModalFilters): Promis
   }
 
   const filteredDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
     if (filters.status) {
       if (filters.status === "closed") {
         if (deal.status !== "won" && deal.status !== "lost") return false;
