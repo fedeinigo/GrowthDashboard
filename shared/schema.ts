@@ -133,6 +133,9 @@ export const pipedriveDeals = pgTable("pipedrive_deals", {
   origin: text("origin"), // Origin ID
   employeeCount: text("employee_count"), // Q de empleados field
   sourceField: text("source_field"), // Source field (552c1914dddd36582917f20f82b71c475bfbd132)
+  // Revenue fields - Fee and OneShot
+  fee: decimal("fee", { precision: 12, scale: 2 }), // Fee Mensual (5cc64655a798c1cff20311078bc3f87c6296446f)
+  oneShot: decimal("one_shot", { precision: 12, scale: 2 }), // One Shot (d407a602c81a6a2b1bd2c5b917183ee27016024a)
   // Calculated fields for faster queries
   salesCycleDays: integer("sales_cycle_days"),
   cachedAt: timestamp("cached_at").defaultNow().notNull(),
