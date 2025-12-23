@@ -8,6 +8,13 @@ const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 let isRefreshing = false;
 
+// Helper function to calculate deal revenue from Fee + OneShot
+function getDealRevenue(deal: { fee?: string | null; oneShot?: string | null }): number {
+  const fee = parseFloat(deal.fee || "0");
+  const oneShot = parseFloat(deal.oneShot || "0");
+  return fee + oneShot;
+}
+
 export async function getCacheStatus() {
   try {
     const [metadata] = await db
@@ -100,6 +107,8 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
     const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
     const EMPLOYEE_COUNT_FIELD_KEY = "f488b70aa96b8a83c49fa816f926c82f4a9a9ab4";
     const SOURCE_FIELD_KEY = "552c1914dddd36582917f20f82b71c475bfbd132";
+    const FEE_MENSUAL_FIELD_KEY = "5cc64655a798c1cff20311078bc3f87c6296446f";
+    const ONE_SHOT_FIELD_KEY = "d407a602c81a6a2b1bd2c5b917183ee27016024a";
 
     const dedupeMap = new Map<number, any>();
     deals.forEach(deal => {
@@ -146,6 +155,8 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
         origin: (deal as any)[ORIGEN_FIELD_KEY]?.toString() || null,
         employeeCount: (deal as any)[EMPLOYEE_COUNT_FIELD_KEY]?.toString() || null,
         sourceField: (deal as any)[SOURCE_FIELD_KEY]?.toString() || null,
+        fee: (deal as any)[FEE_MENSUAL_FIELD_KEY]?.toString() || null,
+        oneShot: (deal as any)[ONE_SHOT_FIELD_KEY]?.toString() || null,
         salesCycleDays,
         cachedAt: new Date(),
       };
@@ -442,7 +453,7 @@ export async function getCachedDashboardMetrics(filters: DashboardFilters) {
   
   const closureRate = ncClosed.length > 0 ? (ncWon.length / ncClosed.length) * 100 : 0;
 
-  const totalRevenue = wonDeals.reduce((sum, d) => sum + parseFloat(d.value || "0"), 0);
+  const totalRevenue = wonDeals.reduce((sum, d) => sum + getDealRevenue(d), 0);
   const logosWon = ncWonDeals.length;
   const meetings = ncCreated.length;
   const avgTicket = wonDeals.length > 0 ? totalRevenue / wonDeals.length : 0;
@@ -500,7 +511,7 @@ export async function getCachedRevenueHistory(filters: DashboardFilters) {
   filteredDeals.forEach(deal => {
     const wonTime = new Date(deal.wonTime!);
     const weekKey = getWeekKey(wonTime);
-    weeklyData[weekKey] = (weeklyData[weekKey] || 0) + parseFloat(deal.value || "0");
+    weeklyData[weekKey] = (weeklyData[weekKey] || 0) + getDealRevenue(deal);
   });
 
   return Object.entries(weeklyData)
@@ -641,7 +652,7 @@ export async function getCachedRegionalData(filters: DashboardFilters) {
     
     const addTime = deal.addTime ? new Date(deal.addTime) : null;
     const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
-    const value = parseFloat(deal.value || "0");
+    const value = getDealRevenue(deal);
 
     if (deal.dealType === NEW_CUSTOMER_ID && addTime) {
       if ((!startDate || addTime >= startDate) && (!endDate || addTime <= endDate)) {
@@ -716,7 +727,7 @@ export async function getCachedRankingsByUser(filters: DashboardFilters) {
     }
     
     userData[userId].closings++;
-    userData[userId].revenue += parseFloat(deal.value || "0");
+    userData[userId].revenue += getDealRevenue(deal);
   });
 
   const users = await pipedrive.getUsers();
@@ -771,7 +782,7 @@ export async function getCachedRankingsByTeam(filters: DashboardFilters) {
     const teamId = userIdToTeamId.get(userId);
     if (!teamId) return;
     
-    teamRevenue[teamId] += parseFloat(deal.value || "0");
+    teamRevenue[teamId] += getDealRevenue(deal);
   });
 
   const teamMap = new Map(allTeams.map(t => [t.id, t.displayName]));
@@ -817,7 +828,7 @@ export async function getCachedRankingsBySource(filters: DashboardFilters) {
     if (!sourceRevenue[origin]) {
       sourceRevenue[origin] = 0;
     }
-    sourceRevenue[origin] += parseFloat(deal.value || "0");
+    sourceRevenue[origin] += getDealRevenue(deal);
   });
 
   const dealFields = await pipedrive.getDealFields();
@@ -1126,7 +1137,7 @@ export async function getQuarterlyRegionComparison() {
       const quarterKey = getQuarterKey(wonTime);
       if (data[region]?.[quarterKey]) {
         data[region][quarterKey].logos++;
-        data[region][quarterKey].revenue += parseFloat(deal.value || "0");
+        data[region][quarterKey].revenue += getDealRevenue(deal);
       }
     }
   });
@@ -1180,7 +1191,7 @@ export async function getTopOriginsByRegion() {
     if (!data[region][originName]) {
       data[region][originName] = 0;
     }
-    data[region][originName] += parseFloat(deal.value || "0");
+    data[region][originName] += getDealRevenue(deal);
   });
 
   return regions.map(region => ({
@@ -1453,7 +1464,7 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     const year = addDate.getFullYear();
     const week = getWeekNumber(addDate);
     const weekKey = `${year}-W${week.toString().padStart(2, '0')}`;
-    const value = parseFloat(deal.value || "0") || 0;
+    const value = getDealRevenue(deal);
     
     // Weekly aggregation
     if (!weeklyData[weekKey]) {
@@ -1756,7 +1767,7 @@ export async function getCachedDealsForModal(filters: DealsModalFilters): Promis
   return limitedDeals.map(deal => ({
     id: deal.id,
     title: deal.title || "Sin título",
-    value: parseFloat(deal.value || "0"),
+    value: getDealRevenue(deal),
     currency: deal.currency || "USD",
     status: deal.status || "open",
     personName: deal.userId ? (userMap.get(deal.userId) || "Desconocido") : "Sin asignar",
