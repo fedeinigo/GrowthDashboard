@@ -57,6 +57,7 @@ export default function Regiones() {
         delete cleanedFilters[key];
       }
     });
+    console.log("Regiones filters updated:", cleanedFilters);
     setFilters(cleanedFilters);
   };
 

@@ -1174,8 +1174,15 @@ export async function getNCMeetingsLast10Weeks() {
 }
 
 // Get quarterly comparison by region (last 5 quarters)
-export async function getQuarterlyRegionComparison() {
+export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals);
+  
+  let allowedUserIds: number[] | null = null;
+  if (filters?.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters?.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
   
   const dealFields = await pipedrive.getDealFields();
   const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
@@ -1221,6 +1228,11 @@ export async function getQuarterlyRegionComparison() {
 
   allDeals.forEach(deal => {
     if (!filterByPipeline1(deal)) return; // Only Pipeline 1
+    if (filters?.dealType && deal.dealType !== filters.dealType) return;
+    if (filters?.origins?.length && !filters.origins.includes(deal.origin || "")) return;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
+    if (filters?.countries?.length && !filters.countries.includes(deal.country || "")) return;
+    
     const countryName = countryLabels.get(deal.country || "") || "Unknown";
     const region = getCellForCountry(countryName);
     
@@ -1259,9 +1271,19 @@ export async function getQuarterlyRegionComparison() {
 }
 
 // Get top origins by region
-export async function getTopOriginsByRegion() {
+export async function getTopOriginsByRegion(filters?: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals)
     .where(eq(pipedriveDeals.status, "won"));
+  
+  let allowedUserIds: number[] | null = null;
+  if (filters?.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters?.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+  
+  const startDate = filters?.startDate ? new Date(filters.startDate) : null;
+  const endDate = filters?.endDate ? new Date(filters.endDate + "T23:59:59") : null;
   
   const dealFields = await pipedrive.getDealFields();
   const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
@@ -1287,6 +1309,18 @@ export async function getTopOriginsByRegion() {
 
   allDeals.forEach(deal => {
     if (!filterByPipeline1(deal)) return; // Only Pipeline 1
+    if (filters?.dealType && deal.dealType !== filters.dealType) return;
+    if (filters?.origins?.length && !filters.origins.includes(deal.origin || "")) return;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
+    if (filters?.countries?.length && !filters.countries.includes(deal.country || "")) return;
+    
+    // Filter by won date
+    const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+    if (wonTime) {
+      if (startDate && wonTime < startDate) return;
+      if (endDate && wonTime > endDate) return;
+    }
+    
     const countryName = countryLabels.get(deal.country || "") || "Unknown";
     const region = getCellForCountry(countryName);
     const originName = originLabels.get(deal.origin || "") || "Directo";
@@ -1307,9 +1341,19 @@ export async function getTopOriginsByRegion() {
 }
 
 // Get sales cycle by region
-export async function getSalesCycleByRegion() {
+export async function getSalesCycleByRegion(filters?: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals)
     .where(eq(pipedriveDeals.status, "won"));
+  
+  let allowedUserIds: number[] | null = null;
+  if (filters?.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters?.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+  
+  const startDate = filters?.startDate ? new Date(filters.startDate) : null;
+  const endDate = filters?.endDate ? new Date(filters.endDate + "T23:59:59") : null;
   
   const dealFields = await pipedrive.getDealFields();
   const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
@@ -1333,6 +1377,17 @@ export async function getSalesCycleByRegion() {
   allDeals.forEach(deal => {
     if (!filterByPipeline1(deal)) return; // Only Pipeline 1
     if (!deal.salesCycleDays || deal.salesCycleDays <= 0) return;
+    if (filters?.dealType && deal.dealType !== filters.dealType) return;
+    if (filters?.origins?.length && !filters.origins.includes(deal.origin || "")) return;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
+    if (filters?.countries?.length && !filters.countries.includes(deal.country || "")) return;
+    
+    // Filter by won date
+    const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+    if (wonTime) {
+      if (startDate && wonTime < startDate) return;
+      if (endDate && wonTime > endDate) return;
+    }
     
     const countryName = countryLabels.get(deal.country || "") || "Unknown";
     const region = getCellForCountry(countryName);
