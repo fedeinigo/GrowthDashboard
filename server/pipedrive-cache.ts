@@ -1483,8 +1483,17 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
   const allSdrsSet = new Set<string>();
   const allEjecutivosSet = new Set<string>();
   
+  // Stage IDs for Pipeline 1
+  const PROPOSAL_MADE_STAGE = 4;
+  const CURRENT_SPRINT_STAGE = 30;
+  const BLOCKED_STAGE = 64;
+  const PROPOSAL_OR_LATER_STAGES = [PROPOSAL_MADE_STAGE, BLOCKED_STAGE, CURRENT_SPRINT_STAGE];
+  
   let totalMeetings = 0;
-  let totalValue = 0;
+  let totalValueProposalOrLater = 0;  // Valor Total: deals at Proposal Made or later
+  let totalValueWon = 0;              // For avgTicket: only won deals
+  let wonDealsCount = 0;              // Count of won deals
+  let funnelActualValue = 0;          // Funnel Actual: deals at Proposal Made or Current Sprint (active)
   
   directDeals.forEach(deal => {
     const addDate = new Date(deal.addTime!);
@@ -1546,7 +1555,25 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     ejecutivosSdrMatrix[bdrName][sdrName]++;
     
     totalMeetings++;
-    totalValue += value;
+    
+    // Valor Total: only deals at Proposal Made or later stages, or won
+    const isAtProposalOrLater = PROPOSAL_OR_LATER_STAGES.includes(deal.stageId || 0) || deal.status === "won";
+    if (isAtProposalOrLater) {
+      totalValueProposalOrLater += value;
+    }
+    
+    // Ticket Promedio: only won deals
+    if (deal.status === "won") {
+      totalValueWon += value;
+      wonDealsCount++;
+    }
+    
+    // Funnel Actual: deals currently at Proposal Made or Current Sprint (active, not won/lost)
+    const isInActiveFunnel = deal.status === "open" && 
+      (deal.stageId === PROPOSAL_MADE_STAGE || deal.stageId === CURRENT_SPRINT_STAGE);
+    if (isInActiveFunnel) {
+      funnelActualValue += value;
+    }
   });
   
   // Format weekly data
@@ -1638,8 +1665,9 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     },
     totals: {
       meetings: totalMeetings,
-      value: Math.round(totalValue),
-      avgTicket: totalMeetings > 0 ? Math.round(totalValue / totalMeetings) : 0,
+      value: Math.round(totalValueProposalOrLater),
+      avgTicket: wonDealsCount > 0 ? Math.round(totalValueWon / wonDealsCount) : 0,
+      funnelActual: Math.round(funnelActualValue),
     },
   };
 }
