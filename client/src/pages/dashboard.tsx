@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { KPICard } from "@/components/kpi-card";
-import { RevenueChart, MeetingsChart, ClosureChart, CompanySizeChart } from "@/components/charts";
+import { RevenueChart, MeetingsChart, ClosureChart, CompanySizeChart, StackedRevenueChart } from "@/components/charts";
 import { DashboardFilters } from "@/components/dashboard-filters";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { EmptyState } from "@/components/empty-state";
@@ -98,6 +98,7 @@ export default function Dashboard() {
   const { 
     metrics,
     revenueHistory,
+    monthlyRevenueByType,
     meetingsHistory, 
     closureRateHistory, 
     products,
@@ -380,6 +381,11 @@ export default function Dashboard() {
                               </div>
                             </CardContent>
                           </Card>
+                          <StackedRevenueChart 
+                            data={monthlyRevenueByType}
+                            title="Evolución Mensual por Tipo"
+                            description="Revenue: New Customers vs Upselling (últimos 13 meses)"
+                          />
                           <CompanySizeChart 
                             data={companySizes}
                             title="Tamaño de Empresas"

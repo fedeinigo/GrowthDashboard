@@ -34,6 +34,24 @@ export async function fetchRevenueHistory(filters?: any) {
   return res.json();
 }
 
+export async function fetchMonthlyRevenueByType(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
+  if (filters?.regionId) params.append('regionId', filters.regionId);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
+
+  const query = params.toString();
+  const url = `/api/dashboard/monthly-revenue-by-type${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch monthly revenue by type');
+  return res.json();
+}
+
 export async function fetchMeetingsHistory(filters?: any) {
   const params = new URLSearchParams();
   if (filters?.teamId) params.append('teamId', filters.teamId);

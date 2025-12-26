@@ -72,6 +72,34 @@ export async function registerRoutes(
     }
   });
 
+  // Get monthly revenue by type (NC vs Upselling) - 13 months
+  app.get("/api/dashboard/monthly-revenue-by-type", isAuthenticated, requireWisecxDomain, async (req, res) => {
+    try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
+      };
+      
+      const history = await pipedriveCache.getCachedMonthlyRevenueByType(filters);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching monthly revenue by type:", error);
+      res.status(500).json({ error: "Failed to fetch monthly revenue by type" });
+    }
+  });
+
   // Get meetings history from cache
   app.get("/api/dashboard/meetings-history", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {

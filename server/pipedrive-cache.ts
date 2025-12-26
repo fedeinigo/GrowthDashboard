@@ -545,6 +545,72 @@ export async function getCachedRevenueHistory(filters: DashboardFilters) {
     .sort((a, b) => a.week.localeCompare(b.week));
 }
 
+function getMonthKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
+export async function getCachedMonthlyRevenueByType(filters: DashboardFilters) {
+  const allDeals = await db.select().from(pipedriveDeals).where(eq(pipedriveDeals.status, "won"));
+  
+  // Calculate 13 months range (current month + 12 previous)
+  const now = new Date();
+  const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  const startOf13MonthsAgo = new Date(now.getFullYear(), now.getMonth() - 12, 1);
+
+  let allowedUserIds: number[] | null = null;
+  if (filters.personId) {
+    allowedUserIds = [filters.personId];
+  } else if (filters.teamId) {
+    allowedUserIds = await getUserIdsForTeam(filters.teamId);
+  }
+
+  const filteredDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false;
+    if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
+    if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
+    if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
+    const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+    if (!wonTime) return false;
+    if (wonTime < startOf13MonthsAgo) return false;
+    if (wonTime > endOfCurrentMonth) return false;
+    return true;
+  });
+
+  // Build monthly data with NC and Upselling
+  const monthlyData: Record<string, { newCustomers: number; upselling: number }> = {};
+  
+  // Initialize all 13 months
+  for (let i = 12; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthKey = getMonthKey(d);
+    monthlyData[monthKey] = { newCustomers: 0, upselling: 0 };
+  }
+  
+  filteredDeals.forEach(deal => {
+    const wonTime = new Date(deal.wonTime!);
+    const monthKey = getMonthKey(wonTime);
+    if (monthlyData[monthKey]) {
+      const revenue = getDealRevenue(deal);
+      if (deal.dealType === NEW_CUSTOMER_ID) {
+        monthlyData[monthKey].newCustomers += revenue;
+      } else if (deal.dealType === UPSELLING_ID) {
+        monthlyData[monthKey].upselling += revenue;
+      }
+    }
+  });
+
+  return Object.entries(monthlyData)
+    .map(([month, data]) => ({ 
+      month, 
+      newCustomers: Math.round(data.newCustomers), 
+      upselling: Math.round(data.upselling),
+      total: Math.round(data.newCustomers + data.upselling)
+    }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+}
+
 export async function getCachedMeetingsHistory(filters: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals)
     .where(eq(pipedriveDeals.dealType, NEW_CUSTOMER_ID));

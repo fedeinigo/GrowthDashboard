@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchDashboardMetrics,
   fetchRevenueHistory,
+  fetchMonthlyRevenueByType,
   fetchMeetingsHistory,
   fetchClosureRateHistory,
   fetchProductStats,
@@ -39,6 +40,11 @@ export function useDashboardData(filters?: any) {
   const revenueHistory = useQuery({
     queryKey: ['revenue-history', apiFilters],
     queryFn: () => fetchRevenueHistory(apiFilters),
+  });
+
+  const monthlyRevenueByType = useQuery({
+    queryKey: ['monthly-revenue-by-type', apiFilters],
+    queryFn: () => fetchMonthlyRevenueByType(apiFilters),
   });
 
   const meetingsHistory = useQuery({
@@ -267,6 +273,7 @@ export function useDashboardData(filters?: any) {
   return {
     metrics: transformedMetrics,
     revenueHistory: transformedRevenueHistory,
+    monthlyRevenueByType: monthlyRevenueByType.data || [],
     meetingsHistory: transformedMeetingsHistory,
     closureRateHistory: closureRateHistory.data || {},
     products: productStats.data || [],

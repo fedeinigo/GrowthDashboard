@@ -7,6 +7,7 @@ import {
   CartesianGrid,
   Cell,
   LabelList,
+  Legend,
   Line,
   LineChart,
   Pie,
@@ -156,6 +157,97 @@ export function RevenueChart({ data, title, description, color = "hsl(var(--prim
                 activeDot={{ r: 6, strokeWidth: 0 }}
               />
             </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface StackedRevenueChartProps {
+  data: { month: string; newCustomers: number; upselling: number; total: number }[];
+  title: string;
+  description?: string;
+}
+
+export function StackedRevenueChart({ data, title, description }: StackedRevenueChartProps) {
+  // Format month labels (e.g., "2024-01" -> "Ene 24")
+  const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const formattedData = data.map(d => {
+    const [year, month] = d.month.split('-');
+    const monthLabel = `${monthNames[parseInt(month) - 1]} ${year.slice(2)}`;
+    return { ...d, monthLabel };
+  });
+
+  return (
+    <Card className="col-span-4 md:col-span-2 border-none shadow-sm hover:shadow-md transition-shadow">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">{title}</CardTitle>
+        {description && <CardDescription className="text-xs">{description}</CardDescription>}
+      </CardHeader>
+      <CardContent className="pl-2">
+        <div className="h-[280px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={formattedData} margin={{ top: 20, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <XAxis 
+                dataKey="monthLabel" 
+                stroke="hsl(var(--muted-foreground))" 
+                fontSize={10} 
+                tickLine={false} 
+                axisLine={false}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={50}
+              />
+              <YAxis 
+                stroke="hsl(var(--muted-foreground))" 
+                fontSize={10} 
+                tickLine={false} 
+                axisLine={false}
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+              />
+              <Tooltip 
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-popover border border-border p-3 rounded-lg shadow-lg text-sm">
+                        <p className="font-semibold text-foreground mb-1">{label}</p>
+                        {payload.map((entry: any, index: number) => (
+                          <p key={index} style={{ color: entry.color }} className="font-medium">
+                            {entry.name}: ${entry.value.toLocaleString()}
+                          </p>
+                        ))}
+                        <p className="font-bold text-foreground mt-1 pt-1 border-t border-border">
+                          Total: ${payload.reduce((sum: number, p: any) => sum + p.value, 0).toLocaleString()}
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }} 
+                cursor={{ fill: 'hsl(var(--muted)/0.2)' }} 
+              />
+              <Legend 
+                wrapperStyle={{ fontSize: '11px' }}
+                iconType="square"
+              />
+              <Bar 
+                dataKey="newCustomers" 
+                name="New Customers" 
+                stackId="a"
+                fill="hsl(var(--primary))" 
+                radius={[0, 0, 0, 0]} 
+              />
+              <Bar 
+                dataKey="upselling" 
+                name="Upselling" 
+                stackId="a"
+                fill="hsl(var(--chart-2))" 
+                radius={[4, 4, 0, 0]} 
+              />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
