@@ -533,6 +533,21 @@ export async function registerRoutes(
     }
   });
 
+  app.put("/api/teams/:id/image", async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      const { imageUrl } = req.body;
+      const team = await storage.updateTeamImage(teamId, imageUrl || null);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      res.json(team);
+    } catch (error) {
+      console.error("Error updating team image:", error);
+      res.status(500).json({ error: "Failed to update team image" });
+    }
+  });
+
   app.get("/api/people", async (req, res) => {
     try {
       const users = await pipedrive.getUsers();

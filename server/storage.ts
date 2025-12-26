@@ -63,6 +63,7 @@ export interface IStorage {
   getAllTeams(): Promise<Team[]>;
   getTeam(id: number): Promise<Team | undefined>;
   createTeam(team: InsertTeam): Promise<Team>;
+  updateTeamImage(id: number, imageUrl: string | null): Promise<Team | undefined>;
 
   // People
   getAllPeople(): Promise<Person[]>;
@@ -142,6 +143,11 @@ export class PgStorage implements IStorage {
 
   async createTeam(team: InsertTeam): Promise<Team> {
     const result = await db.insert(teams).values(team).returning();
+    return result[0];
+  }
+
+  async updateTeamImage(id: number, imageUrl: string | null): Promise<Team | undefined> {
+    const result = await db.update(teams).set({ imageUrl }).where(eq(teams.id, id)).returning();
     return result[0];
   }
 

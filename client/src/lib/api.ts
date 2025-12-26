@@ -214,6 +214,16 @@ export async function fetchTeams() {
   return res.json();
 }
 
+export async function updateTeamImage(teamId: number, imageUrl: string | null) {
+  const res = await fetch(`/api/teams/${teamId}/image`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageUrl }),
+  });
+  if (!res.ok) throw new Error('Failed to update team image');
+  return res.json();
+}
+
 export async function fetchPeople() {
   const res = await fetch('/api/people');
   if (!res.ok) throw new Error('Failed to fetch people');

@@ -11,6 +11,7 @@ export const teams = pgTable("teams", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
   displayName: text("display_name").notNull(),
+  imageUrl: text("image_url"),
 });
 
 export const insertTeamSchema = createInsertSchema(teams).omit({ id: true });

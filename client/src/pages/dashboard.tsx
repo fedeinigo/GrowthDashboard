@@ -49,7 +49,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchTeams } from "@/lib/api";
 import { Progress } from "@/components/ui/progress";
 import { exportDashboardToCSV, exportToPDF } from "@/lib/export-utils";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -94,6 +96,19 @@ export default function Dashboard() {
     setDealsModal({ isOpen: false, metricType: "", title: "" });
   };
   
+  // Fetch teams for image display
+  const { data: teamsData = [] } = useQuery({
+    queryKey: ['teams'],
+    queryFn: fetchTeams,
+  });
+
+  // Get selected team with image
+  const selectedTeam = useMemo(() => {
+    if (!filters.team || filters.team === 'all') return null;
+    const teamId = parseInt(filters.team);
+    return teamsData.find((t: any) => t.id === teamId);
+  }, [filters.team, teamsData]);
+
   // Fetch dashboard data from API
   const { 
     metrics,
@@ -192,15 +207,24 @@ export default function Dashboard() {
         {/* Header Section */}
         <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-primary/10 p-4 sm:p-6 border border-border/50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="min-w-0">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-heading font-bold text-foreground tracking-tight">
-                Resumen General
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1 hidden sm:block">
-                Panel de control de métricas comerciales
-              </p>
-              <div className="mt-2">
-                <CacheStatusIndicator />
+            <div className="flex items-center gap-4">
+              {selectedTeam?.imageUrl && (
+                <img 
+                  src={selectedTeam.imageUrl} 
+                  alt={selectedTeam.displayName}
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-lg border border-border/50 bg-background/50 p-1"
+                />
+              )}
+              <div className="min-w-0">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-heading font-bold text-foreground tracking-tight">
+                  {selectedTeam ? `Equipo ${selectedTeam.displayName}` : 'Resumen General'}
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1 hidden sm:block">
+                  Panel de control de métricas comerciales
+                </p>
+                <div className="mt-2">
+                  <CacheStatusIndicator />
+                </div>
               </div>
             </div>
             <div className="flex gap-3 flex-shrink-0">

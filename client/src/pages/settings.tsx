@@ -15,6 +15,7 @@ interface Team {
   id: number;
   name: string;
   displayName: string;
+  imageUrl?: string | null;
 }
 
 interface Person {
@@ -71,6 +72,16 @@ async function createTeam(name: string, displayName: string): Promise<Team> {
   return res.json();
 }
 
+async function updateTeamImage(teamId: number, imageUrl: string | null): Promise<Team> {
+  const res = await fetch(`/api/teams/${teamId}/image`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageUrl }),
+  });
+  if (!res.ok) throw new Error("Failed to update team image");
+  return res.json();
+}
+
 export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -81,6 +92,8 @@ export default function Settings() {
   const [showNewTeamForm, setShowNewTeamForm] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDisplayName, setNewTeamDisplayName] = useState("");
+  const [editingTeamImage, setEditingTeamImage] = useState<number | null>(null);
+  const [teamImageUrl, setTeamImageUrl] = useState("");
 
   const teamsQuery = useQuery({ queryKey: ["teams"], queryFn: fetchTeams });
   const pipedriveUsersQuery = useQuery({ queryKey: ["people"], queryFn: fetchPeople });
@@ -138,6 +151,20 @@ export default function Settings() {
     },
   });
 
+  const updateImageMutation = useMutation({
+    mutationFn: ({ teamId, imageUrl }: { teamId: number; imageUrl: string | null }) =>
+      updateTeamImage(teamId, imageUrl),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      setEditingTeamImage(null);
+      setTeamImageUrl("");
+      toast({ title: "Imagen actualizada", description: "La imagen del equipo fue actualizada." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "No se pudo actualizar la imagen.", variant: "destructive" });
+    },
+  });
+
   const teams = teamsQuery.data || [];
   const pipedriveUsers = pipedriveUsersQuery.data || [];
   const peopleWithTeams = peopleWithTeamsQuery.data || [];
@@ -173,6 +200,18 @@ export default function Settings() {
       name: newTeamName.toLowerCase().replace(/\s+/g, '_'),
       displayName: newTeamDisplayName.trim(),
     });
+  };
+
+  const handleSaveTeamImage = (teamId: number) => {
+    updateImageMutation.mutate({
+      teamId,
+      imageUrl: teamImageUrl.trim() || null,
+    });
+  };
+
+  const startEditingImage = (team: Team) => {
+    setEditingTeamImage(team.id);
+    setTeamImageUrl(team.imageUrl || "");
   };
 
   return (
@@ -220,6 +259,62 @@ export default function Settings() {
                       {members.length} miembros
                     </span>
                   </CardTitle>
+                  
+                  {/* Team Image Section */}
+                  <div className="mt-3 pt-3 border-t">
+                    {editingTeamImage === team.id ? (
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">URL de imagen del equipo</Label>
+                        <Input
+                          value={teamImageUrl}
+                          onChange={(e) => setTeamImageUrl(e.target.value)}
+                          placeholder="https://ejemplo.com/logo.png"
+                          className="text-sm"
+                          data-testid={`input-team-image-${team.id}`}
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleSaveTeamImage(team.id)}
+                            disabled={updateImageMutation.isPending}
+                            data-testid={`button-save-image-${team.id}`}
+                          >
+                            <Save className="h-3 w-3 mr-1" />
+                            Guardar
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => { setEditingTeamImage(null); setTeamImageUrl(""); }}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        {team.imageUrl ? (
+                          <img 
+                            src={team.imageUrl} 
+                            alt={team.displayName} 
+                            className="w-12 h-12 object-contain rounded border bg-background"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-muted rounded border flex items-center justify-center">
+                            <Users className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => startEditingImage(team)}
+                          data-testid={`button-edit-image-${team.id}`}
+                        >
+                          {team.imageUrl ? 'Cambiar imagen' : 'Agregar imagen'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
