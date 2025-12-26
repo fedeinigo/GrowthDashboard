@@ -80,6 +80,57 @@ function getYearFromDate(dateStr: string | undefined): string {
   return new Date().getFullYear().toString();
 }
 
+// Detect what type of date selection the current filters represent
+function detectDateType(startDate: string | undefined, endDate: string | undefined): "quarter" | "year" | "range" {
+  if (!startDate || !endDate) return "quarter";
+  
+  const startParts = startDate.split('-');
+  const endParts = endDate.split('-');
+  
+  if (startParts.length < 3 || endParts.length < 3) return "range";
+  
+  const startYear = parseInt(startParts[0]);
+  const startMonth = parseInt(startParts[1]);
+  const startDay = parseInt(startParts[2]);
+  const endYear = parseInt(endParts[0]);
+  const endMonth = parseInt(endParts[1]);
+  const endDay = parseInt(endParts[2]);
+  
+  // Check if it's a full year (Jan 1 to Dec 31)
+  if (startMonth === 1 && startDay === 1 && endMonth === 12 && endDay === 31 && startYear === endYear) {
+    return "year";
+  }
+  
+  // Check if it's a standard quarter
+  // Q1: Jan 1 - Mar 31, Q2: Apr 1 - Jun 30, Q3: Jul 1 - Sep 30, Q4: Oct 1 - Dec 31
+  const quarterStarts = [
+    { month: 1, day: 1 },   // Q1
+    { month: 4, day: 1 },   // Q2
+    { month: 7, day: 1 },   // Q3
+    { month: 10, day: 1 },  // Q4
+  ];
+  const quarterEnds = [
+    { month: 3, day: 31 },  // Q1
+    { month: 6, day: 30 },  // Q2
+    { month: 9, day: 30 },  // Q3
+    { month: 12, day: 31 }, // Q4
+  ];
+  
+  for (let q = 0; q < 4; q++) {
+    if (
+      startMonth === quarterStarts[q].month && 
+      startDay === quarterStarts[q].day &&
+      endMonth === quarterEnds[q].month && 
+      endDay === quarterEnds[q].day &&
+      startYear === endYear
+    ) {
+      return "quarter";
+    }
+  }
+  
+  return "range";
+}
+
 export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersProps) {
   // Default to current quarter
   const currentQ = getCurrentQuarterDates();
@@ -131,6 +182,25 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateType]);
+
+  // Sync dateType state with actual filter values (handles external changes)
+  useEffect(() => {
+    if (filters?.startDate && filters?.endDate) {
+      const detectedType = detectDateType(filters.startDate, filters.endDate);
+      if (detectedType !== dateType) {
+        setDateType(detectedType);
+      }
+      // Also sync the date range picker state
+      if (detectedType === "range") {
+        const startParts = filters.startDate.split('-');
+        const endParts = filters.endDate.split('-');
+        const fromDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+        const toDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
+        setDate({ from: fromDate, to: toDate });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters?.startDate, filters?.endDate]);
 
   // Fetch filter options from API
   const { data: teamsData = [] } = useQuery({
