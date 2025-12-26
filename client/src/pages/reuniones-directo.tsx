@@ -167,7 +167,7 @@ export default function ReunionesDirecto() {
             </div>
             <div>
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-foreground tracking-tight">Reuniones Directo</h2>
-              <p className="text-sm text-muted-foreground mt-1">Análisis de deals de origen directo (Pipeline 1 - Inbound + Outbound)</p>
+              <p className="text-sm text-muted-foreground mt-1">Análisis de deals de origen directo (Pipeline 1 - Directo + Inbound + Outbound)</p>
             </div>
           </div>
         </div>
