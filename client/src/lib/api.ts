@@ -284,20 +284,53 @@ export async function fetchNCMeetings10Weeks() {
   return res.json();
 }
 
-export async function fetchQuarterlyRegionComparison() {
-  const res = await fetch('/api/dashboard/quarterly-region-comparison');
+export async function fetchQuarterlyRegionComparison(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
+
+  const query = params.toString();
+  const url = `/api/dashboard/quarterly-region-comparison${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch quarterly comparison');
   return res.json();
 }
 
-export async function fetchTopOriginsByRegion() {
-  const res = await fetch('/api/dashboard/top-origins-by-region');
+export async function fetchTopOriginsByRegion(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
+
+  const query = params.toString();
+  const url = `/api/dashboard/top-origins-by-region${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch top origins');
   return res.json();
 }
 
-export async function fetchSalesCycleByRegion() {
-  const res = await fetch('/api/dashboard/sales-cycle-by-region');
+export async function fetchSalesCycleByRegion(filters?: any) {
+  const params = new URLSearchParams();
+  if (filters?.teamId) params.append('teamId', filters.teamId);
+  if (filters?.personId) params.append('personId', filters.personId);
+  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.dealType) params.append('dealType', filters.dealType);
+  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
+
+  const query = params.toString();
+  const url = `/api/dashboard/sales-cycle-by-region${query ? `?${query}` : ''}`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch sales cycle');
   return res.json();
 }
