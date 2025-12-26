@@ -313,7 +313,24 @@ export async function registerRoutes(
   // Get quarterly region comparison
   app.get("/api/dashboard/quarterly-region-comparison", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
-      const data = await pipedriveCache.getQuarterlyRegionComparison();
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
+      };
+      
+      const data = await pipedriveCache.getQuarterlyRegionComparison(filters);
       res.json(data);
     } catch (error) {
       console.error("Error fetching quarterly region comparison:", error);
@@ -324,7 +341,24 @@ export async function registerRoutes(
   // Get top origins by region
   app.get("/api/dashboard/top-origins-by-region", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
-      const data = await pipedriveCache.getTopOriginsByRegion();
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
+      };
+      
+      const data = await pipedriveCache.getTopOriginsByRegion(filters);
       res.json(data);
     } catch (error) {
       console.error("Error fetching top origins by region:", error);
@@ -335,7 +369,24 @@ export async function registerRoutes(
   // Get sales cycle by region
   app.get("/api/dashboard/sales-cycle-by-region", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
-      const data = await pipedriveCache.getSalesCycleByRegion();
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      const personId = req.query.personId as string | undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+        personId: personId ? parseInt(personId) : undefined,
+      };
+      
+      const data = await pipedriveCache.getSalesCycleByRegion(filters);
       res.json(data);
     } catch (error) {
       console.error("Error fetching sales cycle by region:", error);
