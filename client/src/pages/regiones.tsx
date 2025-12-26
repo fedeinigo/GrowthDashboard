@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, LineChart, Line, Legend, Cell
+  ResponsiveContainer, LineChart, Line, Legend, Cell, LabelList
 } from "recharts";
 import { ArrowUpDown, ArrowUp, ArrowDown, Loader2, Globe, TrendingUp, Clock, MapPin } from "lucide-react";
 
@@ -169,6 +169,7 @@ export default function Regiones() {
                       {salesCycleByRegion?.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={REGION_COLORS[entry.region] || '#6b7280'} />
                       ))}
+                      <LabelList dataKey="avgDays" position="right" fontSize={11} fill="hsl(var(--foreground))" fontWeight={500} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>

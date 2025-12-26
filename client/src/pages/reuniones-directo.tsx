@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, LineChart, Line, Cell
+  ResponsiveContainer, LineChart, Line, Cell, LabelList
 } from "recharts";
 import { Loader2, Calendar, DollarSign, TrendingUp, Users, Settings, ArrowRight, Zap } from "lucide-react";
 import { KPICard } from "@/components/kpi-card";
@@ -407,7 +407,9 @@ export default function ReunionesDirecto() {
                         name === 'count' ? 'Reuniones' : 'Valor'
                       ]} 
                     />
-                    <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} name="Reuniones" />
+                    <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} name="Reuniones">
+                      <LabelList dataKey="count" position="top" fontSize={10} fill="hsl(var(--muted-foreground))" />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -507,6 +509,7 @@ export default function ReunionesDirecto() {
                       {byRegion.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={REGION_COLORS[entry.region] || '#6b7280'} />
                       ))}
+                      <LabelList dataKey="meetings" position="right" fontSize={11} fill="hsl(var(--foreground))" fontWeight={500} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>

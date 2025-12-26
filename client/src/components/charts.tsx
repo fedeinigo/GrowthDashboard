@@ -95,6 +95,13 @@ export function CompanySizeChart({ data, title, description, onClick }: ChartPro
                         <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
                       ))
                     }
+                  <LabelList 
+                    dataKey="value" 
+                    position="right" 
+                    fontSize={11}
+                    fill="hsl(var(--foreground))"
+                    fontWeight={500}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
