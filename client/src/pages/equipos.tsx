@@ -242,7 +242,7 @@ export default function Equipos() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <KPICard
               title="Revenue Total"
-              value={`$${(displayMetrics.revenue / 1000).toFixed(0)}k`}
+              value={`$${Math.round(displayMetrics.revenue).toLocaleString()}`}
               change={0}
               trend="neutral"
               icon={DollarSign}
@@ -279,7 +279,7 @@ export default function Equipos() {
             />
             <KPICard
               title="Funnel Actual"
-              value={`$${(displayMetrics.funnelActual / 1000).toFixed(0)}k`}
+              value={`$${Math.round(displayMetrics.funnelActual).toLocaleString()}`}
               change={0}
               trend="neutral"
               icon={TrendingUp}
@@ -288,7 +288,7 @@ export default function Equipos() {
             />
             <KPICard
               title="Current Sprint"
-              value={`$${(displayMetrics.currentSprintValue / 1000).toFixed(0)}k`}
+              value={`$${Math.round(displayMetrics.currentSprintValue).toLocaleString()}`}
               change={0}
               trend="neutral"
               icon={Target}
@@ -367,7 +367,7 @@ export default function Equipos() {
                         <TableCell>
                           <Badge variant="outline">{exec.teamName}</Badge>
                         </TableCell>
-                        <TableCell className="text-right font-medium">${(exec.revenue / 1000).toFixed(0)}k</TableCell>
+                        <TableCell className="text-right font-medium">${Math.round(exec.revenue).toLocaleString()}</TableCell>
                         <TableCell className="text-right">{exec.wonDeals}</TableCell>
                         <TableCell className="text-right">
                           <span className={exec.closureRate >= 25 ? "text-emerald-600 font-medium" : exec.closureRate >= 15 ? "text-amber-600" : "text-muted-foreground"}>
@@ -375,7 +375,7 @@ export default function Equipos() {
                           </span>
                         </TableCell>
                         <TableCell className="text-right">${Math.round(exec.avgTicket).toLocaleString()}</TableCell>
-                        <TableCell className="text-right">${(exec.funnelActual / 1000).toFixed(0)}k</TableCell>
+                        <TableCell className="text-right">${Math.round(exec.funnelActual).toLocaleString()}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -431,7 +431,7 @@ export default function Equipos() {
                       <TableRow key={team.teamId} data-testid={`row-team-${team.teamId}`}>
                         <TableCell className="font-medium">{team.teamName}</TableCell>
                         <TableCell className="text-right">{team.members.length}</TableCell>
-                        <TableCell className="text-right font-medium">${(team.revenue / 1000).toFixed(0)}k</TableCell>
+                        <TableCell className="text-right font-medium">${Math.round(team.revenue).toLocaleString()}</TableCell>
                         <TableCell className="text-right">{team.wonDeals}</TableCell>
                         <TableCell className="text-right">
                           <span className={team.closureRate >= 25 ? "text-emerald-600 font-medium" : team.closureRate >= 15 ? "text-amber-600" : "text-muted-foreground"}>
@@ -439,7 +439,7 @@ export default function Equipos() {
                           </span>
                         </TableCell>
                         <TableCell className="text-right">${Math.round(team.avgTicket).toLocaleString()}</TableCell>
-                        <TableCell className="text-right">${(team.funnelActual / 1000).toFixed(0)}k</TableCell>
+                        <TableCell className="text-right">${Math.round(team.funnelActual).toLocaleString()}</TableCell>
                         <TableCell className="text-right">{team.opportunitiesCreated}</TableCell>
                       </TableRow>
                     ))}
