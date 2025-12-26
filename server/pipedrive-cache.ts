@@ -474,6 +474,15 @@ export async function getCachedDashboardMetrics(filters: DashboardFilters) {
     ? ncWonWithCycle.reduce((sum, d) => sum + (d.salesCycleDays || 0), 0) / ncWonWithCycle.length 
     : 0;
 
+  // Totales por tipo de deal
+  const upsellWonDeals = wonDeals.filter(d => d.dealType === UPSELLING_ID);
+  const totalNewCustomers = ncWonDeals.length;
+  const totalUpselling = upsellWonDeals.length;
+  
+  // Revenue por tipo
+  const revenueNewCustomers = ncRevenue;
+  const revenueUpselling = upsellWonDeals.reduce((sum, d) => sum + getDealRevenue(d), 0);
+
   return {
     closureRate: Math.round(closureRate * 10) / 10,
     meetings,
@@ -481,6 +490,10 @@ export async function getCachedDashboardMetrics(filters: DashboardFilters) {
     logosWon,
     salesCycle: Math.round(avgSalesCycle),
     avgTicket: Math.round(avgTicket),
+    totalNewCustomers,
+    totalUpselling,
+    revenueNewCustomers: Math.round(revenueNewCustomers),
+    revenueUpselling: Math.round(revenueUpselling),
   };
 }
 

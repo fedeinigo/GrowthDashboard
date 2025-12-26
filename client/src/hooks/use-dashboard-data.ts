@@ -215,6 +215,22 @@ export function useDashboardData(filters?: any) {
       trend: (m.avgTicket ?? 0) >= (m.previousAvgTicket ?? 0) ? "up" : "down",
       prefix: "$",
       subtext: "Solo New Customers"
+    },
+    totalNewCustomers: {
+      label: "Total New Customers",
+      value: m.totalNewCustomers ?? 0,
+      revenue: m.revenueNewCustomers ?? 0,
+      change: 0,
+      trend: "neutral",
+      subtext: `$${(m.revenueNewCustomers ?? 0).toLocaleString()} en revenue`
+    },
+    totalUpselling: {
+      label: "Total Upselling",
+      value: m.totalUpselling ?? 0,
+      revenue: m.revenueUpselling ?? 0,
+      change: 0,
+      trend: "neutral",
+      subtext: `$${(m.revenueUpselling ?? 0).toLocaleString()} en revenue`
     }
   } : undefined;
 

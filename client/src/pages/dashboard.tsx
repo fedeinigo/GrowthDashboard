@@ -28,7 +28,9 @@ import {
   Filter,
   FileDown,
   FileText,
-  ChevronDown
+  ChevronDown,
+  UserPlus,
+  ArrowUpCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -313,6 +315,26 @@ export default function Dashboard() {
                             subtext={metrics.avgTicket?.subtext}
                             icon={Banknote}
                             onClick={() => handleKPIClick("avgTicket", metrics.avgTicket?.label || "Ticket Promedio")}
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mt-4">
+                          <KPICard 
+                            title={metrics.totalNewCustomers?.label || "Total New Customers"} 
+                            value={metrics.totalNewCustomers?.value || 0} 
+                            change={metrics.totalNewCustomers?.change || 0} 
+                            trend={metrics.totalNewCustomers?.trend || "neutral"} 
+                            subtext={metrics.totalNewCustomers?.subtext}
+                            icon={UserPlus}
+                            onClick={() => handleKPIClick("newCustomers", "New Customers")}
+                          />
+                          <KPICard 
+                            title={metrics.totalUpselling?.label || "Total Upselling"} 
+                            value={metrics.totalUpselling?.value || 0} 
+                            change={metrics.totalUpselling?.change || 0} 
+                            trend={metrics.totalUpselling?.trend || "neutral"} 
+                            subtext={metrics.totalUpselling?.subtext}
+                            icon={ArrowUpCircle}
+                            onClick={() => handleKPIClick("upselling", "Upselling")}
                           />
                         </div>
                       </DraggableWidget>
