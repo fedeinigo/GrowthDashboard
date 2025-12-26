@@ -6,6 +6,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   Line,
   LineChart,
   Pie,
@@ -181,7 +182,14 @@ export function MeetingsChart({ data, title, description, onClick }: ChartProps)
                 fill="hsl(var(--primary))" 
                 radius={[4, 4, 0, 0]} 
                 barSize={20}
-              />
+              >
+                <LabelList 
+                  dataKey="value" 
+                  position="top" 
+                  fontSize={10}
+                  fill="hsl(var(--muted-foreground))"
+                />
+              </Bar>
                <Bar 
                 dataKey="value2" 
                 name="Canceladas" 
