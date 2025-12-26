@@ -30,6 +30,7 @@ interface LayoutProps {
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: Users, label: "Equipos", href: "/equipos" },
   { icon: Globe, label: "Regiones Estrategicas", href: "/regiones" },
   { icon: Calendar, label: "Reuniones Directo", href: "/reuniones-directo" },
   { icon: Settings, label: "Configuracion", href: "/configuracion" },

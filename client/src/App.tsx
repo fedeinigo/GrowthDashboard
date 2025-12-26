@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import Settings from "@/pages/settings";
 import Regiones from "@/pages/regiones";
 import ReunionesDirecto from "@/pages/reuniones-directo";
+import Equipos from "@/pages/equipos";
 import LoginPage from "@/pages/login";
 import { Loader2 } from "lucide-react";
 
@@ -34,6 +35,7 @@ function ProtectedRouter() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/equipos" component={Equipos} />
       <Route path="/regiones" component={Regiones} />
       <Route path="/reuniones-directo" component={ReunionesDirecto} />
       <Route path="/configuracion" component={Settings} />

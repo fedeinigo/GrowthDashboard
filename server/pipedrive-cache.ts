@@ -1874,3 +1874,327 @@ export async function getCachedDealsForModal(filters: DealsModalFilters): Promis
     lostDate: deal.lostTime ? new Date(deal.lostTime).toISOString() : null,
   }));
 }
+
+export interface TeamsDataFilters {
+  startDate?: string;
+  endDate?: string;
+  teamId?: number;
+  countries?: string[];
+  origins?: string[];
+  dealType?: string;
+}
+
+export interface ExecutiveMetrics {
+  userId: number;
+  name: string;
+  teamId: number | null;
+  teamName: string;
+  revenue: number;
+  wonDeals: number;
+  closureRate: number;
+  avgTicket: number;
+  avgSalesCycle: number;
+  opportunitiesCreated: number;
+  funnelActual: number;
+  currentSprintValue: number;
+  demoCount: number;
+  demoValue: number;
+  proposalCount: number;
+  proposalValue: number;
+  wonCount: number;
+  wonValue: number;
+  demoPercentage: number;
+  proposalPercentage: number;
+  wonPercentage: number;
+}
+
+export interface TeamAggregate {
+  teamId: number;
+  teamName: string;
+  revenue: number;
+  wonDeals: number;
+  closureRate: number;
+  avgTicket: number;
+  avgSalesCycle: number;
+  opportunitiesCreated: number;
+  funnelActual: number;
+  currentSprintValue: number;
+  members: ExecutiveMetrics[];
+}
+
+export interface TeamsDataResponse {
+  executives: ExecutiveMetrics[];
+  teams: TeamAggregate[];
+  globalMetrics: {
+    revenue: number;
+    wonDeals: number;
+    closureRate: number;
+    avgTicket: number;
+    avgSalesCycle: number;
+    opportunitiesCreated: number;
+    funnelActual: number;
+    currentSprintValue: number;
+  };
+}
+
+const DEMO_DONE_STAGE = 3;
+
+export async function getCachedTeamsData(filters: TeamsDataFilters): Promise<TeamsDataResponse> {
+  const allDeals = await db.select().from(pipedriveDeals);
+  const users = await pipedrive.getUsers();
+  const userMap = new Map(users.filter(u => u.active_flag).map(u => [u.id, u.name]));
+  
+  const teamsList = await db.select().from(teams);
+  const peopleList = await db.select().from(people);
+  
+  const personToTeamId = new Map<number, number>();
+  const personToTeamName = new Map<number, string>();
+  peopleList.forEach(p => {
+    if (p.pipedriveUserId && p.teamId) {
+      personToTeamId.set(p.pipedriveUserId, p.teamId);
+      const team = teamsList.find(t => t.id === p.teamId);
+      if (team) {
+        personToTeamName.set(p.pipedriveUserId, team.displayName);
+      }
+    }
+  });
+
+  const startDate = filters.startDate ? new Date(filters.startDate) : null;
+  const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
+
+  const filteredDeals = allDeals.filter(deal => {
+    if (!filterByPipeline1(deal)) return false;
+    if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
+    if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
+    if (filters.dealType && deal.dealType !== filters.dealType) return false;
+    if (filters.teamId && deal.userId) {
+      const dealTeamId = personToTeamId.get(deal.userId);
+      if (dealTeamId !== filters.teamId) return false;
+    }
+    return true;
+  });
+
+  const executiveData: Record<number, {
+    ncCreated: number;
+    ncWon: number;
+    ncLost: number;
+    allWonValue: number;
+    allWonCount: number;
+    salesCycleDays: number[];
+    funnelDeals: any[];
+    demoDeals: any[];
+    proposalDeals: any[];
+    wonDeals: any[];
+  }> = {};
+
+  const activeUserIds = new Set<number>();
+  
+  filteredDeals.forEach(deal => {
+    if (!deal.userId) return;
+    activeUserIds.add(deal.userId);
+    
+    if (!executiveData[deal.userId]) {
+      executiveData[deal.userId] = {
+        ncCreated: 0,
+        ncWon: 0,
+        ncLost: 0,
+        allWonValue: 0,
+        allWonCount: 0,
+        salesCycleDays: [],
+        funnelDeals: [],
+        demoDeals: [],
+        proposalDeals: [],
+        wonDeals: [],
+      };
+    }
+    
+    const data = executiveData[deal.userId];
+    const value = getDealRevenue(deal);
+    const isNC = deal.dealType === NEW_CUSTOMER_ID;
+    
+    const addTime = deal.addTime ? new Date(deal.addTime) : null;
+    const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+    const lostTime = deal.lostTime ? new Date(deal.lostTime) : null;
+    
+    if (isNC && addTime) {
+      const inDateRange = (!startDate || addTime >= startDate) && (!endDate || addTime <= endDate);
+      if (inDateRange) {
+        data.ncCreated++;
+      }
+    }
+    
+    if (deal.status === "won" && wonTime) {
+      const inDateRange = (!startDate || wonTime >= startDate) && (!endDate || wonTime <= endDate);
+      if (inDateRange) {
+        data.allWonValue += value;
+        data.allWonCount++;
+        data.wonDeals.push(deal);
+        
+        if (isNC) {
+          data.ncWon++;
+          if (deal.salesCycleDays && deal.salesCycleDays > 0) {
+            data.salesCycleDays.push(deal.salesCycleDays);
+          }
+        }
+      }
+    }
+    
+    if (deal.status === "lost" && isNC && lostTime) {
+      const inDateRange = (!startDate || lostTime >= startDate) && (!endDate || lostTime <= endDate);
+      if (inDateRange) {
+        data.ncLost++;
+      }
+    }
+    
+    if (deal.status === "open" && isNC) {
+      const stageId = deal.stageId || 0;
+      if (stageId === PROPOSAL_MADE_STAGE || stageId === CURRENT_SPRINT_STAGE) {
+        data.funnelDeals.push(deal);
+      }
+      if (stageId >= DEMO_DONE_STAGE) {
+        data.demoDeals.push(deal);
+      }
+      if (stageId >= PROPOSAL_MADE_STAGE || stageId === CURRENT_SPRINT_STAGE || stageId === BLOCKED_STAGE) {
+        data.proposalDeals.push(deal);
+      }
+    }
+  });
+
+  const executives: ExecutiveMetrics[] = [];
+  
+  activeUserIds.forEach(userId => {
+    const name = userMap.get(userId);
+    if (!name) return;
+    
+    const data = executiveData[userId] || {
+      ncCreated: 0, ncWon: 0, ncLost: 0, allWonValue: 0, allWonCount: 0,
+      salesCycleDays: [], funnelDeals: [], demoDeals: [], proposalDeals: [], wonDeals: []
+    };
+    
+    const teamId = personToTeamId.get(userId) || null;
+    const teamName = personToTeamName.get(userId) || "Sin equipo";
+    
+    const ncClosed = data.ncWon + data.ncLost;
+    const closureRate = ncClosed > 0 ? (data.ncWon / ncClosed) * 100 : 0;
+    const avgTicket = data.allWonCount > 0 ? data.allWonValue / data.allWonCount : 0;
+    const avgSalesCycle = data.salesCycleDays.length > 0 
+      ? data.salesCycleDays.reduce((a, b) => a + b, 0) / data.salesCycleDays.length 
+      : 0;
+    
+    const funnelActual = data.funnelDeals.reduce((sum, d) => sum + getDealRevenue(d), 0);
+    const currentSprintValue = data.funnelDeals
+      .filter(d => d.stageId === CURRENT_SPRINT_STAGE)
+      .reduce((sum, d) => sum + getDealRevenue(d), 0);
+    
+    const demoCount = data.demoDeals.length;
+    const demoValue = data.demoDeals.reduce((sum, d) => sum + getDealRevenue(d), 0);
+    const proposalCount = data.proposalDeals.length;
+    const proposalValue = data.proposalDeals.reduce((sum, d) => sum + getDealRevenue(d), 0);
+    const wonCount = data.wonDeals.filter(d => d.dealType === NEW_CUSTOMER_ID).length;
+    const wonValue = data.wonDeals.filter(d => d.dealType === NEW_CUSTOMER_ID).reduce((sum, d) => sum + getDealRevenue(d), 0);
+    
+    const demoPercentage = data.ncCreated > 0 ? (demoCount / data.ncCreated) * 100 : 0;
+    const proposalPercentage = data.ncCreated > 0 ? (proposalCount / data.ncCreated) * 100 : 0;
+    const wonPercentage = data.ncCreated > 0 ? (wonCount / data.ncCreated) * 100 : 0;
+    
+    executives.push({
+      userId,
+      name,
+      teamId,
+      teamName,
+      revenue: Math.round(data.allWonValue),
+      wonDeals: data.allWonCount,
+      closureRate: Math.round(closureRate * 10) / 10,
+      avgTicket: Math.round(avgTicket),
+      avgSalesCycle: Math.round(avgSalesCycle),
+      opportunitiesCreated: data.ncCreated,
+      funnelActual: Math.round(funnelActual),
+      currentSprintValue: Math.round(currentSprintValue),
+      demoCount,
+      demoValue: Math.round(demoValue),
+      proposalCount,
+      proposalValue: Math.round(proposalValue),
+      wonCount,
+      wonValue: Math.round(wonValue),
+      demoPercentage: Math.round(demoPercentage),
+      proposalPercentage: Math.round(proposalPercentage),
+      wonPercentage: Math.round(wonPercentage),
+    });
+  });
+  
+  executives.sort((a, b) => b.revenue - a.revenue);
+
+  const teamAggregates: Record<number, TeamAggregate> = {};
+  
+  teamsList.forEach(team => {
+    teamAggregates[team.id] = {
+      teamId: team.id,
+      teamName: team.displayName,
+      revenue: 0,
+      wonDeals: 0,
+      closureRate: 0,
+      avgTicket: 0,
+      avgSalesCycle: 0,
+      opportunitiesCreated: 0,
+      funnelActual: 0,
+      currentSprintValue: 0,
+      members: [],
+    };
+  });
+  
+  executives.forEach(exec => {
+    if (exec.teamId && teamAggregates[exec.teamId]) {
+      teamAggregates[exec.teamId].members.push(exec);
+      teamAggregates[exec.teamId].revenue += exec.revenue;
+      teamAggregates[exec.teamId].wonDeals += exec.wonDeals;
+      teamAggregates[exec.teamId].opportunitiesCreated += exec.opportunitiesCreated;
+      teamAggregates[exec.teamId].funnelActual += exec.funnelActual;
+      teamAggregates[exec.teamId].currentSprintValue += exec.currentSprintValue;
+    }
+  });
+  
+  Object.values(teamAggregates).forEach(team => {
+    if (team.members.length > 0) {
+      const totalNcClosed = team.members.reduce((sum, m) => {
+        const ncClosed = m.closureRate > 0 ? Math.round(m.wonCount / (m.closureRate / 100)) : 0;
+        return sum + ncClosed;
+      }, 0);
+      const totalNcWon = team.members.reduce((sum, m) => sum + m.wonCount, 0);
+      team.closureRate = totalNcClosed > 0 ? Math.round((totalNcWon / totalNcClosed) * 1000) / 10 : 0;
+      team.avgTicket = team.wonDeals > 0 ? Math.round(team.revenue / team.wonDeals) : 0;
+      const cycleSum = team.members.reduce((sum, m) => sum + m.avgSalesCycle, 0);
+      const cycleCount = team.members.filter(m => m.avgSalesCycle > 0).length;
+      team.avgSalesCycle = cycleCount > 0 ? Math.round(cycleSum / cycleCount) : 0;
+    }
+  });
+
+  const teamsArray = Object.values(teamAggregates).filter(t => t.members.length > 0);
+  teamsArray.sort((a, b) => b.revenue - a.revenue);
+
+  const globalMetrics = {
+    revenue: executives.reduce((sum, e) => sum + e.revenue, 0),
+    wonDeals: executives.reduce((sum, e) => sum + e.wonDeals, 0),
+    closureRate: 0,
+    avgTicket: 0,
+    avgSalesCycle: 0,
+    opportunitiesCreated: executives.reduce((sum, e) => sum + e.opportunitiesCreated, 0),
+    funnelActual: executives.reduce((sum, e) => sum + e.funnelActual, 0),
+    currentSprintValue: executives.reduce((sum, e) => sum + e.currentSprintValue, 0),
+  };
+  
+  const totalNcClosed = executives.reduce((sum, e) => {
+    return sum + (e.closureRate > 0 ? Math.round(e.wonCount / (e.closureRate / 100)) : 0);
+  }, 0);
+  const totalNcWon = executives.reduce((sum, e) => sum + e.wonCount, 0);
+  globalMetrics.closureRate = totalNcClosed > 0 ? Math.round((totalNcWon / totalNcClosed) * 1000) / 10 : 0;
+  globalMetrics.avgTicket = globalMetrics.wonDeals > 0 ? Math.round(globalMetrics.revenue / globalMetrics.wonDeals) : 0;
+  const cycleSum = executives.reduce((sum, e) => sum + e.avgSalesCycle, 0);
+  const cycleCount = executives.filter(e => e.avgSalesCycle > 0).length;
+  globalMetrics.avgSalesCycle = cycleCount > 0 ? Math.round(cycleSum / cycleCount) : 0;
+
+  return {
+    executives,
+    teams: teamsArray,
+    globalMetrics,
+  };
+}

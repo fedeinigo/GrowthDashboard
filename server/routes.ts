@@ -584,6 +584,32 @@ export async function registerRoutes(
     }
   });
 
+  // Get teams data for Equipos page
+  app.get("/api/dashboard/teams", isAuthenticated, requireWisecxDomain, async (req, res) => {
+    try {
+      const countriesParam = req.query.countries as string | undefined;
+      const countries = countriesParam ? countriesParam.split(',') : undefined;
+      const originsParam = req.query.sources as string | undefined;
+      const origins = originsParam ? originsParam.split(',') : undefined;
+      const teamId = req.query.teamId as string | undefined;
+      
+      const filters = {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        dealType: req.query.dealType as string | undefined,
+        countries,
+        origins,
+        teamId: teamId ? parseInt(teamId) : undefined,
+      };
+      
+      const data = await pipedriveCache.getCachedTeamsData(filters);
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching teams data:", error);
+      res.status(500).json({ error: "Failed to fetch teams data" });
+    }
+  });
+
   // Get deals for modal
   app.get("/api/dashboard/deals", isAuthenticated, requireWisecxDomain, async (req, res) => {
     try {
