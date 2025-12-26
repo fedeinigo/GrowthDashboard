@@ -342,8 +342,8 @@ export default function Dashboard() {
                           />
                           <Card className="col-span-1 md:col-span-2 border-none shadow-sm hover:shadow-md transition-shadow">
                             <CardHeader className="pb-2 sm:pb-4">
-                              <CardTitle className="text-base sm:text-lg">Tasa de Cierre</CardTitle>
-                              <CardDescription className="text-xs sm:text-sm line-clamp-2">Tarjetas New Customer (últimos 6 meses): Ganadas / (Ganadas + Perdidas)</CardDescription>
+                              <CardTitle className="text-base sm:text-lg">Tasa de Cierre (New Customers)</CardTitle>
+                              <CardDescription className="text-xs sm:text-sm line-clamp-2">Solo New Customer (últimos 6 meses): Ganadas / (Ganadas + Perdidas)</CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col items-center justify-center h-[160px] sm:h-[200px]">
                               <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-primary">

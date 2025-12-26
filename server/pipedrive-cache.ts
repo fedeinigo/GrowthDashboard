@@ -459,11 +459,16 @@ export async function getCachedDashboardMetrics(filters: DashboardFilters) {
   
   const closureRate = ncClosed.length > 0 ? (ncWon.length / ncClosed.length) * 100 : 0;
 
+  // Revenue uses all won deals (includes upselling)
   const totalRevenue = wonDeals.reduce((sum, d) => sum + getDealRevenue(d), 0);
   const logosWon = ncWonDeals.length;
   const meetings = ncCreated.length;
-  const avgTicket = wonDeals.length > 0 ? totalRevenue / wonDeals.length : 0;
+  
+  // Ticket promedio: solo New Customers
+  const ncRevenue = ncWonDeals.reduce((sum, d) => sum + getDealRevenue(d), 0);
+  const avgTicket = ncWonDeals.length > 0 ? ncRevenue / ncWonDeals.length : 0;
 
+  // Ciclo de venta: solo New Customers
   const ncWonWithCycle = ncWonDeals.filter(d => d.salesCycleDays !== null && d.salesCycleDays >= 0);
   const avgSalesCycle = ncWonWithCycle.length > 0 
     ? ncWonWithCycle.reduce((sum, d) => sum + (d.salesCycleDays || 0), 0) / ncWonWithCycle.length 
