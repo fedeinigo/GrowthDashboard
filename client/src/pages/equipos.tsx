@@ -270,7 +270,7 @@ export default function Equipos() {
             />
             <KPICard
               title="Ticket Promedio"
-              value={`$${(displayMetrics.avgTicket / 1000).toFixed(0)}k`}
+              value={`$${Math.round(displayMetrics.avgTicket).toLocaleString()}`}
               change={0}
               trend="neutral"
               icon={Briefcase}
@@ -374,7 +374,7 @@ export default function Equipos() {
                             {exec.closureRate}%
                           </span>
                         </TableCell>
-                        <TableCell className="text-right">${(exec.avgTicket / 1000).toFixed(0)}k</TableCell>
+                        <TableCell className="text-right">${Math.round(exec.avgTicket).toLocaleString()}</TableCell>
                         <TableCell className="text-right">${(exec.funnelActual / 1000).toFixed(0)}k</TableCell>
                       </TableRow>
                     ))}
@@ -438,7 +438,7 @@ export default function Equipos() {
                             {team.closureRate}%
                           </span>
                         </TableCell>
-                        <TableCell className="text-right">${(team.avgTicket / 1000).toFixed(0)}k</TableCell>
+                        <TableCell className="text-right">${Math.round(team.avgTicket).toLocaleString()}</TableCell>
                         <TableCell className="text-right">${(team.funnelActual / 1000).toFixed(0)}k</TableCell>
                         <TableCell className="text-right">{team.opportunitiesCreated}</TableCell>
                       </TableRow>
