@@ -1184,6 +1184,9 @@ export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
     allowedUserIds = await getUserIdsForTeam(filters.teamId);
   }
   
+  const startDate = filters?.startDate ? new Date(filters.startDate) : null;
+  const endDate = filters?.endDate ? new Date(filters.endDate + "T23:59:59") : null;
+  
   const dealFields = await pipedrive.getDealFields();
   const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
   const countryField = dealFields.find((f: any) => f.key === COUNTRY_FIELD_KEY);
@@ -1239,19 +1242,27 @@ export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
     // Count meetings (cards created) by add_time
     if (deal.addTime) {
       const addTime = new Date(deal.addTime);
-      const quarterKey = getQuarterKey(addTime);
-      if (data[region]?.[quarterKey]) {
-        data[region][quarterKey].meetings++;
+      // Apply date filter for meetings - only count if within range
+      const meetingInRange = (!startDate || addTime >= startDate) && (!endDate || addTime <= endDate);
+      if (meetingInRange) {
+        const quarterKey = getQuarterKey(addTime);
+        if (data[region]?.[quarterKey]) {
+          data[region][quarterKey].meetings++;
+        }
       }
     }
     
     // Count logos and revenue by won_time
     if (deal.status === "won" && deal.wonTime) {
       const wonTime = new Date(deal.wonTime);
-      const quarterKey = getQuarterKey(wonTime);
-      if (data[region]?.[quarterKey]) {
-        data[region][quarterKey].logos++;
-        data[region][quarterKey].revenue += getDealRevenue(deal);
+      // Apply date filter for won deals - only count if within range
+      const wonInRange = (!startDate || wonTime >= startDate) && (!endDate || wonTime <= endDate);
+      if (wonInRange) {
+        const quarterKey = getQuarterKey(wonTime);
+        if (data[region]?.[quarterKey]) {
+          data[region][quarterKey].logos++;
+          data[region][quarterKey].revenue += getDealRevenue(deal);
+        }
       }
     }
   });
@@ -1314,8 +1325,9 @@ export async function getTopOriginsByRegion(filters?: DashboardFilters) {
     if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
     if (filters?.countries?.length && !filters.countries.includes(deal.country || "")) return;
     
-    // Filter by won date
+    // Filter by won date - skip deals without wonTime when date filter is applied
     const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+    if ((startDate || endDate) && !wonTime) return; // Skip if date filter but no wonTime
     if (wonTime) {
       if (startDate && wonTime < startDate) return;
       if (endDate && wonTime > endDate) return;
@@ -1382,8 +1394,9 @@ export async function getSalesCycleByRegion(filters?: DashboardFilters) {
     if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return;
     if (filters?.countries?.length && !filters.countries.includes(deal.country || "")) return;
     
-    // Filter by won date
+    // Filter by won date - skip deals without wonTime when date filter is applied
     const wonTime = deal.wonTime ? new Date(deal.wonTime) : null;
+    if ((startDate || endDate) && !wonTime) return; // Skip if date filter but no wonTime
     if (wonTime) {
       if (startDate && wonTime < startDate) return;
       if (endDate && wonTime > endDate) return;

@@ -98,18 +98,18 @@ export function useDashboardData(filters?: any) {
   });
 
   const quarterlyRegionComparison = useQuery({
-    queryKey: ['quarterly-region-comparison'],
-    queryFn: fetchQuarterlyRegionComparison,
+    queryKey: ['quarterly-region-comparison', apiFilters],
+    queryFn: () => fetchQuarterlyRegionComparison(apiFilters),
   });
 
   const topOriginsByRegion = useQuery({
-    queryKey: ['top-origins-by-region'],
-    queryFn: fetchTopOriginsByRegion,
+    queryKey: ['top-origins-by-region', apiFilters],
+    queryFn: () => fetchTopOriginsByRegion(apiFilters),
   });
 
   const salesCycleByRegion = useQuery({
-    queryKey: ['sales-cycle-by-region'],
-    queryFn: fetchSalesCycleByRegion,
+    queryKey: ['sales-cycle-by-region', apiFilters],
+    queryFn: () => fetchSalesCycleByRegion(apiFilters),
   });
 
   const conversionFunnel = useQuery({
