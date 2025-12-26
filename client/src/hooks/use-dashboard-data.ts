@@ -217,20 +217,22 @@ export function useDashboardData(filters?: any) {
       subtext: "Solo New Customers"
     },
     totalNewCustomers: {
-      label: "Total New Customers",
-      value: m.totalNewCustomers ?? 0,
-      revenue: m.revenueNewCustomers ?? 0,
+      label: "Revenue New Customers",
+      value: m.revenueNewCustomers ?? 0,
+      count: m.totalNewCustomers ?? 0,
       change: 0,
       trend: "neutral",
-      subtext: `$${(m.revenueNewCustomers ?? 0).toLocaleString()} en revenue`
+      prefix: "$",
+      subtext: `${m.totalNewCustomers ?? 0} deals ganados`
     },
     totalUpselling: {
-      label: "Total Upselling",
-      value: m.totalUpselling ?? 0,
-      revenue: m.revenueUpselling ?? 0,
+      label: "Revenue Upselling",
+      value: m.revenueUpselling ?? 0,
+      count: m.totalUpselling ?? 0,
       change: 0,
       trend: "neutral",
-      subtext: `$${(m.revenueUpselling ?? 0).toLocaleString()} en revenue`
+      prefix: "$",
+      subtext: `${m.totalUpselling ?? 0} deals ganados`
     }
   } : undefined;
 
