@@ -9,7 +9,13 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, LineChart, Line, Cell, LabelList
 } from "recharts";
-import { Loader2, Calendar, DollarSign, TrendingUp, Users, Settings, ArrowRight, Zap } from "lucide-react";
+import { Loader2, Calendar, DollarSign, TrendingUp, Users, Settings, ArrowRight, Zap, Info, Target } from "lucide-react";
+import {
+  Tooltip as UITooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { KPICard } from "@/components/kpi-card";
 import { DashboardFilters } from "@/components/dashboard-filters";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,7 +38,7 @@ interface DirectMeetingsData {
     sdrs: string[];
     rows: Array<{ ejecutivo: string; total: number; sdrs: Array<{ sdr: string; count: number }> }>;
   };
-  totals: { meetings: number; value: number; avgTicket: number };
+  totals: { meetings: number; value: number; avgTicket: number; funnelActual: number };
 }
 
 const REGION_COLORS: Record<string, string> = {
@@ -140,7 +146,7 @@ export default function ReunionesDirecto() {
   const sdrSummary = data?.sdrSummary || [];
   const bdrSummary = data?.bdrSummary || [];
   const ejecutivosSdrTable = data?.ejecutivosSdrTable || { sdrs: [], rows: [] };
-  const totals = data?.totals || { meetings: 0, value: 0, avgTicket: 0 };
+  const totals = data?.totals || { meetings: 0, value: 0, avgTicket: 0, funnelActual: 0 };
 
   const groupedBySdr: Record<string, Array<{ bdr: string; deals: number; percentage: number }>> = {};
   sdrBdrAssignment.forEach(item => {
@@ -174,34 +180,100 @@ export default function ReunionesDirecto() {
 
         <DashboardFilters filters={filters} onFilterChange={handleFilterChange} />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <KPICard 
-            title="Total Reuniones" 
-            value={totals.meetings} 
-            change={0} 
-            trend="neutral" 
-            icon={Calendar}
-            className="border-l-4 border-l-primary"
-          />
-          <KPICard 
-            title="Valor Total" 
-            value={totals.value} 
-            change={0} 
-            trend="neutral" 
-            prefix="$"
-            icon={DollarSign}
-            className="border-l-4 border-l-emerald-500"
-          />
-          <KPICard 
-            title="Ticket Promedio" 
-            value={totals.avgTicket} 
-            change={0} 
-            trend="neutral" 
-            prefix="$"
-            icon={TrendingUp}
-            className="border-l-4 border-l-amber-500"
-          />
-        </div>
+        <TooltipProvider>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="relative">
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <button className="absolute top-3 right-3 z-10 p-1 rounded-full hover:bg-muted/80 transition-colors">
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="font-semibold mb-1">Total Reuniones</p>
+                  <p className="text-xs">Cantidad de deals New Customer de origen directo (Directo + Inbound + Outbound) creados en el periodo seleccionado.</p>
+                </TooltipContent>
+              </UITooltip>
+              <KPICard 
+                title="Total Reuniones" 
+                value={totals.meetings} 
+                change={0} 
+                trend="neutral" 
+                icon={Calendar}
+                className="border-l-4 border-l-primary"
+              />
+            </div>
+            
+            <div className="relative">
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <button className="absolute top-3 right-3 z-10 p-1 rounded-full hover:bg-muted/80 transition-colors">
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="font-semibold mb-1">Valor Total</p>
+                  <p className="text-xs">Suma del valor de deals que han alcanzado etapa Proposal Made o posterior (incluye ganados). Solo origen directo.</p>
+                </TooltipContent>
+              </UITooltip>
+              <KPICard 
+                title="Valor Total" 
+                value={totals.value} 
+                change={0} 
+                trend="neutral" 
+                prefix="$"
+                icon={DollarSign}
+                className="border-l-4 border-l-emerald-500"
+              />
+            </div>
+            
+            <div className="relative">
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <button className="absolute top-3 right-3 z-10 p-1 rounded-full hover:bg-muted/80 transition-colors">
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="font-semibold mb-1">Funnel Actual</p>
+                  <p className="text-xs">Valor de deals activos (status open) en etapas Proposal Made o Current Sprint. Representa el pipeline activo de propuestas.</p>
+                </TooltipContent>
+              </UITooltip>
+              <KPICard 
+                title="Funnel Actual" 
+                value={totals.funnelActual} 
+                change={0} 
+                trend="neutral" 
+                prefix="$"
+                icon={Target}
+                className="border-l-4 border-l-violet-500"
+              />
+            </div>
+            
+            <div className="relative">
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <button className="absolute top-3 right-3 z-10 p-1 rounded-full hover:bg-muted/80 transition-colors">
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="font-semibold mb-1">Ticket Promedio</p>
+                  <p className="text-xs">Promedio del valor de deals efectivamente ganados (won). Solo considera ventas cerradas de origen directo.</p>
+                </TooltipContent>
+              </UITooltip>
+              <KPICard 
+                title="Ticket Promedio" 
+                value={totals.avgTicket} 
+                change={0} 
+                trend="neutral" 
+                prefix="$"
+                icon={TrendingUp}
+                className="border-l-4 border-l-amber-500"
+              />
+            </div>
+          </div>
+        </TooltipProvider>
 
         <Card className="border shadow-sm">
           <CardHeader className="pb-3 border-b bg-muted/30">
