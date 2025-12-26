@@ -356,6 +356,7 @@ export async function getCachedConversionFunnel(filters: DashboardFilters) {
 }
 
 const NEW_CUSTOMER_ID = "13";
+const UPSELLING_ID = "14";
 const PROPOSAL_MADE_STAGE = 4;
 const BLOCKED_STAGE = 64;
 const CURRENT_SPRINT_STAGE = 30;
