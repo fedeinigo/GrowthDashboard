@@ -190,6 +190,11 @@ export default function Equipos() {
     return sortedExecutives.slice(0, 8);
   }, [sortedExecutives]);
 
+  const selectedTeam = useMemo(() => {
+    if (selectedTeamId === 'all' || !teamsData) return null;
+    return teamsData.find((t: any) => t.id.toString() === selectedTeamId) || null;
+  }, [selectedTeamId, teamsData]);
+
   if (isLoading) {
     return (
       <Layout>
@@ -206,11 +211,21 @@ export default function Equipos() {
       <div className="space-y-6">
         <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-primary/10 p-4 sm:p-6 border border-border/50">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-primary/10 rounded-xl">
-              <Users className="w-6 h-6 text-primary" />
-            </div>
+            {selectedTeam?.imageUrl ? (
+              <img 
+                src={selectedTeam.imageUrl} 
+                alt={selectedTeam.displayName} 
+                className="w-14 h-14 object-contain rounded-xl border bg-background p-1"
+              />
+            ) : (
+              <div className="p-2.5 bg-primary/10 rounded-xl">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+            )}
             <div>
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold text-foreground tracking-tight" data-testid="text-page-title">Equipos</h2>
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold text-foreground tracking-tight" data-testid="text-page-title">
+                {selectedTeam ? `Equipo ${selectedTeam.displayName}` : 'Equipos'}
+              </h2>
               <p className="text-sm text-muted-foreground mt-1">Rendimiento por ejecutivo y equipo comercial</p>
             </div>
           </div>
