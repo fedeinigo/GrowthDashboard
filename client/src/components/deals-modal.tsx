@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, ChevronLeft, ChevronRight, FileX } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, FileX, Download } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -142,6 +142,32 @@ export function DealsModal({ isOpen, onClose, metricType, metricTitle, filters }
     onClose();
   };
 
+  const exportToCSV = () => {
+    if (!filteredDeals.length) return;
+    
+    const headers = ["Nombre", "Valor", "Moneda", "Estado", "Equipo", "Vendedor", "Fecha"];
+    const rows = filteredDeals.map(deal => [
+      `"${deal.title.replace(/"/g, '""')}"`,
+      deal.value,
+      deal.currency || "USD",
+      statusLabels[deal.status]?.label || deal.status,
+      `"${deal.teamName.replace(/"/g, '""')}"`,
+      `"${deal.personName.replace(/"/g, '""')}"`,
+      getDisplayDate(deal),
+    ]);
+    
+    const csvContent = [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${metricTitles[metricType] || metricTitle}_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent 
@@ -149,12 +175,28 @@ export function DealsModal({ isOpen, onClose, metricType, metricTitle, filters }
         data-testid="deals-modal"
       >
         <DialogHeader>
-          <DialogTitle data-testid="deals-modal-title">
-            {metricTitles[metricType] || metricTitle}
-          </DialogTitle>
-          <DialogDescription>
-            Mostrando hasta 100 deals más recientes
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle data-testid="deals-modal-title">
+                {metricTitles[metricType] || metricTitle}
+              </DialogTitle>
+              <DialogDescription>
+                Mostrando hasta 100 deals más recientes
+              </DialogDescription>
+            </div>
+            {filteredDeals.length > 0 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={exportToCSV}
+                className="gap-2"
+                data-testid="deals-modal-export"
+              >
+                <Download className="h-4 w-4" />
+                Exportar CSV
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="relative mb-4">
