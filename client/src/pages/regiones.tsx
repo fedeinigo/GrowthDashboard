@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { DashboardFilters } from "@/components/dashboard-filters";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, LineChart, Line, Legend, Cell, LabelList
@@ -32,16 +33,32 @@ const REGION_BG_COLORS: Record<string, string> = {
 };
 
 export default function Regiones() {
+  const [filters, setFilters] = useState<Record<string, any>>({});
+  
   const { 
     regionalData, 
     quarterlyRegionComparison, 
     topOriginsByRegion, 
     salesCycleByRegion,
     isLoading 
-  } = useDashboardData();
+  } = useDashboardData(filters);
 
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+
+  const handleFilterChange = (newFilters: any) => {
+    if (newFilters.reset) {
+      setFilters({});
+      return;
+    }
+    const cleanedFilters = { ...filters, ...newFilters };
+    Object.keys(cleanedFilters).forEach(key => {
+      if (cleanedFilters[key] === undefined) {
+        delete cleanedFilters[key];
+      }
+    });
+    setFilters(cleanedFilters);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -98,6 +115,8 @@ export default function Regiones() {
             </div>
           </div>
         </div>
+
+        <DashboardFilters filters={filters} onFilterChange={handleFilterChange} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="border shadow-sm">
