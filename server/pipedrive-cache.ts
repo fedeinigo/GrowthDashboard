@@ -301,6 +301,14 @@ export async function getCachedConversionFunnel(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
+  // Get all people with team assignments to filter out executives without teams
+  const allPeople = await db.select().from(people);
+  const usersWithTeams = new Set(
+    allPeople
+      .filter(p => p.pipedriveUserId && p.teamId !== null)
+      .map(p => p.pipedriveUserId!)
+  );
+
   let allowedUserIds: number[] | null = null;
   if (filters.personId) {
     allowedUserIds = [filters.personId];
@@ -314,6 +322,8 @@ export async function getCachedConversionFunnel(filters: DashboardFilters) {
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
     if (allowedUserIds && !allowedUserIds.includes(deal.userId || 0)) return false;
+    // Only include deals from users with team assignments
+    if (!usersWithTeams.has(deal.userId || 0)) return false;
     
     const addTime = deal.addTime ? new Date(deal.addTime) : null;
     if (!addTime) return false;
@@ -370,8 +380,6 @@ interface DashboardFilters {
   teamId?: number;
   personId?: number;
 }
-
-import { people } from "@shared/schema";
 
 async function getUserIdsForTeam(teamId: number): Promise<number[]> {
   const teamPeople = await db.select({ pipedriveUserId: people.pipedriveUserId, displayName: people.displayName })
@@ -849,8 +857,6 @@ export async function getCachedRankingsByUser(filters: DashboardFilters) {
     }))
     .sort((a, b) => b.revenue - a.revenue);
 }
-
-import { teams } from "@shared/schema";
 
 export async function getCachedRankingsByTeam(filters: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals).where(eq(pipedriveDeals.status, "won"));
@@ -2232,6 +2238,9 @@ export async function getCachedTeamsData(filters: TeamsDataFilters): Promise<Tea
     
     const teamId = personToTeamId.get(userId) || null;
     const teamName = personToTeamName.get(userId) || "Sin equipo";
+    
+    // Only include executives with a team assigned
+    if (!teamId) return;
     
     const ncClosed = data.ncWon + data.ncLost;
     const closureRate = ncClosed > 0 ? (data.ncWon / ncClosed) * 100 : 0;
