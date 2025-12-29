@@ -1997,7 +1997,7 @@ export async function getCachedDealsForModal(filters: DealsModalFilters): Promis
 export interface TeamsDataFilters {
   startDate?: string;
   endDate?: string;
-  teamId?: number;
+  teamIds?: number[];
   countries?: string[];
   origins?: string[];
   dealType?: string;
@@ -2086,9 +2086,9 @@ export async function getCachedTeamsData(filters: TeamsDataFilters): Promise<Tea
     if (filters.countries?.length && !filters.countries.includes(deal.country || "")) return false;
     if (filters.origins?.length && !filters.origins.includes(deal.origin || "")) return false;
     if (filters.dealType && deal.dealType !== filters.dealType) return false;
-    if (filters.teamId && deal.userId) {
+    if (filters.teamIds?.length && deal.userId) {
       const dealTeamId = personToTeamId.get(deal.userId);
-      if (dealTeamId !== filters.teamId) return false;
+      if (!dealTeamId || !filters.teamIds.includes(dealTeamId)) return false;
     }
     return true;
   });

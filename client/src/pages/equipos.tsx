@@ -137,7 +137,7 @@ export default function Equipos() {
     const params = new URLSearchParams();
     if (filters.startDate) params.append('startDate', filters.startDate);
     if (filters.endDate) params.append('endDate', filters.endDate);
-    if (selectedTeamId !== 'all') params.append('teamId', selectedTeamId);
+    if (selectedTeamId !== 'all') params.append('teamIds', selectedTeamId);
     if (filters.countries?.length) params.append('countries', filters.countries.join(','));
     if (filters.sources?.length) params.append('sources', filters.sources.join(','));
     if (filters.dealType && filters.dealType !== 'all') params.append('dealType', filters.dealType);
