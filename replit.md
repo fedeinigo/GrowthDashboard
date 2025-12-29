@@ -11,7 +11,15 @@ UI preferences: Prioritize aesthetics, usability, and spacing. Elements should n
 
 ## Recent Changes (December 2025)
 
-### UI Enhancements (Latest)
+### Multi-Select Filters (Latest)
+- **Team/Person Multi-Select**: Replaced single-select dropdowns with multi-select popovers using checkboxes
+- **Filter Format**: Frontend uses `teams`/`people` arrays, converted to `teamIds`/`personIds` for API calls
+- **Smart Toggle Logic**: When "all" is selected, clicking deselects just that item from the full list
+- **Consistent Implementation**: All pages (Dashboard, Direct Meetings, Deals Modal) use the new format
+- **Backend Support**: Routes parse comma-separated `teamIds`/`personIds` into number arrays
+- **Helper Functions**: `buildFilterQuery` in api.ts and `getAllowedUserIds` in pipedrive-cache.ts for consistent handling
+
+### UI Enhancements
 - **Header Redesign**: All pages now feature gradient headers with consistent visual style
 - **Improved KPI Grid**: Dashboard KPIs now use 3-column layout on large screens for better symmetry
 - **Section Titles**: Added icon-prefixed section titles for Charts and Rankings

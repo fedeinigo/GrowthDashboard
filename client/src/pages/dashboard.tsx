@@ -102,12 +102,15 @@ export default function Dashboard() {
     queryFn: fetchTeams,
   });
 
-  // Get selected team with image
+  // Get selected team with image (show when only one team is selected in multi-select)
   const selectedTeam = useMemo(() => {
-    if (!filters.team || filters.team === 'all') return null;
-    const teamId = parseInt(filters.team);
-    return teamsData.find((t: any) => t.id === teamId);
-  }, [filters.team, teamsData]);
+    // Check multi-select format (filters.teams is array)
+    if (filters.teams && filters.teams.length === 1) {
+      const teamId = parseInt(filters.teams[0]);
+      return teamsData.find((t: any) => t.id === teamId);
+    }
+    return null;
+  }, [filters.teams, teamsData]);
 
   // Fetch dashboard data from API
   const { 
@@ -286,7 +289,7 @@ export default function Dashboard() {
                             title={metrics.revenue?.label || "Revenue"} 
                             value={metrics.revenue?.value || 0} 
                             change={metrics.revenue?.change || 0} 
-                            trend={metrics.revenue?.trend || "neutral"} 
+                            trend={(metrics.revenue?.trend as "up" | "down" | "neutral") || "neutral"} 
                             prefix={metrics.revenue?.prefix}
                             subtext={metrics.revenue?.subtext}
                             icon={DollarSign}
@@ -297,7 +300,7 @@ export default function Dashboard() {
                             title={metrics.closureRate?.label || "Closure Rate"} 
                             value={metrics.closureRate?.value || 0} 
                             change={metrics.closureRate?.change || 0} 
-                            trend={metrics.closureRate?.trend || "neutral"} 
+                            trend={(metrics.closureRate?.trend as "up" | "down" | "neutral") || "neutral"} 
                             suffix={metrics.closureRate?.suffix}
                             subtext={metrics.closureRate?.subtext}
                             icon={Target}
@@ -307,7 +310,7 @@ export default function Dashboard() {
                             title={metrics.meetings?.label || "Meetings"} 
                             value={metrics.meetings?.value || 0} 
                             change={metrics.meetings?.change || 0} 
-                            trend={metrics.meetings?.trend || "neutral"} 
+                            trend={(metrics.meetings?.trend as "up" | "down" | "neutral") || "neutral"} 
                             subtext={metrics.meetings?.subtext}
                             icon={CalendarCheck}
                             onClick={() => handleKPIClick("meetings", metrics.meetings?.label || "Meetings")}
@@ -316,7 +319,7 @@ export default function Dashboard() {
                             title={metrics.logos?.label || "Logos"} 
                             value={metrics.logos?.value || 0} 
                             change={metrics.logos?.change || 0} 
-                            trend={metrics.logos?.trend || "neutral"} 
+                            trend={(metrics.logos?.trend as "up" | "down" | "neutral") || "neutral"} 
                             subtext={metrics.logos?.subtext}
                             icon={Briefcase}
                             onClick={() => handleKPIClick("logos", metrics.logos?.label || "Logos")}
@@ -325,7 +328,7 @@ export default function Dashboard() {
                             title={metrics.avgSalesCycle?.label || "Sales Cycle"} 
                             value={metrics.avgSalesCycle?.value || 0} 
                             change={metrics.avgSalesCycle?.change || 0} 
-                            trend={metrics.avgSalesCycle?.trend || "neutral"} 
+                            trend={(metrics.avgSalesCycle?.trend as "up" | "down" | "neutral") || "neutral"} 
                             suffix={metrics.avgSalesCycle?.suffix}
                             subtext={metrics.avgSalesCycle?.subtext}
                             icon={Clock}
@@ -335,7 +338,7 @@ export default function Dashboard() {
                             title={metrics.avgTicket?.label || "Ticket Promedio"} 
                             value={metrics.avgTicket?.value || 0} 
                             change={metrics.avgTicket?.change || 0} 
-                            trend={metrics.avgTicket?.trend || "neutral"} 
+                            trend={(metrics.avgTicket?.trend as "up" | "down" | "neutral") || "neutral"} 
                             prefix={metrics.avgTicket?.prefix}
                             subtext={metrics.avgTicket?.subtext}
                             icon={Banknote}
@@ -347,7 +350,7 @@ export default function Dashboard() {
                             title={metrics.totalNewCustomers?.label || "Total New Customers"} 
                             value={metrics.totalNewCustomers?.value || 0} 
                             change={metrics.totalNewCustomers?.change || 0} 
-                            trend={metrics.totalNewCustomers?.trend || "neutral"} 
+                            trend={(metrics.totalNewCustomers?.trend as "up" | "down" | "neutral") || "neutral"} 
                             subtext={metrics.totalNewCustomers?.subtext}
                             icon={UserPlus}
                             onClick={() => handleKPIClick("newCustomers", "New Customers")}
@@ -356,7 +359,7 @@ export default function Dashboard() {
                             title={metrics.totalUpselling?.label || "Total Upselling"} 
                             value={metrics.totalUpselling?.value || 0} 
                             change={metrics.totalUpselling?.change || 0} 
-                            trend={metrics.totalUpselling?.trend || "neutral"} 
+                            trend={(metrics.totalUpselling?.trend as "up" | "down" | "neutral") || "neutral"} 
                             subtext={metrics.totalUpselling?.subtext}
                             icon={ArrowUpCircle}
                             onClick={() => handleKPIClick("upselling", "Upselling")}
@@ -473,7 +476,7 @@ export default function Dashboard() {
                                           const maxValue = rankings?.byTeam?.[0]?.value || 1;
                                           const teamId = item.id || item.teamId || item.name;
                                           return (
-                                            <Tooltip key={item.name}>
+                                            <Tooltip key={`team-${index}-${teamId}`}>
                                               <TooltipTrigger asChild>
                                                 <div 
                                                   data-testid={`ranking-team-${teamId}`}
@@ -520,7 +523,7 @@ export default function Dashboard() {
                                           const maxValue = rankings?.byPerson?.[0]?.value || 1;
                                           const personId = item.id || item.personId || item.name;
                                           return (
-                                            <Tooltip key={item.name}>
+                                            <Tooltip key={`person-${index}-${personId}`}>
                                               <TooltipTrigger asChild>
                                                 <div 
                                                   data-testid={`ranking-person-${personId}`}
@@ -566,7 +569,7 @@ export default function Dashboard() {
                                         {rankings?.bySource?.map((item: any, index: number) => {
                                           const sourceId = item.id || item.sourceId || item.name;
                                           return (
-                                            <Tooltip key={item.name}>
+                                            <Tooltip key={`source-${index}-${sourceId}`}>
                                               <TooltipTrigger asChild>
                                                 <div 
                                                   data-testid={`ranking-source-${sourceId}`}

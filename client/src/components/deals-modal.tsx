@@ -71,8 +71,9 @@ export function DealsModal({ isOpen, onClose, metricType, metricTitle, filters }
   if (filters.endDate) queryParams.set("endDate", filters.endDate);
   if (filters.countries?.length) queryParams.set("countries", filters.countries.join(","));
   if (filters.sources?.length) queryParams.set("sources", filters.sources.join(","));
-  if (filters.teamId) queryParams.set("teamId", filters.teamId);
-  if (filters.personId) queryParams.set("personId", filters.personId);
+  // Support multi-select format (teams/people arrays)
+  if (filters.teams?.length) queryParams.set("teamIds", filters.teams.join(","));
+  if (filters.people?.length) queryParams.set("personIds", filters.people.join(","));
   if (filters.dealType) queryParams.set("dealType", filters.dealType);
   queryParams.set("metricType", metricType);
 

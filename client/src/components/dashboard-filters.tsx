@@ -261,16 +261,39 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     onFilterChange({ sources: newSources.length > 0 ? newSources : undefined });
   };
 
-  // Transform API data to FilterOption format
-  const teams: FilterOption[] = [
-    { value: "all", label: "Todos los Equipos" },
-    ...teamsData.map((team: any) => ({ value: team.id.toString(), label: team.displayName }))
-  ];
+  // Transform API data to FilterOption format (no "all" option for multi-select)
+  const teams: FilterOption[] = teamsData.map((team: any) => ({ value: team.id.toString(), label: team.displayName }));
+  const people: FilterOption[] = peopleData.map((person: any) => ({ value: person.id.toString(), label: person.displayName }));
+  const allTeamIds = teams.map(t => t.value);
+  const allPersonIds = people.map(p => p.value);
 
-  const people: FilterOption[] = [
-    { value: "all", label: "Todas las Personas" },
-    ...peopleData.map((person: any) => ({ value: person.id.toString(), label: person.displayName }))
-  ];
+  const handleTeamToggle = (teamId: string) => {
+    // When "all" is selected (undefined or empty), start from full list to deselect
+    const isAllSelected = !filters?.teams || filters.teams.length === 0;
+    const currentTeams = isAllSelected ? allTeamIds : filters.teams;
+    
+    const newTeams = currentTeams.includes(teamId)
+      ? currentTeams.filter((t: string) => t !== teamId)
+      : [...currentTeams, teamId];
+    
+    // If all teams are selected, reset to undefined (shows "All Teams")
+    const allSelected = newTeams.length === allTeamIds.length || newTeams.length === 0;
+    onFilterChange({ teams: allSelected ? undefined : newTeams });
+  };
+
+  const handlePersonToggle = (personId: string) => {
+    // When "all" is selected (undefined or empty), start from full list to deselect
+    const isAllSelected = !filters?.people || filters.people.length === 0;
+    const currentPeople = isAllSelected ? allPersonIds : filters.people;
+    
+    const newPeople = currentPeople.includes(personId)
+      ? currentPeople.filter((p: string) => p !== personId)
+      : [...currentPeople, personId];
+    
+    // If all people are selected, reset to undefined (shows "All People")
+    const allSelected = newPeople.length === allPersonIds.length || newPeople.length === 0;
+    onFilterChange({ people: allSelected ? undefined : newPeople });
+  };
 
   const sources: FilterOption[] = sourcesData.map((source: any) => ({ value: source.id.toString(), label: source.displayName }));
 
@@ -464,38 +487,78 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
             </div>
         )}
   
-        {/* Team Filter */}
+        {/* Team Filter - Multi-select */}
         <div className="flex-1 min-w-[180px]">
           <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Equipo</label>
-          <Select value={filters?.team || "all"} onValueChange={(val) => onFilterChange({ team: val })}>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Seleccionar equipo" />
-            </SelectTrigger>
-            <SelectContent>
-              {teams.map((team: FilterOption) => (
-                <SelectItem key={team.value} value={team.value}>
-                  {team.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-start bg-background font-normal">
+                {filters?.teams && filters.teams.length > 0 && filters.teams.length < teams.length
+                  ? `${filters.teams.length} equipo${filters.teams.length > 1 ? 's' : ''}`
+                  : "Todos los Equipos"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[220px] p-0" align="start">
+              <div className="max-h-[300px] overflow-y-auto p-2">
+                {teams.map((team: FilterOption) => (
+                  <div key={team.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer">
+                    <Checkbox
+                      id={`team-${team.value}`}
+                      checked={!filters?.teams || filters.teams.length === 0 || filters.teams.includes(team.value)}
+                      onCheckedChange={() => handleTeamToggle(team.value)}
+                    />
+                    <label htmlFor={`team-${team.value}`} className="text-sm cursor-pointer flex-1">
+                      {team.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {filters?.teams && filters.teams.length > 0 && (
+                <div className="border-t p-2">
+                  <Button variant="ghost" size="sm" className="w-full" onClick={() => onFilterChange({ teams: undefined })}>
+                    Seleccionar todos
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
   
-        {/* Person Filter */}
+        {/* Person Filter - Multi-select */}
         <div className="flex-1 min-w-[180px]">
           <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Persona</label>
-          <Select value={filters?.person || "all"} onValueChange={(val) => onFilterChange({ person: val })}>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Seleccionar persona" />
-            </SelectTrigger>
-            <SelectContent>
-              {people.map((person: FilterOption) => (
-                <SelectItem key={person.value} value={person.value}>
-                  {person.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-start bg-background font-normal">
+                {filters?.people && filters.people.length > 0 && filters.people.length < people.length
+                  ? `${filters.people.length} persona${filters.people.length > 1 ? 's' : ''}`
+                  : "Todas las Personas"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[250px] p-0" align="start">
+              <div className="max-h-[300px] overflow-y-auto p-2">
+                {people.map((person: FilterOption) => (
+                  <div key={person.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer">
+                    <Checkbox
+                      id={`person-${person.value}`}
+                      checked={!filters?.people || filters.people.length === 0 || filters.people.includes(person.value)}
+                      onCheckedChange={() => handlePersonToggle(person.value)}
+                    />
+                    <label htmlFor={`person-${person.value}`} className="text-sm cursor-pointer flex-1">
+                      {person.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {filters?.people && filters.people.length > 0 && (
+                <div className="border-t p-2">
+                  <Button variant="ghost" size="sm" className="w-full" onClick={() => onFilterChange({ people: undefined })}>
+                    Seleccionar todos
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
   
          {/* Source Filter - Multi-select */}
@@ -512,7 +575,7 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
             <PopoverContent className="w-[280px] p-0" align="start">
               <div className="max-h-[300px] overflow-y-auto p-2">
                 {sources.map((source: FilterOption) => (
-                  <div key={source.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer" onClick={() => handleSourceToggle(source.value)}>
+                  <div key={source.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer">
                     <Checkbox
                       id={`source-${source.value}`}
                       checked={filters?.sources?.includes(source.value) || false}

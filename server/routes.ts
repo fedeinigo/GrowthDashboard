@@ -23,8 +23,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -32,8 +36,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const metrics = await pipedriveCache.getCachedDashboardMetrics(filters);
@@ -51,8 +55,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -60,8 +68,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const history = await pipedriveCache.getCachedRevenueHistory(filters);
@@ -79,8 +87,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -88,8 +100,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const history = await pipedriveCache.getCachedMonthlyRevenueByType(filters);
@@ -107,8 +119,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -116,8 +132,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const history = await pipedriveCache.getCachedMeetingsHistory(filters);
@@ -172,8 +188,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -181,8 +201,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const result = await pipedriveCache.getCachedClosureRate(filters);
@@ -201,9 +221,16 @@ export async function registerRoutes(
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
       
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      
       const filters = {
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
+        teamIds,
+        personIds,
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         dealType: req.query.dealType as string | undefined,
@@ -250,8 +277,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -259,8 +290,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const rankings = await pipedriveCache.getCachedRankingsByUser(filters);
@@ -278,8 +309,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -287,8 +322,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const rankings = await pipedriveCache.getCachedRankingsBySource(filters);
@@ -317,8 +352,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -326,8 +365,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const data = await pipedriveCache.getQuarterlyRegionComparison(filters);
@@ -345,8 +384,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -354,8 +397,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const data = await pipedriveCache.getTopOriginsByRegion(filters);
@@ -373,8 +416,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -382,8 +429,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const data = await pipedriveCache.getSalesCycleByRegion(filters);
@@ -401,8 +448,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -410,8 +461,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const data = await pipedriveCache.getCachedRegionalData(filters);
@@ -429,8 +480,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -438,8 +493,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const distribution = await pipedriveCache.getCachedEmployeeCountDistribution(filters);
@@ -457,8 +512,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -466,8 +525,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const distribution = await pipedriveCache.getSourceDistribution(filters);
@@ -485,8 +544,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -494,8 +557,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const funnel = await pipedriveCache.getCachedConversionFunnel(filters);
@@ -513,8 +576,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -522,8 +589,8 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const lossReasons = await pipedriveCache.getCachedLossReasons(filters);
@@ -542,11 +609,18 @@ export async function registerRoutes(
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
       
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      
       const filters = {
         startDate: req.query.startDate as string | undefined,
         endDate: req.query.endDate as string | undefined,
-        personId: req.query.personId ? parseInt(req.query.personId as string) : undefined,
-        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
+        personIds,
+        teamIds,
         countries,
         origins,
         dealType: req.query.dealType as string | undefined,
@@ -685,7 +759,9 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -693,7 +769,7 @@ export async function registerRoutes(
         dealType: req.query.dealType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
+        teamIds,
       };
       
       const data = await pipedriveCache.getCachedTeamsData(filters);
@@ -711,8 +787,12 @@ export async function registerRoutes(
       const countries = countriesParam ? countriesParam.split(',') : undefined;
       const originsParam = req.query.sources as string | undefined;
       const origins = originsParam ? originsParam.split(',') : undefined;
-      const teamId = req.query.teamId as string | undefined;
-      const personId = req.query.personId as string | undefined;
+      const teamIds = req.query.teamIds 
+        ? (req.query.teamIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
+      const personIds = req.query.personIds
+        ? (req.query.personIds as string).split(',').map(Number).filter(n => !isNaN(n))
+        : undefined;
       
       const filters = {
         startDate: req.query.startDate as string,
@@ -722,8 +802,8 @@ export async function registerRoutes(
         metricType: req.query.metricType as string | undefined,
         countries,
         origins,
-        teamId: teamId ? parseInt(teamId) : undefined,
-        personId: personId ? parseInt(personId) : undefined,
+        teamIds,
+        personIds,
       };
       
       const deals = await pipedriveCache.getCachedDealsForModal(filters);

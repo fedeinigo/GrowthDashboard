@@ -1,209 +1,118 @@
-export async function fetchDashboardMetrics(filters?: any) {
+function buildFilterQuery(filters?: any): string {
+  if (!filters) return '';
   const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
+  
+  // Multi-select: teamIds (array of team IDs)
+  if (filters.teamIds && filters.teamIds.length > 0) {
+    params.append('teamIds', filters.teamIds.join(','));
+  }
+  // Multi-select: personIds (array of person IDs)
+  if (filters.personIds && filters.personIds.length > 0) {
+    params.append('personIds', filters.personIds.join(','));
+  }
+  // Array filters
+  if (filters.sources && filters.sources.length > 0) {
+    params.append('sources', filters.sources.join(','));
+  }
+  if (filters.countries && filters.countries.length > 0) {
+    params.append('countries', filters.countries.join(','));
+  }
+  if (filters.origins && filters.origins.length > 0) {
+    params.append('origins', filters.origins.join(','));
+  }
+  // Single value filters
+  if (filters.regionId) params.append('regionId', filters.regionId);
+  if (filters.startDate) params.append('startDate', filters.startDate);
+  if (filters.endDate) params.append('endDate', filters.endDate);
+  if (filters.dealType) params.append('dealType', filters.dealType);
+  
+  return params.toString();
+}
 
-  const query = params.toString();
-  const url = `/api/dashboard/metrics${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+function withQuery(basePath: string, query: string): string {
+  return query ? `${basePath}?${query}` : basePath;
+}
+
+export async function fetchDashboardMetrics(filters?: any) {
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/metrics', query));
   if (!res.ok) throw new Error('Failed to fetch metrics');
   return res.json();
 }
 
 export async function fetchRevenueHistory(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/revenue-history${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/revenue-history', query));
   if (!res.ok) throw new Error('Failed to fetch revenue history');
   return res.json();
 }
 
 export async function fetchMonthlyRevenueByType(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/monthly-revenue-by-type${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/monthly-revenue-by-type', query));
   if (!res.ok) throw new Error('Failed to fetch monthly revenue by type');
   return res.json();
 }
 
 export async function fetchMeetingsHistory(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/meetings-history${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/meetings-history', query));
   if (!res.ok) throw new Error('Failed to fetch meetings history');
   return res.json();
 }
 
 export async function fetchClosureRateHistory(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-
-  const query = params.toString();
-  const url = `/api/dashboard/closure-rate-history${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/closure-rate-history', query));
   if (!res.ok) throw new Error('Failed to fetch closure rate history');
   return res.json();
 }
 
 export async function fetchProductStats(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-
-  const query = params.toString();
-  const url = `/api/dashboard/product-stats${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/product-stats', query));
   if (!res.ok) throw new Error('Failed to fetch product stats');
   return res.json();
 }
 
 export async function fetchRankingsByTeam(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-
-  const query = params.toString();
-  const url = `/api/dashboard/rankings/teams${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/rankings/teams', query));
   if (!res.ok) throw new Error('Failed to fetch team rankings');
   return res.json();
 }
 
 export async function fetchRankingsByPerson(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/rankings/people${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/rankings/people', query));
   if (!res.ok) throw new Error('Failed to fetch person rankings');
   return res.json();
 }
 
 export async function fetchRankingsBySource(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-
-  const query = params.toString();
-  const url = `/api/dashboard/rankings/sources${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/rankings/sources', query));
   if (!res.ok) throw new Error('Failed to fetch source rankings');
   return res.json();
 }
 
 export async function fetchRegionalData(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/regional-data${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/regional-data', query));
   if (!res.ok) throw new Error('Failed to fetch regional data');
   return res.json();
 }
 
 export async function fetchCompanySizeDistribution(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-
-  const query = params.toString();
-  const url = `/api/dashboard/company-size-distribution${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/company-size-distribution', query));
   if (!res.ok) throw new Error('Failed to fetch company size distribution');
   return res.json();
 }
 
 export async function fetchSourceDistribution(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.regionId) params.append('regionId', filters.regionId);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-
-  const query = params.toString();
-  const url = `/api/dashboard/source-distribution${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/source-distribution', query));
   if (!res.ok) throw new Error('Failed to fetch source distribution');
   return res.json();
 }
@@ -285,86 +194,36 @@ export async function fetchNCMeetings10Weeks() {
 }
 
 export async function fetchQuarterlyRegionComparison(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/quarterly-region-comparison${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/quarterly-region-comparison', query));
   if (!res.ok) throw new Error('Failed to fetch quarterly comparison');
   return res.json();
 }
 
 export async function fetchTopOriginsByRegion(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/top-origins-by-region${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/top-origins-by-region', query));
   if (!res.ok) throw new Error('Failed to fetch top origins');
   return res.json();
 }
 
 export async function fetchSalesCycleByRegion(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/sales-cycle-by-region${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/sales-cycle-by-region', query));
   if (!res.ok) throw new Error('Failed to fetch sales cycle');
   return res.json();
 }
 
 export async function fetchConversionFunnel(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/conversion-funnel${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/conversion-funnel', query));
   if (!res.ok) throw new Error('Failed to fetch conversion funnel');
   return res.json();
 }
 
 export async function fetchLossReasons(filters?: any) {
-  const params = new URLSearchParams();
-  if (filters?.teamId) params.append('teamId', filters.teamId);
-  if (filters?.personId) params.append('personId', filters.personId);
-  if (filters?.sources && filters.sources.length > 0) params.append('sources', filters.sources.join(','));
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
-  if (filters?.dealType) params.append('dealType', filters.dealType);
-  if (filters?.countries && filters.countries.length > 0) params.append('countries', filters.countries.join(','));
-
-  const query = params.toString();
-  const url = `/api/dashboard/loss-reasons${query ? `?${query}` : ''}`;
-  const res = await fetch(url);
+  const query = buildFilterQuery(filters);
+  const res = await fetch(withQuery('/api/dashboard/loss-reasons', query));
   if (!res.ok) throw new Error('Failed to fetch loss reasons');
   return res.json();
 }

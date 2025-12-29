@@ -309,12 +309,7 @@ export async function getCachedConversionFunnel(filters: DashboardFilters) {
       .map(p => p.pipedriveUserId!)
   );
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const ncDeals = allDeals.filter(deal => {
     if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
@@ -377,8 +372,8 @@ interface DashboardFilters {
   dealType?: string;
   countries?: string[];
   origins?: string[];
-  teamId?: number;
-  personId?: number;
+  teamIds?: number[];
+  personIds?: number[];
 }
 
 async function getUserIdsForTeam(teamId: number): Promise<number[]> {
@@ -412,19 +407,28 @@ async function getUserIdsForTeam(teamId: number): Promise<number[]> {
   return matchedUserIds;
 }
 
+async function getAllowedUserIds(filters: DashboardFilters): Promise<number[] | null> {
+  if (filters.personIds && filters.personIds.length > 0) {
+    return filters.personIds;
+  }
+  if (filters.teamIds && filters.teamIds.length > 0) {
+    const allUserIds: number[] = [];
+    for (const teamId of filters.teamIds) {
+      const teamUserIds = await getUserIdsForTeam(teamId);
+      allUserIds.push(...teamUserIds);
+    }
+    return [...new Set(allUserIds)];
+  }
+  return null;
+}
+
 export async function getCachedDashboardMetrics(filters: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals);
   
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
-  let allowedUserIds: number[] | null = null;
-  
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const filteredDeals = allDeals.filter(deal => {
     if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
@@ -520,12 +524,7 @@ export async function getCachedRevenueHistory(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const filteredDeals = allDeals.filter(deal => {
     if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
@@ -567,12 +566,7 @@ export async function getCachedMonthlyRevenueByType(filters: DashboardFilters) {
   const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
   const startOf13MonthsAgo = new Date(now.getFullYear(), now.getMonth() - 12, 1);
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const filteredDeals = allDeals.filter(deal => {
     if (!filterByPipeline1(deal)) return false;
@@ -626,12 +620,7 @@ export async function getCachedMeetingsHistory(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const filteredDeals = allDeals.filter(deal => {
     if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
@@ -665,12 +654,7 @@ export async function getCachedClosureRate(filters: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals)
     .where(eq(pipedriveDeals.dealType, NEW_CUSTOMER_ID));
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const filteredDeals = allDeals.filter(deal => {
     if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
@@ -704,12 +688,7 @@ export async function getCachedRegionalData(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
   const ORIGEN_FIELD_KEY = "a9241093db8147d20f4c1c7f6c1998477f819ef4";
@@ -810,12 +789,7 @@ export async function getCachedRankingsByUser(filters: DashboardFilters) {
       .map(p => p.pipedriveUserId!)
   );
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const userData: Record<number, { closings: number; revenue: number }> = {};
 
@@ -916,12 +890,7 @@ export async function getCachedRankingsBySource(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const sourceRevenue: Record<string, number> = {};
 
@@ -965,12 +934,7 @@ export async function getCachedProductStats(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   // Get won deals from cache
   const allDeals = await db.select().from(pipedriveDeals).where(eq(pipedriveDeals.status, "won"));
@@ -1196,12 +1160,7 @@ export async function getNCMeetingsLast10Weeks() {
 export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals);
   
-  let allowedUserIds: number[] | null = null;
-  if (filters?.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters?.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = filters ? await getAllowedUserIds(filters) : null;
   
   // Use endDate as anchor point, or today if not provided
   const anchorDate = filters?.endDate ? new Date(filters.endDate + "T23:59:59") : new Date();
@@ -1318,12 +1277,7 @@ export async function getTopOriginsByRegion(filters?: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals)
     .where(eq(pipedriveDeals.status, "won"));
   
-  let allowedUserIds: number[] | null = null;
-  if (filters?.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters?.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = filters ? await getAllowedUserIds(filters) : null;
   
   const startDate = filters?.startDate ? new Date(filters.startDate) : null;
   const endDate = filters?.endDate ? new Date(filters.endDate + "T23:59:59") : null;
@@ -1389,12 +1343,7 @@ export async function getSalesCycleByRegion(filters?: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals)
     .where(eq(pipedriveDeals.status, "won"));
   
-  let allowedUserIds: number[] | null = null;
-  if (filters?.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters?.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = filters ? await getAllowedUserIds(filters) : null;
   
   const startDate = filters?.startDate ? new Date(filters.startDate) : null;
   const endDate = filters?.endDate ? new Date(filters.endDate + "T23:59:59") : null;
@@ -1866,12 +1815,7 @@ export async function getCachedLossReasons(filters: DashboardFilters): Promise<{
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const lostDeals = allDeals.filter(deal => {
     if (!filterByPipeline1(deal)) return false; // Only Pipeline 1
@@ -1963,12 +1907,7 @@ export async function getCachedDealsForModal(filters: DealsModalFilters): Promis
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
-  let allowedUserIds: number[] | null = null;
-  if (filters.personId) {
-    allowedUserIds = [filters.personId];
-  } else if (filters.teamId) {
-    allowedUserIds = await getUserIdsForTeam(filters.teamId);
-  }
+  const allowedUserIds = await getAllowedUserIds(filters);
 
   const filteredDeals = allDeals.filter(deal => {
     if (!filterByPipeline1(deal)) return false; // Only Pipeline 1

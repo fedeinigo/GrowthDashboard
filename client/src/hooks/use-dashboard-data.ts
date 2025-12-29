@@ -23,8 +23,9 @@ import {
 export function useDashboardData(filters?: any) {
   // Convert filter values to API format
   const apiFilters = filters ? {
-    teamId: filters.team && filters.team !== 'all' ? parseInt(filters.team) : undefined,
-    personId: filters.person && filters.person !== 'all' ? parseInt(filters.person) : undefined,
+    // Support both old single-select (team/person) and new multi-select (teams/people)
+    teamIds: filters.teams && filters.teams.length > 0 ? filters.teams.map((t: string) => parseInt(t)) : undefined,
+    personIds: filters.people && filters.people.length > 0 ? filters.people.map((p: string) => parseInt(p)) : undefined,
     sources: filters.sources, // Array of source IDs
     startDate: filters.startDate,
     endDate: filters.endDate,
