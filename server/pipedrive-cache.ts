@@ -1523,12 +1523,26 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
   const users = await pipedrive.getUsers();
   const userNames = new Map(users.map(u => [u.id, u.name]));
   
+  // Get all people with their team info
+  const allPeople = await db.select().from(people);
+  const teamsList = await db.select().from(teams);
+  
+  // Find SDR team (id where name is 'sdr')
+  const sdrTeam = teamsList.find(t => t.name === 'sdr');
+  const sdrTeamId = sdrTeam?.id;
+  
+  // Build set of SDR user IDs (people in the SDR team)
+  const sdrUserIds = new Set<number>();
+  if (sdrTeamId) {
+    allPeople.filter(p => p.teamId === sdrTeamId && p.pipedriveUserId)
+      .forEach(p => sdrUserIds.add(p.pipedriveUserId!));
+  }
+  
   // Build team member map if teamId filter is specified
   let teamMemberIds: Set<number> | undefined;
   if (filters?.teamId) {
     // Get team members from people table
-    const teamPeople = await db.select().from(people);
-    const membersOfTeam = teamPeople.filter(p => p.teamId === filters.teamId && p.pipedriveUserId);
+    const membersOfTeam = allPeople.filter(p => p.teamId === filters.teamId && p.pipedriveUserId);
     if (membersOfTeam.length > 0) {
       teamMemberIds = new Set(membersOfTeam.map(p => p.pipedriveUserId!));
     }
@@ -1656,32 +1670,40 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     byRegion[region].meetings++;
     byRegion[region].value += value;
     
-    // SDR → BDR assignment
+    // SDR → BDR assignment (only include SDRs from SDR team)
     const sdrId = deal.creatorUserId;
     const bdrId = deal.userId;
-    const sdrName = sdrId ? (userNames.get(sdrId) || `User ${sdrId}`) : "Sin SDR";
-    const bdrName = bdrId ? (userNames.get(bdrId) || `User ${bdrId}`) : "Sin owner";
     
-    if (!sdrBdrMatrix[sdrName]) {
-      sdrBdrMatrix[sdrName] = {};
-      sdrTotals[sdrName] = 0;
-    }
-    if (!sdrBdrMatrix[sdrName][bdrName]) {
-      sdrBdrMatrix[sdrName][bdrName] = 0;
-    }
-    sdrBdrMatrix[sdrName][bdrName]++;
-    sdrTotals[sdrName]++;
+    // Only count as SDR if the creator is in the SDR team
+    const isCreatorSdr = sdrId ? sdrUserIds.has(sdrId) : false;
+    // Only count as BDR if the owner is NOT in the SDR team
+    const isOwnerBdr = bdrId ? !sdrUserIds.has(bdrId) : false;
     
-    // Ejecutivo (owner/BDR) vs SDR matrix - rows are ejecutivos, columns are SDRs
-    allSdrsSet.add(sdrName);
-    allEjecutivosSet.add(bdrName);
-    if (!ejecutivosSdrMatrix[bdrName]) {
-      ejecutivosSdrMatrix[bdrName] = {};
+    if (isCreatorSdr && isOwnerBdr) {
+      const sdrName = sdrId ? (userNames.get(sdrId) || `User ${sdrId}`) : "Sin SDR";
+      const bdrName = bdrId ? (userNames.get(bdrId) || `User ${bdrId}`) : "Sin owner";
+      
+      if (!sdrBdrMatrix[sdrName]) {
+        sdrBdrMatrix[sdrName] = {};
+        sdrTotals[sdrName] = 0;
+      }
+      if (!sdrBdrMatrix[sdrName][bdrName]) {
+        sdrBdrMatrix[sdrName][bdrName] = 0;
+      }
+      sdrBdrMatrix[sdrName][bdrName]++;
+      sdrTotals[sdrName]++;
+      
+      // Ejecutivo (owner/BDR) vs SDR matrix - rows are ejecutivos, columns are SDRs
+      allSdrsSet.add(sdrName);
+      allEjecutivosSet.add(bdrName);
+      if (!ejecutivosSdrMatrix[bdrName]) {
+        ejecutivosSdrMatrix[bdrName] = {};
+      }
+      if (!ejecutivosSdrMatrix[bdrName][sdrName]) {
+        ejecutivosSdrMatrix[bdrName][sdrName] = 0;
+      }
+      ejecutivosSdrMatrix[bdrName][sdrName]++;
     }
-    if (!ejecutivosSdrMatrix[bdrName][sdrName]) {
-      ejecutivosSdrMatrix[bdrName][sdrName] = 0;
-    }
-    ejecutivosSdrMatrix[bdrName][sdrName]++;
     
     totalMeetings++;
     
