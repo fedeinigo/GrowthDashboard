@@ -1280,15 +1280,28 @@ export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
         const quarterKey = getQuarterKey(wonTime);
         if (data[region]?.[quarterKey]) {
           data[region][quarterKey].logos++;
-          data[region][quarterKey].revenue += getDealRevenue(deal);
+          // Only count revenue for New Customer deals
+          if (deal.dealType === NEW_CUSTOMER_ID) {
+            data[region][quarterKey].revenue += getDealRevenue(deal);
+          }
         }
       }
     }
   });
 
+  // Calculate total logos per region for sorting
+  const regionTotals = regions.map(region => {
+    const totalLogos = quarters.reduce((sum, q) => sum + data[region][q].logos, 0);
+    return { region, totalLogos };
+  });
+  
+  // Sort regions by total logos descending
+  regionTotals.sort((a, b) => b.totalLogos - a.totalLogos);
+  const sortedRegions = regionTotals.map(r => r.region);
+
   return {
     quarters,
-    regions: regions.map(region => ({
+    regions: sortedRegions.map(region => ({
       region,
       data: quarters.map(q => ({
         quarter: q,

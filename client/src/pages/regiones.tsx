@@ -239,16 +239,16 @@ export default function Regiones() {
                 <TableHeader>
                   <TableRow className="bg-muted/30">
                     <TableHead className="w-[120px] font-semibold">Region</TableHead>
-                    {quarterlyRegionComparison?.quarters?.map((q: string) => (
-                      <TableHead key={q} className="text-center font-semibold border-l" colSpan={3}>
+                    {quarterlyRegionComparison?.quarters?.map((q: string, qIdx: number) => (
+                      <TableHead key={`header-${q}-${qIdx}`} className="text-center font-semibold border-l" colSpan={3}>
                         {q}
                       </TableHead>
                     ))}
                   </TableRow>
                   <TableRow className="bg-muted/20">
                     <TableHead></TableHead>
-                    {quarterlyRegionComparison?.quarters?.map((q: string) => (
-                      <React.Fragment key={`sub-${q}`}>
+                    {quarterlyRegionComparison?.quarters?.map((q: string, qIdx: number) => (
+                      <React.Fragment key={`sub-${q}-${qIdx}`}>
                         <TableHead className="text-right text-xs font-medium text-blue-600 dark:text-blue-400 border-l">Reuniones</TableHead>
                         <TableHead className="text-right text-xs font-medium text-amber-600 dark:text-amber-400">Logos</TableHead>
                         <TableHead className="text-right text-xs font-medium text-emerald-600 dark:text-emerald-400">USD</TableHead>
@@ -265,8 +265,8 @@ export default function Regiones() {
                           {region.region}
                         </div>
                       </TableCell>
-                      {region.data?.map((d: any) => (
-                        <React.Fragment key={`${region.region}-${d.quarter}`}>
+                      {region.data?.map((d: any, dIdx: number) => (
+                        <React.Fragment key={`${region.region}-${d.quarter}-${dIdx}`}>
                           <TableCell className="text-right border-l tabular-nums">{d.meetings}</TableCell>
                           <TableCell className="text-right tabular-nums">{d.logos}</TableCell>
                           <TableCell className="text-right font-medium tabular-nums text-emerald-700 dark:text-emerald-400">${d.revenue.toLocaleString()}</TableCell>
