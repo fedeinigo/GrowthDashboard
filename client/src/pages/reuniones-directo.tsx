@@ -342,113 +342,113 @@ export default function ReunionesDirecto() {
               </Popover>
             </div>
           </CardHeader>
-          <CardContent className="pt-4">
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-              <div className="xl:col-span-3">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-semibold text-foreground">Detalle por SDR</h4>
-                  {excludedSdrs.size > 0 && (
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                      {sortedSdrs.length} de {sdrSummary.length} SDRs
-                    </span>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 overflow-y-auto pr-2 max-h-[500px]">
-                  {sortedSdrs.map((sdr, idx) => {
-                    const assignments = groupedBySdr[sdr] || [];
-                    const sdrTotal = sdrSummary.find(s => s.sdr === sdr)?.totalDeals || 0;
-                    const percentage = (sdrTotal / maxSdrDeals) * 100;
-                    return (
-                      <div 
-                        key={sdr} 
-                        className="border rounded-lg p-3 bg-card hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-[10px] font-bold text-blue-700 dark:text-blue-300">
-                              {idx + 1}
-                            </div>
-                            <span className="font-semibold text-xs truncate max-w-[100px]">{sdr}</span>
+          <CardContent className="pt-4 space-y-6">
+            {/* Detalle por SDR - Full width */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-semibold text-foreground">Detalle por SDR</h4>
+                {excludedSdrs.size > 0 && (
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                    {sortedSdrs.length} de {sdrSummary.length} SDRs
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 overflow-y-auto pr-2 max-h-[400px]">
+                {sortedSdrs.map((sdr, idx) => {
+                  const assignments = groupedBySdr[sdr] || [];
+                  const sdrTotal = sdrSummary.find(s => s.sdr === sdr)?.totalDeals || 0;
+                  const percentage = (sdrTotal / maxSdrDeals) * 100;
+                  return (
+                    <div 
+                      key={sdr} 
+                      className="border rounded-lg p-3 bg-card hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-[10px] font-bold text-blue-700 dark:text-blue-300">
+                            {idx + 1}
                           </div>
-                          <Badge className="text-[10px] px-1.5 py-0 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/70">
-                            {sdrTotal}
-                          </Badge>
+                          <span className="font-semibold text-xs truncate max-w-[100px]">{sdr}</span>
                         </div>
-                        <div className="mb-2">
-                          <Progress value={percentage} className="h-1" />
-                        </div>
-                        <div className="space-y-1 pl-1.5 border-l border-muted max-h-[120px] overflow-y-auto">
-                          {assignments.map((a, i) => (
-                            <div key={i} className="flex items-center justify-between text-[11px] py-0.5">
-                              <div className="flex items-center gap-1">
-                                <ArrowRight className="w-2.5 h-2.5 text-muted-foreground flex-shrink-0" />
-                                <span className="text-muted-foreground truncate max-w-[80px]">{a.bdr}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-[10px] text-muted-foreground tabular-nums">{a.deals}</span>
-                                <Badge 
-                                  variant="outline" 
-                                  className={`text-[10px] px-1 py-0 tabular-nums ${
-                                    a.percentage >= 50 
-                                      ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700' 
-                                      : a.percentage >= 25 
-                                        ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700'
-                                        : 'bg-muted text-muted-foreground border-muted'
-                                  }`}
-                                >
-                                  {a.percentage}%
-                                </Badge>
-                              </div>
+                        <Badge className="text-[10px] px-1.5 py-0 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/70">
+                          {sdrTotal}
+                        </Badge>
+                      </div>
+                      <div className="mb-2">
+                        <Progress value={percentage} className="h-1" />
+                      </div>
+                      <div className="space-y-1 pl-1.5 border-l border-muted max-h-[100px] overflow-y-auto">
+                        {assignments.map((a, i) => (
+                          <div key={i} className="flex items-center justify-between text-[11px] py-0.5">
+                            <div className="flex items-center gap-1">
+                              <ArrowRight className="w-2.5 h-2.5 text-muted-foreground flex-shrink-0" />
+                              <span className="text-muted-foreground truncate max-w-[80px]">{a.bdr}</span>
                             </div>
-                          ))}
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-muted-foreground tabular-nums">{a.deals}</span>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-[10px] px-1 py-0 tabular-nums ${
+                                  a.percentage >= 50 
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700' 
+                                    : a.percentage >= 25 
+                                      ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700'
+                                      : 'bg-muted text-muted-foreground border-muted'
+                                }`}
+                              >
+                                {a.percentage}%
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Top SDRs y Top BDRs - Side by side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-xl p-4">
+                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-blue-800 dark:text-blue-300">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  Top SDRs (Creadores)
+                </h4>
+                <div className="space-y-2">
+                  {sdrSummary.filter(s => !excludedSdrs.has(s.sdr)).slice(0, 6).map((s, idx) => {
+                    const percentage = (s.totalDeals / maxSdrDeals) * 100;
+                    return (
+                      <div key={s.sdr} className="space-y-1">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="truncate font-medium">{idx + 1}. {s.sdr}</span>
+                          <Badge variant="outline" className="tabular-nums bg-background">{s.totalDeals}</Badge>
                         </div>
+                        <Progress value={percentage} className="h-1" />
                       </div>
                     );
                   })}
                 </div>
               </div>
               
-              <div className="space-y-6">
-                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-xl p-4">
-                  <h4 className="text-sm font-semibold mb-4 flex items-center gap-2 text-blue-800 dark:text-blue-300">
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                    Top SDRs (Creadores)
-                  </h4>
-                  <div className="space-y-3">
-                    {sdrSummary.filter(s => !excludedSdrs.has(s.sdr)).slice(0, 8).map((s, idx) => {
-                      const percentage = (s.totalDeals / maxSdrDeals) * 100;
-                      return (
-                        <div key={s.sdr} className="space-y-1">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="truncate font-medium">{idx + 1}. {s.sdr}</span>
-                            <Badge variant="outline" className="tabular-nums bg-background">{s.totalDeals}</Badge>
-                          </div>
-                          <Progress value={percentage} className="h-1" />
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-800 rounded-xl p-4">
+                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  Top BDRs (Owners)
+                </h4>
+                <div className="space-y-2">
+                  {bdrSummary.slice(0, 6).map((b, idx) => {
+                    const percentage = (b.totalDeals / maxBdrDeals) * 100;
+                    return (
+                      <div key={b.bdr} className="space-y-1">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="truncate font-medium">{idx + 1}. {b.bdr}</span>
+                          <Badge variant="outline" className="tabular-nums bg-background border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300">{b.totalDeals}</Badge>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                
-                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-800 rounded-xl p-4">
-                  <h4 className="text-sm font-semibold mb-4 flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                    Top BDRs (Owners)
-                  </h4>
-                  <div className="space-y-3">
-                    {bdrSummary.slice(0, 8).map((b, idx) => {
-                      const percentage = (b.totalDeals / maxBdrDeals) * 100;
-                      return (
-                        <div key={b.bdr} className="space-y-1">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="truncate font-medium">{idx + 1}. {b.bdr}</span>
-                            <Badge variant="outline" className="tabular-nums bg-background border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300">{b.totalDeals}</Badge>
-                          </div>
-                          <Progress value={percentage} className="h-1 [&>div]:bg-emerald-500" />
-                        </div>
-                      );
-                    })}
-                  </div>
+                        <Progress value={percentage} className="h-1 [&>div]:bg-emerald-500" />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
