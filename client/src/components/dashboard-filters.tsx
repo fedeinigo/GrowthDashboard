@@ -325,18 +325,64 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
       {filters && Object.keys(filters).length > 0 && (
          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-medium text-muted-foreground">Filtros Activos:</span>
-            {Object.entries(filters).map(([key, value]: [string, any]) => (
-                <div key={key} className="flex items-center bg-primary/10 text-primary text-xs px-2 py-1 rounded-full border border-primary/20">
-                    <span className="font-semibold mr-1">{key === "companySize" ? "Tamaño Empresa" : key}:</span>
-                    {value}
-                    <button 
-                        onClick={() => onFilterChange({ [key]: undefined })}
-                        className="ml-1 hover:text-destructive transition-colors"
-                    >
-                        <FilterX className="w-3 h-3" />
-                    </button>
-                </div>
-            ))}
+            {Object.entries(filters).map(([key, value]: [string, any]) => {
+                // Skip empty arrays or undefined
+                if (value === undefined || (Array.isArray(value) && value.length === 0)) return null;
+                
+                // Format the key name
+                const keyLabels: Record<string, string> = {
+                  startDate: "Desde",
+                  endDate: "Hasta",
+                  teams: "Equipos",
+                  people: "Personas",
+                  countries: "Países",
+                  sources: "Orígenes",
+                  dealType: "Tipo",
+                  companySize: "Tamaño Empresa"
+                };
+                const keyLabel = keyLabels[key] || key;
+                
+                // Format the value
+                let displayValue: string;
+                if (key === "teams" && Array.isArray(value)) {
+                  const teamNames = value.map((id: string) => {
+                    const team = teamsData.find((t: any) => t.id.toString() === id);
+                    return team?.displayName || id;
+                  });
+                  displayValue = teamNames.length <= 2 ? teamNames.join(", ") : `${teamNames.length} equipos`;
+                } else if (key === "people" && Array.isArray(value)) {
+                  const peopleNames = value.map((id: string) => {
+                    const person = peopleData.find((p: any) => p.pipedriveUserId?.toString() === id);
+                    return person?.displayName || id;
+                  });
+                  displayValue = peopleNames.length <= 2 ? peopleNames.join(", ") : `${peopleNames.length} personas`;
+                } else if (key === "countries" && Array.isArray(value)) {
+                  displayValue = value.length <= 2 ? value.join(", ") : `${value.length} países`;
+                } else if (key === "sources" && Array.isArray(value)) {
+                  const sourceNames = value.map((id: string) => {
+                    const source = sourcesData.find((s: any) => s.id.toString() === id);
+                    return source?.displayName || id;
+                  });
+                  displayValue = sourceNames.length <= 2 ? sourceNames.join(", ") : `${sourceNames.length} orígenes`;
+                } else if (Array.isArray(value)) {
+                  displayValue = value.length <= 2 ? value.join(", ") : `${value.length} seleccionados`;
+                } else {
+                  displayValue = String(value);
+                }
+                
+                return (
+                  <div key={key} className="flex items-center bg-primary/10 text-primary text-xs px-2 py-1 rounded-full border border-primary/20 max-w-[200px]">
+                      <span className="font-semibold mr-1">{keyLabel}:</span>
+                      <span className="truncate">{displayValue}</span>
+                      <button 
+                          onClick={() => onFilterChange({ [key]: undefined })}
+                          className="ml-1 hover:text-destructive transition-colors flex-shrink-0"
+                      >
+                          <FilterX className="w-3 h-3" />
+                      </button>
+                  </div>
+                );
+            })}
             <Button 
                 variant="ghost" 
                 size="sm" 
