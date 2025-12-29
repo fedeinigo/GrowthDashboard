@@ -628,11 +628,37 @@ export default function ReunionesDirecto() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              {/* Totales */}
+              <div className="mt-4 grid grid-cols-3 gap-4">
+                <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4 text-center">
+                  <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">Total Proposal Made</div>
+                  <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                    ${Math.round(funnelBySdr.reduce((sum: number, sdr: any) => sum + sdr.proposalValue, 0) / 1000).toLocaleString()}k
+                  </div>
+                  <div className="text-xs text-muted-foreground">{funnelBySdr.reduce((sum: number, sdr: any) => sum + sdr.proposalCount, 0)} deals</div>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-center">
+                  <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">Total Current Sprint</div>
+                  <div className="text-2xl font-bold text-amber-700 dark:text-amber-300">
+                    ${Math.round(funnelBySdr.reduce((sum: number, sdr: any) => sum + sdr.sprintValue, 0) / 1000).toLocaleString()}k
+                  </div>
+                  <div className="text-xs text-muted-foreground">{funnelBySdr.reduce((sum: number, sdr: any) => sum + sdr.sprintCount, 0)} deals</div>
+                </div>
+                <div className="bg-gradient-to-r from-purple-50 to-amber-50 dark:from-purple-950/30 dark:to-amber-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4 text-center">
+                  <div className="text-xs text-foreground font-medium">Funnel Total</div>
+                  <div className="text-2xl font-bold text-foreground">
+                    ${Math.round(funnelBySdr.reduce((sum: number, sdr: any) => sum + sdr.totalValue, 0) / 1000).toLocaleString()}k
+                  </div>
+                  <div className="text-xs text-muted-foreground">{funnelBySdr.reduce((sum: number, sdr: any) => sum + sdr.proposalCount + sdr.sprintCount, 0)} deals</div>
+                </div>
+              </div>
+              
+              {/* SDRs individuales */}
               <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 {funnelBySdr.slice(0, 6).map((sdr: any) => (
-                  <div key={sdr.sdrId} className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-center">
-                    <div className="text-xs text-purple-600 dark:text-purple-400 font-medium truncate">{sdr.sdrName}</div>
-                    <div className="text-lg font-bold text-purple-700 dark:text-purple-300">${Math.round(sdr.totalValue / 1000)}k</div>
+                  <div key={sdr.sdrId} className="bg-muted/50 border border-border rounded-lg p-3 text-center">
+                    <div className="text-xs text-muted-foreground font-medium truncate">{sdr.sdrName}</div>
+                    <div className="text-lg font-bold text-foreground">${Math.round(sdr.totalValue / 1000)}k</div>
                     <div className="text-[10px] text-muted-foreground">{sdr.proposalCount + sdr.sprintCount} deals</div>
                   </div>
                 ))}
