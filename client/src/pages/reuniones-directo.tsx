@@ -624,7 +624,7 @@ export default function ReunionesDirecto() {
                       formatter={(value) => value === 'proposalValue' ? 'Proposal Made' : 'Current Sprint'}
                     />
                     <Bar dataKey="proposalValue" stackId="a" fill="#8b5cf6" name="proposalValue" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="sprintValue" stackId="a" fill="#a78bfa" name="sprintValue" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="sprintValue" stackId="a" fill="#f59e0b" name="sprintValue" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
