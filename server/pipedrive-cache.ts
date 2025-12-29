@@ -1767,6 +1767,50 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     .map(([sdr, total]) => ({ sdr, totalDeals: total }))
     .sort((a, b) => b.totalDeals - a.totalDeals);
   
+  // Calculate Funnel by SDR: value of open deals in Proposal Made or Current Sprint, grouped by creator (SDR)
+  const PROPOSAL_MADE_STAGE_FUNNEL = 4;
+  const CURRENT_SPRINT_STAGE_FUNNEL = 30;
+  const funnelBySdrData: Record<number, { name: string; proposalValue: number; sprintValue: number; proposalCount: number; sprintCount: number }> = {};
+  
+  directDeals.forEach(deal => {
+    const creatorId = deal.creatorUserId;
+    if (!creatorId) return;
+    
+    // Only include if creator is in SDR team
+    if (!sdrUserIds.has(creatorId)) return;
+    
+    // Only open deals
+    if (deal.status !== "open") return;
+    
+    const value = getDealRevenue(deal);
+    const creatorName = userNames.get(creatorId) || `User ${creatorId}`;
+    
+    if (!funnelBySdrData[creatorId]) {
+      funnelBySdrData[creatorId] = { name: creatorName, proposalValue: 0, sprintValue: 0, proposalCount: 0, sprintCount: 0 };
+    }
+    
+    if (deal.stageId === PROPOSAL_MADE_STAGE_FUNNEL) {
+      funnelBySdrData[creatorId].proposalValue += value;
+      funnelBySdrData[creatorId].proposalCount++;
+    } else if (deal.stageId === CURRENT_SPRINT_STAGE_FUNNEL) {
+      funnelBySdrData[creatorId].sprintValue += value;
+      funnelBySdrData[creatorId].sprintCount++;
+    }
+  });
+  
+  const funnelBySdr = Object.entries(funnelBySdrData)
+    .map(([id, data]) => ({
+      sdrId: parseInt(id),
+      sdrName: data.name,
+      proposalValue: Math.round(data.proposalValue),
+      sprintValue: Math.round(data.sprintValue),
+      totalValue: Math.round(data.proposalValue + data.sprintValue),
+      proposalCount: data.proposalCount,
+      sprintCount: data.sprintCount,
+    }))
+    .filter(sdr => sdr.totalValue > 0)
+    .sort((a, b) => b.totalValue - a.totalValue);
+  
   // Calculate BDR totals for summary
   const bdrTotals: Record<string, number> = {};
   Object.values(sdrBdrMatrix).forEach(bdrs => {
@@ -1810,6 +1854,7 @@ export async function getDirectMeetingsData(filters?: DirectMeetingsFilters) {
     sdrBdrAssignment,
     sdrSummary,
     bdrSummary,
+    funnelBySdr,
     ejecutivosSdrTable: {
       sdrs: allSdrs,
       rows: ejecutivosSdrTable,

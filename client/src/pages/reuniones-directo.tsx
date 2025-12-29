@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, LineChart, Line, Cell, LabelList
+  ResponsiveContainer, LineChart, Line, Cell, LabelList, Legend
 } from "recharts";
 import { Loader2, Calendar, DollarSign, TrendingUp, Users, Settings, ArrowRight, Zap, Info, Target } from "lucide-react";
 import {
@@ -34,6 +34,7 @@ interface DirectMeetingsData {
   sdrBdrAssignment: Array<{ sdr: string; bdr: string; deals: number; percentage: number }>;
   sdrSummary: Array<{ sdr: string; totalDeals: number }>;
   bdrSummary: Array<{ bdr: string; totalDeals: number }>;
+  funnelBySdr: Array<{ sdrId: number; sdrName: string; proposalValue: number; sprintValue: number; totalValue: number; proposalCount: number; sprintCount: number }>;
   ejecutivosSdrTable: {
     sdrs: string[];
     rows: Array<{ ejecutivo: string; total: number; sdrs: Array<{ sdr: string; count: number }> }>;
@@ -144,6 +145,7 @@ export default function ReunionesDirecto() {
   const sdrBdrAssignment = data?.sdrBdrAssignment || [];
   const sdrSummary = data?.sdrSummary || [];
   const bdrSummary = data?.bdrSummary || [];
+  const funnelBySdr = data?.funnelBySdr || [];
   const ejecutivosSdrTable = data?.ejecutivosSdrTable || { sdrs: [], rows: [] };
   const totals = data?.totals || { meetings: 0, value: 0, avgTicket: 0, funnelActual: 0 };
 
@@ -588,6 +590,56 @@ export default function ReunionesDirecto() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Funnel por SDR */}
+        {funnelBySdr.length > 0 && (
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-3 border-b bg-muted/30">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-purple-600" />
+                <div>
+                  <CardTitle className="text-base">Funnel por SDR</CardTitle>
+                  <CardDescription>Fee mensual de deals abiertos en Proposal Made y Current Sprint por cada SDR</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="h-[320px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={funnelBySdr} layout="vertical" margin={{ left: 10, right: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis type="number" tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
+                    <YAxis dataKey="sdrName" type="category" tick={{ fontSize: 11 }} className="fill-muted-foreground" width={120} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      itemStyle={{ color: 'hsl(var(--foreground))' }}
+                      formatter={(value: number, name: string) => [
+                        `$${value.toLocaleString()}`,
+                        name === 'proposalValue' ? 'Proposal Made' : 'Current Sprint'
+                      ]} 
+                    />
+                    <Legend 
+                      wrapperStyle={{ paddingTop: '10px' }}
+                      formatter={(value) => value === 'proposalValue' ? 'Proposal Made' : 'Current Sprint'}
+                    />
+                    <Bar dataKey="proposalValue" stackId="a" fill="#8b5cf6" name="proposalValue" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="sprintValue" stackId="a" fill="#a78bfa" name="sprintValue" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {funnelBySdr.slice(0, 6).map((sdr: any) => (
+                  <div key={sdr.sdrId} className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-center">
+                    <div className="text-xs text-purple-600 dark:text-purple-400 font-medium truncate">{sdr.sdrName}</div>
+                    <div className="text-lg font-bold text-purple-700 dark:text-purple-300">${Math.round(sdr.totalValue / 1000)}k</div>
+                    <div className="text-[10px] text-muted-foreground">{sdr.proposalCount + sdr.sprintCount} deals</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabla Ejecutivos vs SDR */}
         {ejecutivosSdrTable.rows.length > 0 && (
