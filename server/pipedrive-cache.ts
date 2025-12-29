@@ -894,7 +894,7 @@ export async function getCachedRankingsByTeam(filters: DashboardFilters) {
     if (!userId) return;
     
     const teamId = userIdToTeamId.get(userId);
-    if (!teamId) return;
+    if (teamId === undefined) return;
     
     teamRevenue[teamId] += getDealRevenue(deal);
   });
@@ -2240,7 +2240,7 @@ export async function getCachedTeamsData(filters: TeamsDataFilters): Promise<Tea
     const teamName = personToTeamName.get(userId) || "Sin equipo";
     
     // Only include executives with a team assigned
-    if (!teamId) return;
+    if (teamId === null) return;
     
     const ncClosed = data.ncWon + data.ncLost;
     const closureRate = ncClosed > 0 ? (data.ncWon / ncClosed) * 100 : 0;
