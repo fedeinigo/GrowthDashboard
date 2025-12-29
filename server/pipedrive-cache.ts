@@ -1191,6 +1191,8 @@ export async function getNCMeetingsLast10Weeks() {
 }
 
 // Get quarterly comparison by region (last 5 quarters)
+// NOTE: This chart always shows the last 5 quarters - it ignores startDate filter
+// to ensure historical quarters are always populated
 export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
   const allDeals = await db.select().from(pipedriveDeals);
   
@@ -1201,8 +1203,8 @@ export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
     allowedUserIds = await getUserIdsForTeam(filters.teamId);
   }
   
-  const startDate = filters?.startDate ? new Date(filters.startDate) : null;
-  const endDate = filters?.endDate ? new Date(filters.endDate + "T23:59:59") : null;
+  // Use endDate as anchor point, or today if not provided
+  const anchorDate = filters?.endDate ? new Date(filters.endDate + "T23:59:59") : new Date();
   
   const dealFields = await pipedrive.getDealFields();
   const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
@@ -1226,14 +1228,18 @@ export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
     return `${year}-Q${quarter}`;
   };
 
-  // Calculate last 5 quarters
+  // Calculate last 5 quarters from anchor date (endDate or today)
   const quarters: string[] = [];
-  const now = new Date();
   for (let i = 4; i >= 0; i--) {
-    const d = new Date(now);
+    const d = new Date(anchorDate);
     d.setMonth(d.getMonth() - (i * 3));
     quarters.push(getQuarterKey(d));
   }
+  
+  // Calculate the start of the earliest quarter for filtering
+  const firstQuarter = quarters[0];
+  const [firstYear, firstQ] = firstQuarter.split('-Q').map(Number);
+  const earliestQuarterStart = new Date(firstYear, (firstQ - 1) * 3, 1);
 
   const regions = ["Colombia", "Argentina", "Mexico", "Brasil", "España", "Rest Latam"];
   
@@ -1256,12 +1262,10 @@ export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
     const countryName = countryLabels.get(deal.country || "") || "Unknown";
     const region = getCellForCountry(countryName);
     
-    // Count meetings (cards created) by add_time
+    // Count meetings (cards created) by add_time - within the 5-quarter range
     if (deal.addTime) {
       const addTime = new Date(deal.addTime);
-      // Apply date filter for meetings - only count if within range
-      const meetingInRange = (!startDate || addTime >= startDate) && (!endDate || addTime <= endDate);
-      if (meetingInRange) {
+      if (addTime >= earliestQuarterStart && addTime <= anchorDate) {
         const quarterKey = getQuarterKey(addTime);
         if (data[region]?.[quarterKey]) {
           data[region][quarterKey].meetings++;
@@ -1269,12 +1273,10 @@ export async function getQuarterlyRegionComparison(filters?: DashboardFilters) {
       }
     }
     
-    // Count logos and revenue by won_time
+    // Count logos and revenue by won_time - within the 5-quarter range
     if (deal.status === "won" && deal.wonTime) {
       const wonTime = new Date(deal.wonTime);
-      // Apply date filter for won deals - only count if within range
-      const wonInRange = (!startDate || wonTime >= startDate) && (!endDate || wonTime <= endDate);
-      if (wonInRange) {
+      if (wonTime >= earliestQuarterStart && wonTime <= anchorDate) {
         const quarterKey = getQuarterKey(wonTime);
         if (data[region]?.[quarterKey]) {
           data[region][quarterKey].logos++;
