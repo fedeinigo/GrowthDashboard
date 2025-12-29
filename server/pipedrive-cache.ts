@@ -794,6 +794,14 @@ export async function getCachedRankingsByUser(filters: DashboardFilters) {
   const startDate = filters.startDate ? new Date(filters.startDate) : null;
   const endDate = filters.endDate ? new Date(filters.endDate + "T23:59:59") : null;
 
+  // Get all people with team assignments to filter out executives without teams
+  const allPeople = await db.select().from(people);
+  const usersWithTeams = new Set(
+    allPeople
+      .filter(p => p.pipedriveUserId && p.teamId !== null)
+      .map(p => p.pipedriveUserId!)
+  );
+
   let allowedUserIds: number[] | null = null;
   if (filters.personId) {
     allowedUserIds = [filters.personId];
@@ -817,6 +825,9 @@ export async function getCachedRankingsByUser(filters: DashboardFilters) {
     
     const userId = deal.userId;
     if (!userId) return;
+    
+    // Only include users with team assignments
+    if (!usersWithTeams.has(userId)) return;
     
     if (!userData[userId]) {
       userData[userId] = { closings: 0, revenue: 0 };
