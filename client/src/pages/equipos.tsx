@@ -223,16 +223,16 @@ export default function Equipos() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-6 items-stretch">
+        <div className="flex flex-col md:flex-row gap-6 items-end">
           {/* Left side - Team image and selector */}
-          <div className="flex flex-col gap-4 min-w-[200px]">
-            {/* Large team image area */}
-            <div className="flex items-center justify-center h-[180px] rounded-xl border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 overflow-hidden">
+          <div className="flex flex-col gap-4 w-[180px] flex-shrink-0">
+            {/* Square team image area */}
+            <div className="flex items-center justify-center w-[180px] h-[180px] rounded-xl border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 overflow-hidden">
               {selectedTeam?.imageUrl ? (
                 <img 
                   src={selectedTeam.imageUrl} 
                   alt={selectedTeam.displayName} 
-                  className="w-full h-full object-contain p-4"
+                  className="w-full h-full object-contain p-3"
                 />
               ) : (
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -241,11 +241,11 @@ export default function Equipos() {
                 </div>
               )}
             </div>
-            {/* Team selector */}
+            {/* Team selector - aligned with País dropdown */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Equipo</label>
               <Select value={selectedTeamId} onValueChange={setSelectedTeamId} data-testid="select-team">
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background w-full">
                   <SelectValue placeholder="Seleccionar equipo" />
                 </SelectTrigger>
                 <SelectContent>
