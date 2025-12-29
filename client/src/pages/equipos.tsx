@@ -223,17 +223,27 @@ export default function Equipos() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-          <div className="min-w-[200px]">
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Equipo</label>
-            <div className="flex items-center gap-3">
-              {selectedTeam?.imageUrl && (
+        <div className="flex flex-col md:flex-row gap-6 items-stretch">
+          {/* Left side - Team image and selector */}
+          <div className="flex flex-col gap-4 min-w-[200px]">
+            {/* Large team image area */}
+            <div className="flex items-center justify-center h-[180px] rounded-xl border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 overflow-hidden">
+              {selectedTeam?.imageUrl ? (
                 <img 
                   src={selectedTeam.imageUrl} 
                   alt={selectedTeam.displayName} 
-                  className="w-10 h-10 object-contain rounded-lg border border-border/50 bg-background/50 p-0.5 flex-shrink-0"
+                  className="w-full h-full object-contain p-4"
                 />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <Users className="w-12 h-12 opacity-30" />
+                  <span className="text-xs">Selecciona un equipo</span>
+                </div>
               )}
+            </div>
+            {/* Team selector */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Equipo</label>
               <Select value={selectedTeamId} onValueChange={setSelectedTeamId} data-testid="select-team">
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Seleccionar equipo" />
@@ -249,6 +259,8 @@ export default function Equipos() {
               </Select>
             </div>
           </div>
+          
+          {/* Right side - Dashboard filters */}
           <div className="flex-1">
             <DashboardFilters filters={filters} onFilterChange={handleFilterChange} />
           </div>
