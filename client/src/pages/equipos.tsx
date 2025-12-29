@@ -211,20 +211,12 @@ export default function Equipos() {
       <div className="space-y-6">
         <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-primary/10 p-4 sm:p-6 border border-border/50">
           <div className="flex items-center gap-3">
-            {selectedTeam?.imageUrl ? (
-              <img 
-                src={selectedTeam.imageUrl} 
-                alt={selectedTeam.displayName} 
-                className="w-14 h-14 object-contain rounded-xl border bg-background p-1"
-              />
-            ) : (
-              <div className="p-2.5 bg-primary/10 rounded-xl">
-                <Users className="w-6 h-6 text-primary" />
-              </div>
-            )}
+            <div className="p-2.5 bg-primary/10 rounded-xl">
+              <Users className="w-6 h-6 text-primary" />
+            </div>
             <div>
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-foreground tracking-tight" data-testid="text-page-title">
-                {selectedTeam ? `Equipo ${selectedTeam.displayName}` : 'Equipos'}
+                Equipos
               </h2>
               <p className="text-sm text-muted-foreground mt-1">Rendimiento por ejecutivo y equipo comercial</p>
             </div>
@@ -234,19 +226,28 @@ export default function Equipos() {
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
           <div className="min-w-[200px]">
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Equipo</label>
-            <Select value={selectedTeamId} onValueChange={setSelectedTeamId} data-testid="select-team">
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="Seleccionar equipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los Equipos</SelectItem>
-                {teamsData.map((team: any) => (
-                  <SelectItem key={team.id} value={team.id.toString()}>
-                    {team.displayName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-3">
+              {selectedTeam?.imageUrl && (
+                <img 
+                  src={selectedTeam.imageUrl} 
+                  alt={selectedTeam.displayName} 
+                  className="w-10 h-10 object-contain rounded-lg border border-border/50 bg-background/50 p-0.5 flex-shrink-0"
+                />
+              )}
+              <Select value={selectedTeamId} onValueChange={setSelectedTeamId} data-testid="select-team">
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Seleccionar equipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los Equipos</SelectItem>
+                  {teamsData.map((team: any) => (
+                    <SelectItem key={team.id} value={team.id.toString()}>
+                      {team.displayName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="flex-1">
             <DashboardFilters filters={filters} onFilterChange={handleFilterChange} />
