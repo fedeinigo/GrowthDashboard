@@ -96,15 +96,23 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
 
     console.log("[Cache] Starting Pipedrive deals sync...");
     
-    // Fetch deals from both pipeline 1 (Deals) and pipeline 9 (Reuniones/Meetings)
-    const [pipeline1Deals, pipeline9Deals] = await Promise.all([
-      pipedrive.getAllDeals(1),
-      pipedrive.getAllDeals(9),
-    ]);
+    // Only fetch from Pipeline 1 (Deals) - Pipeline 9 is excluded from all metrics
+    const SYNC_TIMEOUT_MS = 120000; // 2 minute timeout for API call
     
-    const deals = [...pipeline1Deals, ...pipeline9Deals];
+    let deals: any[];
+    try {
+      const fetchPromise = pipedrive.getAllDeals(1);
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error("Pipedrive API timeout after 2 minutes")), SYNC_TIMEOUT_MS)
+      );
+      
+      deals = await Promise.race([fetchPromise, timeoutPromise]);
+    } catch (fetchError: any) {
+      console.error("[Cache] Error fetching from Pipedrive:", fetchError.message);
+      throw fetchError;
+    }
     
-    console.log(`[Cache] Fetched ${deals.length} deals from Pipedrive (Pipeline 1: ${pipeline1Deals.length}, Pipeline 9: ${pipeline9Deals.length})`);
+    console.log(`[Cache] Fetched ${deals.length} deals from Pipedrive (Pipeline 1 only)`);
 
     const TYPE_OF_DEAL_FIELD_KEY = "a7ab0c5cfbfd5a57ce6531b4aa0a74b317c4b657";
     const COUNTRY_FIELD_KEY = "f7c43d98b4ef75192ee0798b360f2076754981b9";
