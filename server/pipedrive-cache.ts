@@ -97,7 +97,7 @@ export async function refreshCache(): Promise<{ success: boolean; message: strin
     console.log("[Cache] Starting Pipedrive deals sync...");
     
     // Only fetch from Pipeline 1 (Deals) - Pipeline 9 is excluded from all metrics
-    const SYNC_TIMEOUT_MS = 120000; // 2 minute timeout for API call
+    const SYNC_TIMEOUT_MS = 300000; // 5 minute timeout for API call (production may be slower)
     
     let deals: any[];
     try {
