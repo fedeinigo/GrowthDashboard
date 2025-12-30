@@ -173,7 +173,7 @@ export function useDashboardData(filters?: any) {
         : 0,
       trend: (m.revenue ?? m.totalRevenue ?? 0) >= (m.previousRevenue || 0) ? "up" : "down",
       prefix: "$",
-      subtext: "ARR Neto"
+      subtext: "MRR Neto"
     },
     closureRate: {
       label: "Tasa de Cierre (NC)",

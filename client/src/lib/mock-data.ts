@@ -136,7 +136,7 @@ export const mockMetrics: FilterState = {
       change: 8.4,
       trend: "up",
       prefix: "$",
-      subtext: "ARR Neto"
+      subtext: "MRR Neto"
     },
     logos: {
       label: "Logos Conseguidos",
