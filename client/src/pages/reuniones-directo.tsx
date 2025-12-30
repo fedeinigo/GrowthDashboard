@@ -111,7 +111,8 @@ export default function ReunionesDirecto() {
     if (filters.endDate) params.append('endDate', filters.endDate);
     // Support multi-select format (teams/people arrays)
     if (filters.teams?.length) params.append('teamIds', filters.teams.join(','));
-    if (filters.people?.length) params.append('personIds', filters.people.join(','));
+    // When many people are selected (>50), treat as "all" to include deals from inactive users
+    if (filters.people?.length && filters.people.length <= 50) params.append('personIds', filters.people.join(','));
     if (filters.sources?.length) params.append('sources', filters.sources.join(','));
     if (filters.dealType && filters.dealType !== 'all') params.append('dealType', filters.dealType);
     if (filters.countries?.length) params.append('countries', filters.countries.join(','));

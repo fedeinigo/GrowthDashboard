@@ -22,10 +22,14 @@ import {
 
 export function useDashboardData(filters?: any) {
   // Convert filter values to API format
+  // Note: When many people are selected (>50), treat as "all" to include deals from inactive users
+  // This prevents historical data from being excluded when viewing past periods
+  const shouldFilterByPeople = filters?.people && filters.people.length > 0 && filters.people.length <= 50;
+  
   const apiFilters = filters ? {
     // Support both old single-select (team/person) and new multi-select (teams/people)
     teamIds: filters.teams && filters.teams.length > 0 ? filters.teams.map((t: string) => parseInt(t)) : undefined,
-    personIds: filters.people && filters.people.length > 0 ? filters.people.map((p: string) => parseInt(p)) : undefined,
+    personIds: shouldFilterByPeople ? filters.people.map((p: string) => parseInt(p)) : undefined,
     sources: filters.sources, // Array of source IDs
     startDate: filters.startDate,
     endDate: filters.endDate,

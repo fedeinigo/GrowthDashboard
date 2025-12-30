@@ -73,7 +73,8 @@ export function DealsModal({ isOpen, onClose, metricType, metricTitle, filters }
   if (filters.sources?.length) queryParams.set("sources", filters.sources.join(","));
   // Support multi-select format (teams/people arrays)
   if (filters.teams?.length) queryParams.set("teamIds", filters.teams.join(","));
-  if (filters.people?.length) queryParams.set("personIds", filters.people.join(","));
+  // When many people are selected (>50), treat as "all" to include deals from inactive users
+  if (filters.people?.length && filters.people.length <= 50) queryParams.set("personIds", filters.people.join(","));
   if (filters.dealType) queryParams.set("dealType", filters.dealType);
   queryParams.set("metricType", metricType);
 
