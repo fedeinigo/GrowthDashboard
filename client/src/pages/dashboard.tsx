@@ -294,6 +294,7 @@ export default function Dashboard() {
                             subtext={metrics.revenue?.subtext}
                             icon={DollarSign}
                             className="border-l-4 border-l-primary"
+                            tooltip="Suma del valor mensual (MRR) de todos los deals ganados en el período seleccionado"
                             onClick={() => handleKPIClick("revenue", metrics.revenue?.label || "Revenue")}
                           />
                           <KPICard 
@@ -304,6 +305,7 @@ export default function Dashboard() {
                             suffix={metrics.closureRate?.suffix}
                             subtext={metrics.closureRate?.subtext}
                             icon={Target}
+                            tooltip="Porcentaje de deals New Customer ganados vs totales cerrados (ganados + perdidos)"
                             onClick={() => handleKPIClick("closureRate", metrics.closureRate?.label || "Closure Rate")}
                           />
                           <KPICard 
@@ -313,6 +315,7 @@ export default function Dashboard() {
                             trend={(metrics.meetings?.trend as "up" | "down" | "neutral") || "neutral"} 
                             subtext={metrics.meetings?.subtext}
                             icon={CalendarCheck}
+                            tooltip="Cantidad de tarjetas New Customer creadas en el período (primera reunión agendada)"
                             onClick={() => handleKPIClick("meetings", metrics.meetings?.label || "Meetings")}
                           />
                           <KPICard 
@@ -322,6 +325,7 @@ export default function Dashboard() {
                             trend={(metrics.logos?.trend as "up" | "down" | "neutral") || "neutral"} 
                             subtext={metrics.logos?.subtext}
                             icon={Briefcase}
+                            tooltip="Cantidad de empresas (logos) que cerraron como nuevos clientes en el período"
                             onClick={() => handleKPIClick("logos", metrics.logos?.label || "Logos")}
                           />
                           <KPICard 
@@ -332,6 +336,7 @@ export default function Dashboard() {
                             suffix={metrics.avgSalesCycle?.suffix}
                             subtext={metrics.avgSalesCycle?.subtext}
                             icon={Clock}
+                            tooltip="Promedio de días desde la creación del deal hasta el cierre (solo New Customer)"
                             onClick={() => handleKPIClick("avgSalesCycle", metrics.avgSalesCycle?.label || "Sales Cycle")}
                           />
                           <KPICard 
@@ -342,6 +347,7 @@ export default function Dashboard() {
                             prefix={metrics.avgTicket?.prefix}
                             subtext={metrics.avgTicket?.subtext}
                             icon={Banknote}
+                            tooltip="Valor promedio MRR de los deals New Customer ganados en el período"
                             onClick={() => handleKPIClick("avgTicket", metrics.avgTicket?.label || "Ticket Promedio")}
                           />
                         </div>
@@ -353,6 +359,7 @@ export default function Dashboard() {
                             trend={(metrics.totalNewCustomers?.trend as "up" | "down" | "neutral") || "neutral"} 
                             subtext={metrics.totalNewCustomers?.subtext}
                             icon={UserPlus}
+                            tooltip="Ingresos totales MRR generados por deals de tipo New Customer"
                             onClick={() => handleKPIClick("newCustomers", "New Customers")}
                           />
                           <KPICard 
@@ -362,6 +369,7 @@ export default function Dashboard() {
                             trend={(metrics.totalUpselling?.trend as "up" | "down" | "neutral") || "neutral"} 
                             subtext={metrics.totalUpselling?.subtext}
                             icon={ArrowUpCircle}
+                            tooltip="Ingresos totales MRR generados por deals de tipo Upselling (ventas adicionales a clientes existentes)"
                             onClick={() => handleKPIClick("upselling", "Upselling")}
                           />
                         </div>
