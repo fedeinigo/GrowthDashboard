@@ -229,17 +229,42 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
   });
 
   const queryClient = useQueryClient();
+  const [isWaitingForRefresh, setIsWaitingForRefresh] = useState(false);
   
   const { data: cacheStatus } = useQuery({
     queryKey: ['cacheStatus'],
     queryFn: fetchCacheStatus,
-    refetchInterval: 30000,
+    refetchInterval: isWaitingForRefresh ? 2000 : 30000, // Poll faster during refresh
   });
+
+  // When cache finishes refreshing, invalidate all queries to fetch fresh data
+  useEffect(() => {
+    if (isWaitingForRefresh && cacheStatus && !cacheStatus.isRefreshing) {
+      setIsWaitingForRefresh(false);
+      // Cache refresh completed - invalidate all dashboard queries to get fresh data
+      queryClient.invalidateQueries({ queryKey: ['metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['revenueHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['meetingsHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['closureRateHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['productStats'] });
+      queryClient.invalidateQueries({ queryKey: ['rankings'] });
+      queryClient.invalidateQueries({ queryKey: ['regionalData'] });
+      queryClient.invalidateQueries({ queryKey: ['conversionFunnel'] });
+      queryClient.invalidateQueries({ queryKey: ['lossReasons'] });
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ['people'] });
+      queryClient.invalidateQueries({ queryKey: ['sources'] });
+      queryClient.invalidateQueries({ queryKey: ['countries'] });
+      queryClient.invalidateQueries({ queryKey: ['directMeetings'] });
+      queryClient.invalidateQueries({ queryKey: ['funnelBySdr'] });
+    }
+  }, [cacheStatus, isWaitingForRefresh, queryClient]);
 
   const refreshMutation = useMutation({
     mutationFn: refreshCache,
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      // Start waiting for refresh to complete
+      setIsWaitingForRefresh(true);
     },
   });
 
@@ -744,16 +769,16 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
             variant="outline" 
             size="sm"
             onClick={() => refreshMutation.mutate()}
-            disabled={refreshMutation.isPending || cacheStatus?.isRefreshing}
+            disabled={refreshMutation.isPending || cacheStatus?.isRefreshing || isWaitingForRefresh}
             className="gap-2"
             data-testid="button-refresh-data"
           >
-            {(refreshMutation.isPending || cacheStatus?.isRefreshing) ? (
+            {(refreshMutation.isPending || cacheStatus?.isRefreshing || isWaitingForRefresh) ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            Actualizar datos
+            {(cacheStatus?.isRefreshing || isWaitingForRefresh) ? "Actualizando..." : "Actualizar datos"}
           </Button>
           {cacheStatus?.lastSyncAt && (
             <span className="text-xs text-muted-foreground mt-1" data-testid="text-last-updated">
