@@ -281,6 +281,10 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     onFilterChange({ teams: allSelected ? undefined : newTeams });
   };
 
+  const handleTeamOnly = (teamId: string) => {
+    onFilterChange({ teams: [teamId] });
+  };
+
   const handlePersonToggle = (personId: string) => {
     // When "all" is selected (undefined or empty), start from full list to deselect
     const isAllSelected = !filters?.people || filters.people.length === 0;
@@ -293,6 +297,18 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
     // If all people are selected, reset to undefined (shows "All People")
     const allSelected = newPeople.length === allPersonIds.length || newPeople.length === 0;
     onFilterChange({ people: allSelected ? undefined : newPeople });
+  };
+
+  const handlePersonOnly = (personId: string) => {
+    onFilterChange({ people: [personId] });
+  };
+
+  const handleSourceOnly = (sourceId: string) => {
+    onFilterChange({ sources: [sourceId] });
+  };
+
+  const handleCountryOnly = (country: string) => {
+    onFilterChange({ countries: [country] });
   };
 
   const sources: FilterOption[] = sourcesData.map((source: any) => ({ value: source.id.toString(), label: source.displayName }));
@@ -544,10 +560,10 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                   : "Todos los Equipos"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[220px] p-0" align="start">
+            <PopoverContent className="w-[260px] p-0" align="start">
               <div className="max-h-[300px] overflow-y-auto p-2">
                 {teams.map((team: FilterOption) => (
-                  <div key={team.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer">
+                  <div key={team.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer group">
                     <Checkbox
                       id={`team-${team.value}`}
                       checked={!filters?.teams || filters.teams.length === 0 || filters.teams.includes(team.value)}
@@ -556,6 +572,12 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                     <label htmlFor={`team-${team.value}`} className="text-sm cursor-pointer flex-1">
                       {team.label}
                     </label>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleTeamOnly(team.value); }}
+                      className="text-[10px] text-muted-foreground hover:text-primary px-1.5 py-0.5 rounded hover:bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      Solo
+                    </button>
                   </div>
                 ))}
               </div>
@@ -581,10 +603,10 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                   : "Todas las Personas"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[250px] p-0" align="start">
+            <PopoverContent className="w-[280px] p-0" align="start">
               <div className="max-h-[300px] overflow-y-auto p-2">
                 {people.map((person: FilterOption) => (
-                  <div key={person.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer">
+                  <div key={person.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer group">
                     <Checkbox
                       id={`person-${person.value}`}
                       checked={!filters?.people || filters.people.length === 0 || filters.people.includes(person.value)}
@@ -593,6 +615,12 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                     <label htmlFor={`person-${person.value}`} className="text-sm cursor-pointer flex-1">
                       {person.label}
                     </label>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handlePersonOnly(person.value); }}
+                      className="text-[10px] text-muted-foreground hover:text-primary px-1.5 py-0.5 rounded hover:bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      Solo
+                    </button>
                   </div>
                 ))}
               </div>
@@ -618,10 +646,10 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                   : "Todos los orígenes"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-0" align="start">
+            <PopoverContent className="w-[300px] p-0" align="start">
               <div className="max-h-[300px] overflow-y-auto p-2">
                 {sources.map((source: FilterOption) => (
-                  <div key={source.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer">
+                  <div key={source.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer group">
                     <Checkbox
                       id={`source-${source.value}`}
                       checked={filters?.sources?.includes(source.value) || false}
@@ -630,6 +658,12 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                     <label htmlFor={`source-${source.value}`} className="text-sm cursor-pointer flex-1">
                       {source.label}
                     </label>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleSourceOnly(source.value); }}
+                      className="text-[10px] text-muted-foreground hover:text-primary px-1.5 py-0.5 rounded hover:bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      Solo
+                    </button>
                   </div>
                 ))}
               </div>
@@ -672,10 +706,10 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                   : "Todos los países"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[250px] p-0" align="start">
+            <PopoverContent className="w-[280px] p-0" align="start">
               <div className="max-h-[300px] overflow-y-auto p-2">
                 {countries.map((country: FilterOption) => (
-                  <div key={country.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer" onClick={() => handleCountryToggle(country.value)}>
+                  <div key={country.value} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm cursor-pointer group" onClick={() => handleCountryToggle(country.value)}>
                     <Checkbox
                       id={`country-${country.value}`}
                       checked={filters?.countries?.includes(country.value) || false}
@@ -684,6 +718,12 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
                     <label htmlFor={`country-${country.value}`} className="text-sm cursor-pointer flex-1">
                       {country.label}
                     </label>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleCountryOnly(country.value); }}
+                      className="text-[10px] text-muted-foreground hover:text-primary px-1.5 py-0.5 rounded hover:bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      Solo
+                    </button>
                   </div>
                 ))}
               </div>
