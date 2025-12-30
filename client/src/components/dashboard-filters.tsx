@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { FilterOption } from "@/lib/mock-data";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { es } from "date-fns/locale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchTeams, fetchPeople, fetchSources, fetchDealTypes, fetchCountries, fetchCacheStatus, refreshCache } from "@/lib/api";
@@ -230,6 +230,7 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
 
   const queryClient = useQueryClient();
   const [isWaitingForRefresh, setIsWaitingForRefresh] = useState(false);
+  const pollCountRef = useRef(0);
   
   const { data: cacheStatus } = useQuery({
     queryKey: ['cacheStatus'],
@@ -241,6 +242,7 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
   useEffect(() => {
     if (isWaitingForRefresh && cacheStatus && !cacheStatus.isRefreshing) {
       setIsWaitingForRefresh(false);
+      pollCountRef.current = 0;
       // Cache refresh completed - invalidate all dashboard queries to get fresh data
       queryClient.invalidateQueries({ queryKey: ['metrics'] });
       queryClient.invalidateQueries({ queryKey: ['revenueHistory'] });
@@ -257,6 +259,15 @@ export function DashboardFilters({ filters, onFilterChange }: DashboardFiltersPr
       queryClient.invalidateQueries({ queryKey: ['countries'] });
       queryClient.invalidateQueries({ queryKey: ['directMeetings'] });
       queryClient.invalidateQueries({ queryKey: ['funnelBySdr'] });
+    }
+    
+    // Safety timeout: if we've been waiting for 30+ seconds (15 polls at 2s each), reset
+    if (isWaitingForRefresh) {
+      pollCountRef.current++;
+      if (pollCountRef.current >= 15) {
+        setIsWaitingForRefresh(false);
+        pollCountRef.current = 0;
+      }
     }
   }, [cacheStatus, isWaitingForRefresh, queryClient]);
 

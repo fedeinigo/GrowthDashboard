@@ -36,6 +36,7 @@ export function CacheStatusIndicator() {
   const queryClient = useQueryClient();
   const [manualRefreshTriggered, setManualRefreshTriggered] = useState(false);
   const prevIsRefreshing = useRef<boolean | undefined>(undefined);
+  const pollCountRef = useRef(0);
 
   const { data: cacheStatus, isLoading } = useQuery<CacheStatus>({
     queryKey: ["/api/cache/status"],
@@ -57,7 +58,19 @@ export function CacheStatusIndicator() {
     // If refresh just finished (was true, now false), reset and invalidate
     if (wasRefreshing === true && nowRefreshing === false && manualRefreshTriggered) {
       setManualRefreshTriggered(false);
+      pollCountRef.current = 0;
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+    }
+    
+    // Safety: If server says not refreshing but we think we triggered a refresh,
+    // reset after a few polls (handles edge case where refresh completed before we could track it)
+    if (manualRefreshTriggered && nowRefreshing === false) {
+      pollCountRef.current++;
+      if (pollCountRef.current >= 3) {
+        setManualRefreshTriggered(false);
+        pollCountRef.current = 0;
+        queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      }
     }
   }, [cacheStatus?.isRefreshing, manualRefreshTriggered, queryClient]);
 
